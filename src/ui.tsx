@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode, type Ref } from 'react'
 import { token, fmt } from './data'
 import { useStore } from './store'
 
@@ -48,15 +48,15 @@ export function TokenPicker({ value, onChange, options }: { value: string; onCha
   )
 }
 
-export function AmountField({ label, value, onChange, hint, onMax, right, readOnly }: { label: string; value: string; onChange?: (v: string) => void; hint?: ReactNode; onMax?: () => void; right?: ReactNode; readOnly?: boolean }) {
+export function AmountField({ label, value, onChange, hint, onMax, right, readOnly, inputRef }: { label: string; value: string; onChange?: (v: string) => void; hint?: ReactNode; onMax?: () => void; right?: ReactNode; readOnly?: boolean; inputRef?: Ref<HTMLInputElement> }) {
   return (
     <div className="fld">
       <span className="fl">{label}</span>
       <div className="fv">
-        <input className="num" inputMode="decimal" placeholder="0" value={value} readOnly={readOnly} onChange={e => onChange?.(e.target.value.replace(/[^0-9.]/g, ''))} aria-label={label} />
+        <input ref={inputRef} className="num" inputMode="decimal" placeholder="0" value={value} readOnly={readOnly} onChange={e => onChange?.(e.target.value.replace(/[^0-9.]/g, ''))} aria-label={label} />
         {right}
       </div>
-      <div className="hint"><span>{hint}</span>{onMax && <button className="link" onClick={onMax}>Max</button>}</div>
+      <div className="hint"><span>{hint}</span>{onMax && <button className="tag" onClick={onMax}>Max</button>}</div>
     </div>
   )
 }

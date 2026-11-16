@@ -28,7 +28,7 @@ export function Send({ run }: { run: (title: string, fn: () => void) => void }) 
           <div className="fld"><span className="fl">To</span><input className="txt" placeholder="hagi1…" value={to} onChange={e => setTo(e.target.value)} aria-label="Recipient Hagi address" />
             <div className="hint"><span>{to && !validTo ? 'That doesn’t look like a Hagi address.' : 'Paste the other person’s Hagi address.'}</span></div></div>
           <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(String(have))} right={<TokenPicker value={cur} onChange={setSym} options={options} />} />
-          <button className="btn" disabled={!validTo || n <= 0 || n > have} onClick={() => run('Sending privately', () => { d({ type: 'send', symbol: cur, amount: n, to }); setAmt(''); setTo('') })}>{n > have ? 'Not enough ' + cur : 'Send privately'}</button>
+          <button className="btn" disabled={!validTo || n <= 0 || n > have} onClick={() => run('Sending privately', () => { d({ type: 'send', symbol: cur, amount: n, to }); setAmt(''); setTo('') })}>{!validTo ? 'Enter a Hagi address' : n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : 'Send privately'}</button>
         </> : <div className="recv">
           {qr && <img src={qr} alt="QR code of your Hagi address" width={220} height={220} />}
           <span className="fl">Your Hagi address</span>

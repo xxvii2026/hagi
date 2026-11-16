@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { FAUCET_URL, DEMO_MODE } from '../chain'
 import { fmt, token, usd } from '../data'
 import { go } from '../nav'
@@ -14,6 +14,13 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
   const [sym, setSym] = useState('USDG')
   const [amt, setAmt] = useState('')
   const [copied, setCopied] = useState(false)
+  const [flash, setFlash] = useState(false)
+  const amountRef = useRef<HTMLInputElement>(null)
+  // The big Shield and Unshield buttons jump to the form, select the right tab and put the cursor in the amount box.
+  const openForm = (t: 'shield' | 'unshield') => {
+    setTab(t); setAmt(''); setFlash(true); setTimeout(() => setFlash(false), 900)
+    requestAnimationFrame(() => { amountRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' }); amountRef.current?.focus() })
+  }
   const src = tab === 'shield' ? s.walletBal : s.shielded
   const options = Object.keys(src).length ? Object.keys(src) : ['USDG']
   const cur = options.includes(sym) ? sym : options[0]
@@ -39,13 +46,13 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
             <span>Your private balance</span>
             <span className="heroR">
               <button className="addr" onClick={copy} title="Copy your Hagi address">{copied ? 'Copied' : addr.slice(0, 9) + '…' + addr.slice(-4)}<i>⧉</i></button>
-              <button className="link" onClick={() => d({ type: 'toggleHidden' })}>{s.hidden ? 'Show' : 'Hide'}</button>
+              <button className="addr plain" onClick={() => d({ type: 'toggleHidden' })}>{s.hidden ? 'Show amounts' : 'Hide amounts'}</button>
             </span>
           </div>
           <div className="big">{s.hidden ? <Censor seed="balance" cols={12} cell={22} onDark /> : <>${whole}<small>.{cents}</small></>}</div>
           <div className="qas">
-            <button className="qa p" onClick={() => setTab('shield')}><i>↓</i>Shield</button>
-            <button className="qa" onClick={() => setTab('unshield')}><i>↑</i>Unshield</button>
+            <button className="qa p" onClick={() => openForm('shield')}><i>↓</i>Shield</button>
+            <button className="qa" onClick={() => openForm('unshield')}><i>↑</i>Unshield</button>
             <button className="qa" onClick={() => go('swap')}><i>⇄</i>Swap</button>
             <button className="qa" onClick={() => go('send')}><i>→</i>Send</button>
           </div>
@@ -53,8 +60,8 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
 
         {unshielded > 0 && (
           <div className="nudge">
-            <span><i />You have <b>{usd(unshielded)}</b> in your wallet that isn’t private yet.</span>
-            <button className="chip strong" onClick={shieldAll}>Shield all</button>
+            <span><i>!</i><span><b>{usd(unshielded)} in your wallet isn’t private yet.</b><em>Shield it to add it to your private balance.</em></span></span>
+            <button className="btn sm" onClick={shieldAll}>Shield all</button>
           </div>
         )}
 
@@ -77,8 +84,8 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
                 <TokenIcon symbol={k} />
                 <div className="g"><b>{token(k).name}</b><span>{k}</span></div>
                 <div className="rowacts">
-                  <button className="chip" onClick={() => go('swap?from=' + k)}>Swap</button>
-                  <button className="chip" onClick={() => go('send?token=' + k)}>Send</button>
+                  <button className="chip line" onClick={() => go('swap?from=' + k)}>Swap</button>
+                  <button className="chip line" onClick={() => go('send?token=' + k)}>Send</button>
                 </div>
                 <div className="r"><b><Amount value={v * token(k).price} seed={k + 'v'} prefix="$" /></b><span><Amount value={v} seed={k + 'q'} digits={k === 'USDG' ? 2 : 4} cell={6} /> {k}</span></div>
               </div>
@@ -86,7 +93,7 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
           </>}
         </Card>
 
-        <Card title="Popular baskets" action={<button className="link" onClick={() => go('baskets')}>See all</button>}>
+        <Card title="Popular baskets" action={<button className="tag" onClick={() => go('baskets')}>See all</button>}>
           <div className="minis">{popular.map(b => (
             <div className="mini" key={b.id}>
               <div className="st">{b.items.slice(0, 4).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={28} />)}{b.items.length > 4 && <span className="ti more sm">+{b.items.length - 4}</span>}</div>
@@ -99,18 +106,18 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
       </div>
 
       <div className="col">
-        <Card>
+        <Card className={flash ? 'flash' : ''}>
           <div className="tabs"><button className={tab === 'shield' ? 'on' : ''} onClick={() => setTab('shield')}>Shield</button><button className={tab === 'unshield' ? 'on' : ''} onClick={() => setTab('unshield')}>Unshield</button></div>
           <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
             hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have)} {cur}</>} onMax={() => setAmt(String(have))}
-            right={<TokenPicker value={cur} onChange={setSym} options={options} />} />
+            right={<TokenPicker value={cur} onChange={setSym} options={options} />} inputRef={amountRef} />
           <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', () => { d({ type: tab, symbol: cur, amount: n }); setAmt('') })}>
-            {n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + (n ? fmt(n) + ' ' + cur : '')}
+            {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
           </button>
           {have === 0 && tab === 'shield' && <button className="link center" onClick={faucet}>Wallet empty? Get test funds</button>}
           <Visibility pub={tab === 'shield' ? 'this deposit: your wallet and the amount.' : 'this withdrawal: the receiving wallet and the amount.'} priv="your balance and what you hold." />
         </Card>
-        <Card title="Recent activity" action={<button className="link" onClick={() => go('activity')}>See all</button>}>
+        <Card title="Recent activity" action={<button className="tag" onClick={() => go('activity')}>See all</button>}>
           <ActivityList limit={4} />
         </Card>
       </div>

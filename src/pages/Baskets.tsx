@@ -33,12 +33,12 @@ function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: (t: st
   const have = s.shielded.USDG ?? 0
   return (
     <div className="overlay" onClick={close}><div className="modal wide" onClick={e => e.stopPropagation()}>
-      <div className="ch"><span>{b.name}</span><button className="link" onClick={close}>Close</button></div>
+      <div className="ch"><span>{b.name}</span><button className="x" onClick={close} aria-label="Close">×</button></div>
       <p className="muted">Created by {b.creator} · {b.buyers} buyers</p>
       <div className="weights">{b.items.map(it => <div className="wb" key={it.symbol}><TokenIcon symbol={it.symbol} size={28} /><span>{it.symbol}</span><div className="bar"><i style={{ width: it.weight + '%' }} /></div><b>{it.weight}%</b></div>)}</div>
       <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have)} USDG</>} onMax={() => setAmt(String(have))} right={<span className="unit">USDG</span>} />
       {n > 0 && <div className="kv"><span>You get</span><b>{b.items.map(it => fmt((n * it.weight) / 100 / token(it.symbol).price, 3) + ' ' + it.symbol).join(' · ')}</b></div>}
-      <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, () => d({ type: 'buyBasket', id: b.id, amount: n })) }}>{n > have ? 'Not enough USDG' : 'Buy basket'}</button>
+      <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, () => d({ type: 'buyBasket', id: b.id, amount: n })) }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>
       <Visibility pub="this purchase: your wallet, the basket and the amount." priv="your total balance." />
     </div></div>
   )
@@ -55,12 +55,12 @@ function CreateModal({ close }: { close: () => void }) {
   const ok = name.trim().length >= 2 && picked.length >= 2 && sum === 100 && picked.every(k => w[k] > 0)
   return (
     <div className="overlay" onClick={close}><div className="modal wide" onClick={e => e.stopPropagation()}>
-      <div className="ch"><span>Create a basket</span><button className="link" onClick={close}>Close</button></div>
+      <div className="ch"><span>Create a basket</span><button className="x" onClick={close} aria-label="Close">×</button></div>
       <div className="fld"><span className="fl">Name</span><input className="txt" placeholder="e.g. Chip makers" maxLength={32} value={name} onChange={e => setName(e.target.value)} aria-label="Basket name" /></div>
       <span className="fl pad">Pick 2 to {MAX_BASKET} stocks</span>
       <div className="pop">{TOKENS.filter(t => t.symbol !== 'USDG').map(t => <button key={t.symbol} className={'chip ' + (t.symbol in w ? 'on' : '')} onClick={() => toggle(t.symbol)}><TokenIcon symbol={t.symbol} size={26} />{t.symbol}</button>)}</div>
       {picked.length > 0 && <>
-        <div className="lab pad"><span>Weights · total {sum}%</span><button className="link" onClick={even}>Split evenly</button></div>
+        <div className="lab pad"><span>Weights · total {sum}%</span><button className="tag" onClick={even}>Split evenly</button></div>
         <div className="weights">{picked.map(k => <div className="wb" key={k}><TokenIcon symbol={k} size={28} /><span>{k}</span><div className="bar"><i style={{ width: Math.min(100, w[k] || 0) + '%' }} /></div><input className="pct" inputMode="numeric" value={w[k] || ''} onChange={e => setW({ ...w, [k]: Math.min(100, parseInt(e.target.value.replace(/\D/g, '')) || 0) })} aria-label={k + ' weight'} /></div>)}</div>
       </>}
       <button className="btn" disabled={!ok} onClick={() => { d({ type: 'createBasket', name: name.trim(), items: picked.map(k => ({ symbol: k, weight: w[k] })) }); close() }}>{picked.length >= 2 && sum !== 100 ? `Weights must total 100% (now ${sum}%)` : 'Create basket'}</button>
@@ -86,7 +86,7 @@ export function Baskets({ run }: { run: (title: string, fn: () => void) => void 
             <div className="st">{b.items.slice(0, 5).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={34} />)}{b.items.length > 5 && <span className="ti more">+{b.items.length - 5}</span>}</div>
             <div className="bn">{b.name}</div>
             <div className="bm">{b.items.length} stocks · by {b.creator}</div>
-            <div className="bf"><span>{b.buyers} buyers</span><span className="acts"><button className="chip" onClick={() => shareBasket(b)}>Share</button><button className="chip strong" onClick={() => setBuy(b)}>Buy</button></span></div>
+            <div className="bf"><span>{b.buyers} buyers</span><span className="acts"><button className="chip line" onClick={() => shareBasket(b)}>Share</button><button className="chip strong" onClick={() => setBuy(b)}>Buy</button></span></div>
           </Card>
         ))}</div>
       )}

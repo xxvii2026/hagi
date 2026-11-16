@@ -29,7 +29,7 @@ export function Swap({ run }: { run: (title: string, fn: () => void) => void }) 
           <div className="kv"><span>Slippage limit</span><b>0.5%</b></div>
         </div>
         <button className="btn" disabled={n <= 0 || n > have} onClick={() => run('Swapping', () => { d({ type: 'swap', from, to, amount: n }); setAmt('') })}>
-          {n > have ? 'Not enough ' + from : 'Swap'}
+          {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + from : 'Swap'}
         </button>
       </Card>
       <div className="col n">
