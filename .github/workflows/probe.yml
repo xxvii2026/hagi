@@ -16,23 +16,27 @@ jobs:
       DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
     steps:
       - uses: foundry-rs/foundry-toolchain@v1
-      - name: Chain and wallets
+      - name: Vault deployment block and log queries
+        env:
+          VAULT: '0x0C3C8c6929851818d6a15A4c57D68F9342B81798'
         run: |
-          echo "chain id: $(cast chain-id --rpc-url $RPC)"
-          echo "block: $(cast block-number --rpc-url $RPC)"
-          if [ -n "$DEPLOYER_PRIVATE_KEY" ]; then
-            A=$(cast wallet address --private-key "$DEPLOYER_PRIVATE_KEY")
-            [ "${A,,}" = "${DEPLOYER,,}" ] && echo "deployer secret matches address: yes" || echo "deployer secret matches address: NO"
-          else echo "deployer secret: missing"; fi
-          echo "deployer ETH: $(cast from-wei $(cast balance $DEPLOYER --rpc-url $RPC))"
-          echo "relayer ETH: $(cast from-wei $(cast balance $RELAYER --rpc-url $RPC))"
-          echo "permit2 code bytes: $(cast code 0x000000000022D473030F116dDEE9F6B43aC78BA3 --rpc-url $RPC | wc -c)"
-      - name: Deployer token holdings
-        run: curl -sS "$EXP/addresses/$DEPLOYER/token-balances" | jq -r '.[]? | "\(.token.symbol)\t\(.token.address_hash // .token.address)\tdec=\(.token.decimals)\traw=\(.value)\t\(.token.name)"' || true
-      - name: Search explorer
-        run: |
-          for q in uniswap PoolManager UniversalRouter SwapRouter USDG WETH; do
-            echo "== $q"; curl -sS "$EXP/search?q=$q" | jq -r '.items[]? | "\(.type)\t\(.name // .symbol)\t\(.address_hash // .address)\t\(.symbol // "")\tverified=\(.is_smart_contract_verified // "")"' | head -12 || true
-          done
-      - name: Listed tokens
-        run: curl -sS "$EXP/tokens?type=ERC-20" | jq -r '.items[]? | "\(.symbol)\t\(.address_hash // .address)\tdec=\(.decimals)\tholders=\(.holders_count // .holder_count)\t\(.name)"' | head -60 || true
+          LATEST=$(cast block-number --rpc-url $RPC); echo "latest block: $LATEST"
+          echo "block gas limit: $(cast block latest --field gasLimit --rpc-url $RPC)"
+          echo "gas price wei: $(cast gas-price --rpc-url $RPC)"
+          curl -sS "$EXP/addresses/$VAULT" | jq -r '"creation tx: \(.creation_transaction_hash // .creation_tx_hash)"' | tee /tmp/c.txt
+          TX=$(cut -d' ' -f3 /tmp/c.txt)
+          DEPLOY=$(cast receipt $TX blockNumber --rpc-url $RPC); echo "vault deploy block: $DEPLOY"
+          echo "-- getLogs full range"
+          curl -sS -X POST $RPC -H 'content-type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_getLogs\",\"params\":[{\"address\":\"$VAULT\",\"fromBlock\":\"$(cast to-hex $DEPLOY)\",\"toBlock\":\"latest\"}]}" | head -c 400; echo
+          echo "-- getLogs from block 1"
+          curl -sS -X POST $RPC -H 'content-type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_getLogs\",\"params\":[{\"address\":\"$VAULT\",\"fromBlock\":\"0x1\",\"toBlock\":\"latest\"}]}" | head -c 400; echo
+          echo "-- RPC CORS"
+          curl -sS -i -X POST $RPC -H 'content-type: application/json' -H 'Origin: https://hagi.example' -d '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' | grep -iE "^HTTP|access-control|^\{" | head -6
+          curl -sS -i -X OPTIONS $RPC -H 'Origin: https://hagi.example' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type' | grep -iE "^HTTP|access-control" | head -6
+          echo "-- explorer CORS"
+          curl -sS -i "$EXP/addresses/$VAULT/logs" -H 'Origin: https://hagi.example' | grep -iE "^HTTP|access-control" | head -4
+          echo "-- vault state"
+          echo "next index: $(cast call $VAULT 'nextIndex()(uint32)' --rpc-url $RPC)"
+          echo "usdg allowed: $(cast call $VAULT 'allowedToken(address)(bool)' 0x48fdc557DE6Fe7efD3341e6c28A626Be021d117a --rpc-url $RPC)"
+          echo "baskets: $(cast call 0x66D458817B7bCA5655ffB32d5d51770F2C964738 'basketCount()(uint256)' --rpc-url $RPC)"
+          echo "TSLA spot: $(cast call 0xA81738A148743645EB46Ff579CE6E81c63896BE6 'spotPrice(address)(uint256)' 0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E --rpc-url $RPC)"
