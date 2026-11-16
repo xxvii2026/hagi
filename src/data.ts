@@ -9,7 +9,8 @@ export type Token = { symbol: string; name: string; decimals: number; address: H
 const logo = (ticker: string) => `https://cdn.jsdelivr.net/gh/nvstly/icons@main/ticker_icons/${ticker}.png`
 
 export const TOKENS: Token[] = [
-  { symbol: 'USDG', name: 'Test USDG', decimals: 6, address: CFG.contracts.usdg, price: 1 },
+  // Hagi's test dollar stands in for USDG (Global Dollar), so it wears that logo. The name stays "Test USDG".
+  { symbol: 'USDG', name: 'Test USDG', decimals: 6, address: CFG.contracts.usdg, price: 1, logoURI: 'https://coin-images.coingecko.com/coins/images/51281/large/GDN_USDG_Token_200x200.png' },
   { symbol: 'TSLA', name: 'Tesla', decimals: 18, address: CFG.tokens.TSLA, price: 0, logoURI: logo('TSLA') },
   { symbol: 'AMD', name: 'AMD', decimals: 18, address: CFG.tokens.AMD, price: 0, logoURI: logo('AMD') },
   { symbol: 'AMZN', name: 'Amazon', decimals: 18, address: CFG.tokens.AMZN, price: 0, logoURI: logo('AMZN') },
