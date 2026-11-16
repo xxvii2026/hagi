@@ -41,7 +41,6 @@ function WalletMenu() {
       {open && (
         <ul className="tpl menu" role="menu">
           {s.hagiAddress && <li><button onClick={copy}><span className="g"><b>{copied ? 'Copied' : 'Copy my Hagi address'}</b><span>{s.hagiAddress.slice(0, 12)}…{s.hagiAddress.slice(-6)}</span></span><Icon name="copy" size={15} /></button></li>}
-          <li><button onClick={() => { api.toggleHidden(); setOpen(false) }}><span className="g"><b>{s.hidden ? 'Show amounts' : 'Hide amounts'}</b><span>Pixelates every balance on screen</span></span></button></li>
           <li><button onClick={exportHistory} disabled={!s.activity.length}><span className="g"><b>Export my history</b><span>{s.activity.length ? 'Downloads your activity as a file' : 'Nothing to export yet'}</span></span></button></li>
           <li><button onClick={() => { setOpen(false); api.disconnect() }}><span className="g"><b>Disconnect</b><span>Locks your Hagi account on this tab</span></span></button></li>
         </ul>

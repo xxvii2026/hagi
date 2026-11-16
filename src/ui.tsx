@@ -39,16 +39,15 @@ export function Icon({ name, size = 16 }: { name: IconName; size?: number }) {
   return <svg className="ic" width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={ICONS[name]} /></svg>
 }
 
-/** Pixel censor. Replaces a number with a mosaic when amounts are hidden. */
+/** Pixel censor. Stands in for a number that is kept private. */
 export function Censor({ seed, cols = 7, cell = 9, onDark = false }: { seed: string; cols?: number; cell?: number; onDark?: boolean }) {
   const pal = onDark ? ['#ffffff', '#566eba', '#8696cf', '#b0a7b8', '#c9d1ee', '#3a4a8a'] : ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#d9def0', '#3a4a8a']
   let h = hash(seed)
   const cells = Array.from({ length: cols * 2 }, () => { h = (h * 1103515245 + 12345) >>> 0; return pal[(h >>> 8) % pal.length] })
   return <span className="censor" style={{ gridTemplateColumns: `repeat(${cols}, ${cell}px)`, gridAutoRows: cell }} aria-label="Hidden">{cells.map((c, i) => <i key={i} style={{ background: c }} />)}</span>
 }
-export function Amount({ value, seed, prefix = '', digits = 2, cell }: { value: number; seed: string; prefix?: string; digits?: number; cell?: number }) {
-  const { s } = useStore()
-  return s.hidden ? <Censor seed={seed} cell={cell} /> : <>{prefix}{fmt(value, digits)}</>
+export function Amount({ value, prefix = '', digits = 2 }: { value: number; seed?: string; prefix?: string; digits?: number; cell?: number }) {
+  return <>{prefix}{fmt(value, digits)}</>
 }
 
 export function Card({ title, action, children, className = '' }: { title?: string; action?: ReactNode; children: ReactNode; className?: string }) {

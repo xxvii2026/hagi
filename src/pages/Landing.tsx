@@ -63,7 +63,7 @@ export function Landing() {
                 <div className="ghost"><Mark size={300} leaf="#252d5a" block="#313c74" /></div>
                 <div className="lab"><span>Your private balance</span><span className="addr">hagi1f629…71d0</span></div>
                 <div className="big"><Peek text="$12,480.34" seed="hero" cols={12} cell={20} onDark /></div>
-                <div className="qas">{(['Shield', 'Unshield', 'Swap', 'Send'] as const).map((t, i) => <span key={t} className={'qa' + (i === 0 ? ' p' : '')}><i><Icon name={(['down', 'up', 'swap', 'right'] as const)[i]} /></i>{t}</span>)}</div>
+                <div className="qas">{(['Swap', 'Send'] as const).map((t, i) => <span key={t} className="qa"><i><Icon name={(['swap', 'right'] as const)[i]} /></i>{t}</span>)}</div>
               </div>
               <div className="card">
                 <div className="ch"><span>Your stocks and cash</span></div>

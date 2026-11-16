@@ -11,29 +11,26 @@ export type State = {
   shielded: Record<string, number>
   activity: Activity[]
   baskets: Basket[]
-  hidden: boolean
   syncing: boolean
   offline: boolean             // the chain could not be read
 }
-const initial: State = { wallet: null, hagiAddress: null, walletBal: {}, eth: 0, shielded: {}, activity: [], baskets: [], hidden: false, syncing: false, offline: false }
+const initial: State = { wallet: null, hagiAddress: null, walletBal: {}, eth: 0, shielded: {}, activity: [], baskets: [], syncing: false, offline: false }
 
 type Api = {
   connect: () => Promise<void>
   unlock: () => Promise<void>
   disconnect: () => void
   refresh: () => Promise<void>
-  toggleHidden: () => void
   log: (a: Omit<Activity, 'id' | 'time'>) => void
 }
 const Ctx = createContext<{ s: State; api: Api }>({ s: initial, api: {} as Api })
 
-const PREFS = 'hagi-prefs-v2'
 const activityKey = (w: string) => 'hagi-activity-' + w.toLowerCase()
 const load = <T,>(k: string, d: T): T => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : d } catch { return d } }
 const save = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch { /* storage unavailable */ } }
 
 export function Store({ children }: { children: ReactNode }) {
-  const [s, setS] = useState<State>(() => ({ ...initial, hidden: load(PREFS, { hidden: false }).hidden }))
+  const [s, setS] = useState<State>(initial)
   const patch = useCallback((p: Partial<State>) => setS(x => ({ ...x, ...p })), [])
   const busy = useRef(false)
   const logRef = useRef<Api['log']>(() => {})
@@ -78,9 +75,8 @@ export function Store({ children }: { children: ReactNode }) {
       patch({ hagiAddress })
       await refresh()
     },
-    disconnect: () => { engine.lock(); setS(x => ({ ...initial, hidden: x.hidden, baskets: x.baskets })) },
+    disconnect: () => { engine.lock(); setS(x => ({ ...initial, baskets: x.baskets })) },
     refresh,
-    toggleHidden: () => setS(x => { save(PREFS, { hidden: !x.hidden }); return { ...x, hidden: !x.hidden } }),
     log: a => setS(x => {
       const activity = [{ ...a, id: Date.now(), time: Date.now() }, ...x.activity].slice(0, 200)
       if (x.wallet) save(activityKey(x.wallet), activity)

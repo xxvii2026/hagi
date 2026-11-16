@@ -31,7 +31,7 @@ export function Send({ run }: { run: Run }) {
         {tab === 'send' ? <>
           <div className="fld"><span className="fl">To</span><input className="txt" placeholder="hagi1…" value={to} onChange={e => setTo(e.target.value)} aria-label="Recipient Hagi address" />
             <div className="hint"><span>{to && !validTo ? 'That doesn’t look like a Hagi address.' : 'Paste the other person’s Hagi address.'}</span></div></div>
-          <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))} right={<TokenPicker value={cur} onChange={setSym} options={options} balances={s.hidden ? undefined : s.shielded} />} />
+          <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))} right={<TokenPicker value={cur} onChange={setSym} options={options} balances={s.shielded} />} />
           <button className="btn" disabled={!validTo || n <= 0 || n > have} onClick={() => run('Sending privately', async step => {
             await engine.send(cur, n, to, step)
             api.log({ kind: 'send', title: 'Sent ' + cur, detail: fmt(n, cur === 'USDG' ? 2 : 4) + ' ' + cur, isPrivate: true })

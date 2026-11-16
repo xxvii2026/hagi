@@ -1,10 +1,10 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { FAUCET_URL } from '../chain'
 import * as engine from '../engine'
 import { TOKENS, asInput, fmt, token, usd } from '../data'
 import { go } from '../nav'
 import { total, useStore } from '../store'
-import { Amount, AmountField, Card, Censor, Icon, Mark, TokenIcon, TokenPicker, Visibility, type Run } from '../ui'
+import { Amount, AmountField, Card, Icon, Mark, TokenIcon, TokenPicker, Visibility, type Run } from '../ui'
 import { ActivityList } from './Activity'
 
 const MIX = ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#3a4a8a', '#c9d1ee', '#7f86ad', '#d9def0']
@@ -15,13 +15,6 @@ export function Portfolio({ run }: { run: Run }) {
   const [sym, setSym] = useState('USDG')
   const [amt, setAmt] = useState('')
   const [copied, setCopied] = useState(false)
-  const [flash, setFlash] = useState(false)
-  const amountRef = useRef<HTMLInputElement>(null)
-  // The big Shield and Unshield buttons jump to the form, select the right tab and put the cursor in the amount box.
-  const openForm = (t: 'shield' | 'unshield') => {
-    setTab(t); setAmt(''); setFlash(true); setTimeout(() => setFlash(false), 900)
-    requestAnimationFrame(() => { amountRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' }); amountRef.current?.focus() })
-  }
   const src = tab === 'shield' ? s.walletBal : s.shielded
   // Every token can be shielded and unshielded, so the picker always lists all of them.
   const options = TOKENS.map(t => t.symbol)
@@ -54,13 +47,10 @@ export function Portfolio({ run }: { run: Run }) {
             <span>Your private balance</span>
             <span className="heroR">
               <button className="addr" onClick={copy} title="Copy your Hagi address">{copied ? 'Copied' : addr.slice(0, 9) + '…' + addr.slice(-4)}<Icon name="copy" size={13} /></button>
-              <button className="addr plain" onClick={api.toggleHidden}>{s.hidden ? 'Show amounts' : 'Hide amounts'}</button>
             </span>
           </div>
-          <div className="big">{s.hidden ? <Censor seed="balance" cols={12} cell={22} onDark /> : <>${whole}<small>.{cents}</small></>}</div>
+          <div className="big">${whole}<small>.{cents}</small></div>
           <div className="qas">
-            <button className="qa p" onClick={() => openForm('shield')}><i><Icon name="down" /></i>Shield</button>
-            <button className="qa" onClick={() => openForm('unshield')}><i><Icon name="up" /></i>Unshield</button>
             <button className="qa" onClick={() => go('swap')}><i><Icon name="swap" /></i>Swap</button>
             <button className="qa" onClick={() => go('send')}><i><Icon name="right" /></i>Send</button>
           </div>
@@ -81,7 +71,7 @@ export function Portfolio({ run }: { run: Run }) {
               {(needsEth || !Object.keys(s.walletBal).length) && <button className="btn sm" onClick={faucet}>{needsEth ? 'Open the ETH faucet' : 'Get test USDG'}</button>}
             </div>
           ) : <>
-            {!s.hidden && holdings.length > 1 && (
+            {holdings.length > 1 && (
               <div className="mix">
                 <div className="mixbar">{holdings.map(([k, v], i) => <i key={k} style={{ width: (v * token(k).price / bal) * 100 + '%', background: MIX[i % MIX.length] }} title={k} />)}</div>
                 <div className="mixkey">{holdings.map(([k, v], i) => <span key={k}><i style={{ background: MIX[i % MIX.length] }} />{k} {Math.round((v * token(k).price / bal) * 100)}%</span>)}</div>
@@ -104,11 +94,11 @@ export function Portfolio({ run }: { run: Run }) {
       </div>
 
       <div className="col">
-        <Card className={flash ? 'flash' : ''}>
+        <Card>
           <div className="tabs"><button className={tab === 'shield' ? 'on' : ''} onClick={() => setTab('shield')}>Shield</button><button className={tab === 'unshield' ? 'on' : ''} onClick={() => setTab('unshield')}>Unshield</button></div>
           <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
             hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))}
-            right={<TokenPicker value={cur} onChange={setSym} options={options} balances={s.hidden ? undefined : src} />} inputRef={amountRef} />
+            right={<TokenPicker value={cur} onChange={setSym} options={options} balances={src} />} />
           <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
             await engine[tab](cur, n, step)
             api.log({ kind: tab, title: (tab === 'shield' ? 'Shielded ' : 'Unshielded ') + cur, detail: amt4(cur, n) })

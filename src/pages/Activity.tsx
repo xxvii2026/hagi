@@ -15,8 +15,7 @@ export function ActivityList({ limit }: { limit?: number }) {
     <div className="row" key={a.id}>
       <span className="ai"><Icon name={GLYPH[a.kind]} /></span>
       <div className="g"><b>{a.title}</b><span>{ago(a.time)}{a.isPrivate ? ' · Private' : ''}</span></div>
-      <div className="r"><b>{s.hidden ? <Censor seed={String(a.id)} cell={7} />
-        : a.isPrivate && !open[a.id] ? <button className="reveal" onClick={() => setOpen({ ...open, [a.id]: true })} title="Private. Tap to reveal" aria-label="Private amount. Tap to reveal"><Censor seed={String(a.id)} cell={7} /></button>
+      <div className="r"><b>{a.isPrivate && !open[a.id] ? <button className="reveal" onClick={() => setOpen({ ...open, [a.id]: true })} title="Private. Tap to reveal" aria-label="Private amount. Tap to reveal"><Censor seed={String(a.id)} cell={7} /></button>
         : a.isPrivate ? <button className="reveal" onClick={() => setOpen({ ...open, [a.id]: false })} title="Tap to hide">{a.detail}</button> : a.detail}</b></div>
     </div>
   ))}</>
@@ -28,7 +27,6 @@ export function Activity() {
     <div className="wrap one">
       <div className="bhd">
         <div><h2><span>Activity,</span> for your eyes only.</h2><p>This list is kept on this device. Private items stay pixelated until you tap them.</p></div>
-        <div className="acts"><button className="btn o" onClick={api.toggleHidden}>{s.hidden ? 'Show amounts' : 'Hide amounts'}</button></div>
       </div>
       <Card><ActivityList /></Card>
     </div>
