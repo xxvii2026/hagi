@@ -17,7 +17,7 @@ export function Swap({ run }: { run: (title: string, fn: () => void, done?: stri
   const flip = () => { setFrom(to); setTo(from); setAmt('') }
   return (
     <div className="wrap c">
-      <div className="ptitle"><h2><span>Swap,</span> on the record.</h2><p>Trade from your private balance through Uniswap. The trade is public, your balance isn’t.</p></div>
+      <div className="ptitle"><h2><span>Swap,</span> off the record.</h2><p>Trade from your private balance through Uniswap, straight out of the vault and back in.</p></div>
       <Card>
         <AmountField label="You pay" value={amt} onChange={setAmt} hint={<>You have {fmt(have, from === 'USDG' ? 2 : 4)} {from}</>} onMax={() => setAmt(asInput(have))}
           right={<TokenPicker value={from} onChange={v => { if (v === to) setTo(from); setFrom(v) }} options={all} />} />
@@ -29,7 +29,7 @@ export function Swap({ run }: { run: (title: string, fn: () => void, done?: stri
           <div className="kv"><span>Route</span><b>Uniswap</b></div>
           <div className="kv"><span>Slippage limit</span><b>0.5%</b></div>
         </div>
-        <button className="btn" disabled={n <= 0 || n > have} onClick={() => run('Swapping', () => { d({ type: 'swap', from, to, amount: n }); setAmt('') }, 'Done. This one’s on the record.')}>
+        <button className="btn" disabled={n <= 0 || n > have} onClick={() => run('Swapping', () => { d({ type: 'swap', from, to, amount: n }); setAmt('') }, 'Done. Swapped inside the vault.')}>
           {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + from : 'Swap'}
         </button>
       </Card>

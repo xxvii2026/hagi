@@ -37,7 +37,7 @@ function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: (title
       <p className="muted">Created by {b.creator} · {b.buyers} buyers</p>
       <div className="weights">{b.items.map(it => <div className="wb" key={it.symbol}><TokenIcon symbol={it.symbol} size={28} /><span>{it.symbol}</span><div className="bar"><i style={{ width: it.weight + '%' }} /></div><b>{it.weight}%{n > 0 && <em>{fmt((n * it.weight) / 100 / token(it.symbol).price, 3)}</em>}</b></div>)}</div>
       <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have)} USDG</>} onMax={() => setAmt(asInput(have))} right={<span className="unit">USDG</span>} />
-      <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, () => d({ type: 'buyBasket', id: b.id, amount: n }), 'Bought. This one’s on the record.') }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>
+      <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, () => d({ type: 'buyBasket', id: b.id, amount: n }), 'Bought. Straight into the vault.') }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>
       <Visibility pub="this purchase: your wallet, the basket and the amount." priv="your total balance." />
     </div></div>
   )
