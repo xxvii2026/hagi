@@ -22,7 +22,8 @@ export function TokenIcon({ symbol, size = 40 }: { symbol: string; size?: number
   const t = token(symbol)
   const [broken, setBroken] = useState(false)
   const [bg, fg] = TINTS[hash(symbol) % TINTS.length]
-  if (t.logoURI && !broken) return <img className="ti logo" src={t.logoURI} alt={t.name} title={t.name} width={size} height={size} loading="lazy" onError={() => setBroken(true)} />
+  // Company marks are square and reach their edges, so they sit inside the circle with a margin and are never cropped.
+  if (t.logoURI && !broken) return <span className={'ti logo ' + (t.logoFill ? 'fill' : 'pad')} style={{ width: size, height: size }} title={t.name}><img src={t.logoURI} alt={t.name} loading="lazy" onError={() => setBroken(true)} /></span>
   const full = size >= 34
   return <span className="ti" style={{ width: size, height: size, background: bg, color: fg, fontSize: full ? size * 0.25 : size * 0.4, letterSpacing: full ? '-0.02em' : 0 }}>{full ? symbol.slice(0, 4) : symbol[0]}</span>
 }

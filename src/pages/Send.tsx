@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
-import { asInput, fmt } from '../data'
+import { TOKENS, asInput, fmt } from '../data'
 import { hashParam } from '../nav'
 import * as engine from '../engine'
 import { useStore } from '../store'
@@ -10,7 +10,8 @@ import { AmountField, Card, TokenPicker, Visibility, type Run } from '../ui'
 export function Send({ run }: { run: Run }) {
   const { s, api } = useStore()
   const [tab, setTab] = useState<'send' | 'receive'>('send')
-  const options = Object.keys(s.shielded).length ? Object.keys(s.shielded) : ['USDG']
+  // USDG and every stock can be sent privately.
+  const options = TOKENS.map(t => t.symbol)
   const [sym, setSym] = useState(hashParam('token') ?? options[0])
   const cur = options.includes(sym) ? sym : options[0]
   const [to, setTo] = useState('')
@@ -38,7 +39,7 @@ export function Send({ run }: { run: Run }) {
           }, 'Sent. Nobody saw.')}>{!validTo ? 'Enter a Hagi address' : n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : 'Send privately'}</button>
         </> : <div className="recv">
           {qr && <img src={qr} alt="QR code of your Hagi address" width={220} height={220} />}
-          <span className="fl">Your Hagi address</span>
+          <span className="fl">Your Hagi address. It receives USDG and every stock</span>
           <code>{s.hagiAddress}</code>
           <button className="btn" onClick={copy}>{copied ? 'Copied' : 'Copy address'}</button>
         </div>}
@@ -49,7 +50,7 @@ export function Send({ run }: { run: Run }) {
             ? <Visibility pub="that a private transfer happened in the vault." priv="the amount, the token, who sent it and who received it." />
             : <Visibility pub="nothing about you when someone sends to this address." priv="the sender, the amount and your balance." />}
         </Card>
-        <Card title="Good to know"><p className="muted">A Hagi address starts with hagi1. It only works inside Hagi. To move funds to a normal wallet, use Unshield on the Portfolio page.</p></Card>
+        <Card title="Good to know"><p className="muted">A Hagi address starts with hagi1 and only works inside Hagi. One address receives USDG and all five stocks. To move funds to a normal wallet, use Unshield on the Portfolio page.</p></Card>
       </div>
     </div>
   )

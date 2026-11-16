@@ -1,7 +1,7 @@
 // Hagi relayer. Receives a finished proof, checks it would succeed, then submits it and pays the gas,
 // so the user's own wallet never appears on a private transaction.
 // It cannot change a transaction: the proof binds the recipient, amounts and swap terms.
-import { createPublicClient, createWalletClient, http, parseAbi, type Hex } from 'viem'
+import { createPublicClient, createWalletClient, formatEther, http, parseAbi, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
 const VAULT = (process.env.VAULT_ADDRESS || '0x0C3C8c6929851818d6a15A4c57D68F9342B81798') as Hex
@@ -50,17 +50,26 @@ export default async function handler(req: any, res: any) {
     res.end(JSON.stringify(data))
   }
   if (req.method === 'OPTIONS') return reply(204, {})
-  if (req.method !== 'POST') return reply(405, { error: 'POST only' })
 
+  const chain = { id: CHAIN_ID, name: 'hagi', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: [RPC] } } }
+  const pub = createPublicClient({ chain, transport: http(RPC) })
   const key = process.env.RELAYER_PRIVATE_KEY
-  if (!key) return reply(503, { error: 'The relayer has no key configured' })
+  let account
+  try { if (key) account = privateKeyToAccount(('0x' + key.trim().replace(/^["']|["']$/g, '').replace(/^0x/, '')) as Hex) } catch { /* reported below */ }
+
+  // Opening this address in a browser shows whether the relayer is set up. It never reveals the key.
+  if (req.method === 'GET') {
+    let balance: string | null = null, reachable = true
+    try { if (account) balance = formatEther(await pub.getBalance({ address: account.address })) } catch { reachable = false }
+    return reply(200, { relayer: account?.address ?? null, keyPresent: !!key, keyValid: !!account, chainReachable: reachable, balanceEth: balance, chainId: CHAIN_ID, vault: VAULT })
+  }
+  if (req.method !== 'POST') return reply(405, { error: 'POST only' })
+  if (!key) return reply(503, { error: 'RELAYER_PRIVATE_KEY is not set for this deployment' })
+  if (!account) return reply(503, { error: 'RELAYER_PRIVATE_KEY is not a valid private key' })
 
   let args
   try { args = parse(await readBody(req)) } catch { return reply(400, { error: 'Malformed request' }) }
 
-  const chain = { id: CHAIN_ID, name: 'hagi', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: [RPC] } } }
-  const account = privateKeyToAccount(('0x' + key.trim().replace(/^0x/, '')) as Hex)
-  const pub = createPublicClient({ chain, transport: http(RPC) })
   const wallet = createWalletClient({ chain, transport: http(RPC), account })
 
   // Never spend gas on a transaction that would fail.
@@ -68,13 +77,15 @@ export default async function handler(req: any, res: any) {
   try {
     ;({ request } = await pub.simulateContract({ address: VAULT, abi, functionName: 'transact', args, account }))
   } catch (e: any) {
-    const name = e?.cause?.data?.errorName || e?.cause?.reason || e?.shortMessage || 'The vault rejected this transaction'
-    return reply(400, { error: String(name) })
+    const name = e?.cause?.data?.errorName || e?.cause?.reason
+    // A named revert is the vault refusing the transaction. Anything else is the relayer failing to reach the chain.
+    if (name) return reply(400, { error: String(name) })
+    return reply(502, { error: e?.shortMessage || 'The relayer could not reach the chain' })
   }
   try {
     const hash = await wallet.writeContract(request)
     return reply(200, { hash })
   } catch (e: any) {
-    return reply(502, { error: e?.shortMessage || 'The relayer could not send the transaction' })
+    return reply(502, { error: e?.shortMessage || e?.message || 'The relayer could not send the transaction' })
   }
 }

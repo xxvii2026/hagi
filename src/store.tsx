@@ -36,6 +36,7 @@ export function Store({ children }: { children: ReactNode }) {
   const [s, setS] = useState<State>(() => ({ ...initial, hidden: load(PREFS, { hidden: false }).hidden }))
   const patch = useCallback((p: Partial<State>) => setS(x => ({ ...x, ...p })), [])
   const busy = useRef(false)
+  const logRef = useRef<Api['log']>(() => {})
 
   const refresh = useCallback(async () => {
     if (busy.current) return
@@ -46,6 +47,7 @@ export function Store({ children }: { children: ReactNode }) {
       const w = await engine.readWallet()
       const shielded = await engine.sync()
       patch({ baskets, walletBal: w.balances, eth: w.eth, shielded, offline: false })
+      for (const r of engine.takeReceived()) logRef.current({ kind: 'receive', title: 'Received ' + r.symbol, detail: r.amount.toLocaleString('en-US', { maximumFractionDigits: r.symbol === 'USDG' ? 2 : 4 }) + ' ' + r.symbol, isPrivate: true })
     } catch (e) {
       console.warn('Hagi could not read the chain', e)
       patch({ offline: true })
@@ -55,8 +57,15 @@ export function Store({ children }: { children: ReactNode }) {
     }
   }, [patch])
 
-  // Public data (pools and baskets) loads without a wallet, for the landing page.
-  useEffect(() => { void refresh() }, [refresh])
+  // On load, pick the wallet back up if it is still connected, then read the chain.
+  // Public data (pools and baskets) loads even without a wallet, for the landing page.
+  useEffect(() => {
+    engine.watchWallet()
+    void engine.resume().then(r => {
+      if (r) patch({ wallet: r.wallet, hagiAddress: r.address, activity: load(activityKey(r.wallet), []) })
+      return refresh()
+    })
+  }, [patch, refresh])
 
   const api = useMemo<Api>(() => ({
     connect: async () => {
@@ -79,6 +88,7 @@ export function Store({ children }: { children: ReactNode }) {
     }),
   }), [patch, refresh])
 
+  logRef.current = api.log
   return <Ctx.Provider value={{ s, api }}>{children}</Ctx.Provider>
 }
 export const useStore = () => useContext(Ctx)

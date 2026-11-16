@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { FAUCET_URL } from '../chain'
 import * as engine from '../engine'
-import { asInput, fmt, token, usd } from '../data'
+import { TOKENS, asInput, fmt, token, usd } from '../data'
 import { go } from '../nav'
 import { total, useStore } from '../store'
 import { Amount, AmountField, Card, Censor, Icon, Mark, TokenIcon, TokenPicker, Visibility, type Run } from '../ui'
@@ -23,7 +23,8 @@ export function Portfolio({ run }: { run: Run }) {
     requestAnimationFrame(() => { amountRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' }); amountRef.current?.focus() })
   }
   const src = tab === 'shield' ? s.walletBal : s.shielded
-  const options = Object.keys(src).length ? Object.keys(src) : ['USDG']
+  // Every token can be shielded and unshielded, so the picker always lists all of them.
+  const options = TOKENS.map(t => t.symbol)
   const cur = options.includes(sym) ? sym : options[0]
   const have = src[cur] ?? 0
   const n = parseFloat(amt) || 0
@@ -117,7 +118,7 @@ export function Portfolio({ run }: { run: Run }) {
         <Card className={flash ? 'flash' : ''}>
           <div className="tabs"><button className={tab === 'shield' ? 'on' : ''} onClick={() => setTab('shield')}>Shield</button><button className={tab === 'unshield' ? 'on' : ''} onClick={() => setTab('unshield')}>Unshield</button></div>
           <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
-            hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have)} {cur}</>} onMax={() => setAmt(asInput(have))}
+            hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))}
             right={<TokenPicker value={cur} onChange={setSym} options={options} />} inputRef={amountRef} />
           <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
             await engine[tab](cur, n, step)

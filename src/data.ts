@@ -1,7 +1,8 @@
 import { formatUnits, type Hex } from 'viem'
 import { CFG } from './chain'
 
-export type Token = { symbol: string; name: string; decimals: number; address: Hex; price: number; logoURI?: string }
+/** `logoFill` is for round coin images that should fill the frame. Other logos sit inside it with room to spare. */
+export type Token = { symbol: string; name: string; decimals: number; address: Hex; price: number; logoURI?: string; logoFill?: boolean }
 
 // `price` is refreshed from the pools on chain. With a logoURI set, the real logo shows automatically.
 // Stock logos load at runtime from an open-source icon set served by jsDelivr. Nothing is copied into this repo.
@@ -10,7 +11,7 @@ const logo = (ticker: string) => `https://cdn.jsdelivr.net/gh/nvstly/icons@main/
 
 export const TOKENS: Token[] = [
   // Hagi's test dollar stands in for USDG (Global Dollar), so it wears that logo. The name stays "Test USDG".
-  { symbol: 'USDG', name: 'Test USDG', decimals: 6, address: CFG.contracts.usdg, price: 1, logoURI: 'https://coin-images.coingecko.com/coins/images/51281/large/GDN_USDG_Token_200x200.png' },
+  { symbol: 'USDG', name: 'Test USDG', decimals: 6, address: CFG.contracts.usdg, price: 1, logoURI: 'https://coin-images.coingecko.com/coins/images/51281/large/GDN_USDG_Token_200x200.png', logoFill: true },
   { symbol: 'TSLA', name: 'Tesla', decimals: 18, address: CFG.tokens.TSLA, price: 0, logoURI: logo('TSLA') },
   { symbol: 'AMD', name: 'AMD', decimals: 18, address: CFG.tokens.AMD, price: 0, logoURI: logo('AMD') },
   { symbol: 'AMZN', name: 'Amazon', decimals: 18, address: CFG.tokens.AMZN, price: 0, logoURI: logo('AMZN') },

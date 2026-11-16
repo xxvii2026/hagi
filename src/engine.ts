@@ -1,5 +1,5 @@
 // Talks to the chain: balances, pools, baskets, vault notes, and every action the app can take.
-import { createPublicClient, createWalletClient, custom, http, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
+import { createPublicClient, createWalletClient, custom, getAddress, http, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
 import { erc20Abi, registryAbi, swapAbi, vaultAbi } from './abi'
 import { CFG, chain } from './chain'
 import { STOCKS, TOKENS, fromUnits, token, tokenByAddress, type Basket } from './data'
@@ -7,11 +7,12 @@ import { SIGN_MESSAGE, MerkleTree, commitment, decryptNote, deriveKeys, encryptN
 import type { TxRequest } from './zk/prove'
 
 export type Step = (label: string) => void
-type Eth = { request: (a: { method: string; params?: unknown[] }) => Promise<unknown> }
+type Eth = { request: (a: { method: string; params?: unknown[] }) => Promise<unknown>; on?: (event: string, fn: () => void) => void }
 
 const provider = (): Eth | undefined => (window as unknown as { ethereum?: Eth }).ethereum
 export const hasWallet = () => !!provider()
-const pub = createPublicClient({ chain, transport: http(CFG.rpc) })
+// Reads are grouped into one request where possible, to stay well inside the public endpoint's limits.
+const pub = createPublicClient({ chain, transport: http(CFG.rpc, { batch: { wait: 20 } }) })
 const wal = () => createWalletClient({ chain, transport: custom(provider()!) })
 const V = { address: CFG.contracts.vault, abi: vaultAbi } as const
 const ART = { wasm: `${import.meta.env.BASE_URL}zk/transaction.wasm`, zkey: `${import.meta.env.BASE_URL}zk/transaction.zkey` }
@@ -23,36 +24,72 @@ let account: Hex | null = null
 let keys: Keys | null = null
 let notes: Note[] = []
 let tree = new MerkleTree()
+// Private notes this device has already accounted for, so a new one can be reported as money received.
+let known: Set<string> | null = null
+let received: { symbol: string; amount: number }[] = []
+const knownSlot = () => 'hagi-known-' + keys!.publicKey.toString(16).slice(0, 24)
+const saveKnown = () => { try { if (known) localStorage.setItem(knownSlot(), JSON.stringify([...known])) } catch { /* optional */ } }
+/** Hands over, once, the notes that arrived since the last call. */
+export const takeReceived = () => { const r = received; received = []; return r }
 const reserves: Record<string, [bigint, bigint]> = {}
 
 export const session = { get account() { return account }, get address() { return keys ? toAddress(keys) : null } }
 
-export async function connect(): Promise<Hex> {
+/** Makes sure the wallet is on Robinhood Chain Testnet before it is asked to send anything. */
+async function ensureChain() {
   const w = wal()
-  const [a] = await w.requestAddresses()
+  if ((await w.getChainId()) === chain.id) return
   try { await w.switchChain({ id: chain.id }) } catch { await w.addChain({ chain }); await w.switchChain({ id: chain.id }) }
+}
+
+export async function connect(): Promise<Hex> {
+  const [a] = await wal().requestAddresses()
+  await ensureChain()
   account = a
   return a
+}
+
+const sigSlot = () => 'hagi-sig-' + account!.toLowerCase()
+function adopt(sig: Hex) {
+  keys = deriveKeys(sig)
+  try { const raw = localStorage.getItem(knownSlot()); known = raw ? new Set(JSON.parse(raw)) : null } catch { known = null }
+  return toAddress(keys)
+}
+
+/** After a reload, picks the wallet back up without a prompt if it is still connected to this site. */
+export async function resume(): Promise<{ wallet: Hex; address: string | null } | null> {
+  const p = provider()
+  if (!p) return null
+  try {
+    const accounts = (await p.request({ method: 'eth_accounts' })) as string[]
+    if (!accounts?.length) return null
+    account = getAddress(accounts[0])
+    const sig = sessionStorage.getItem(sigSlot()) as Hex | null
+    return { wallet: account, address: sig ? adopt(sig) : null }
+  } catch { return null }
+}
+
+/** Reload when the user switches account in their wallet, so one account's notes never show under another. */
+export function watchWallet() {
+  provider()?.on?.('accountsChanged', () => location.reload())
 }
 
 /** Derives the vault keys from one signature. The signature is kept for this tab only. */
 export async function unlock(): Promise<string> {
   if (!account) throw new Error('Connect a wallet first')
-  const slot = 'hagi-sig-' + account.toLowerCase()
-  let sig = sessionStorage.getItem(slot) as Hex | null
+  let sig = sessionStorage.getItem(sigSlot()) as Hex | null
   if (!sig) {
     sig = await wal().signMessage({ account, message: SIGN_MESSAGE })
-    try { sessionStorage.setItem(slot, sig) } catch { /* storage unavailable */ }
+    try { sessionStorage.setItem(sigSlot(), sig) } catch { /* storage unavailable */ }
   }
-  keys = deriveKeys(sig)
-  return toAddress(keys)
+  return adopt(sig)
 }
 
 export const hasCachedKey = () => { try { return !!account && !!sessionStorage.getItem('hagi-sig-' + account.toLowerCase()) } catch { return false } }
 
 export function lock() {
   if (account) try { sessionStorage.removeItem('hagi-sig-' + account.toLowerCase()) } catch { /* storage unavailable */ }
-  account = null; keys = null; notes = []; tree = new MerkleTree()
+  account = null; keys = null; notes = []; tree = new MerkleTree(); known = null; received = []
 }
 
 // ---------- reads ----------
@@ -97,10 +134,12 @@ type CachedLog = [index: number, commitment: string, token: string, amount: stri
 const CACHE = 'hagi-logs-' + CFG.contracts.vault.toLowerCase()
 const CHUNK = 5_000_000n
 
-async function loadLogs(): Promise<CachedLog[]> {
+async function loadLogs(minBlock = 0n): Promise<CachedLog[]> {
   let cache: { last: number; logs: CachedLog[] } = { last: CFG.deployBlock - 1, logs: [] }
   try { const raw = localStorage.getItem(CACHE); if (raw) cache = JSON.parse(raw) } catch { /* start over */ }
-  const latest = await pub.getBlockNumber({ cacheTime: 0 })
+  // After sending a transaction, wait until the node we read from has caught up to its block.
+  let latest = await pub.getBlockNumber({ cacheTime: 0 })
+  for (let i = 0; latest < minBlock && i < 20; i++) { await new Promise(r => setTimeout(r, 500)); latest = await pub.getBlockNumber({ cacheTime: 0 }) }
   for (let from = BigInt(cache.last + 1); from <= latest; from += CHUNK) {
     const to = from + CHUNK - 1n > latest ? latest : from + CHUNK - 1n
     const logs = await pub.getLogs({ address: CFG.contracts.vault, event: NEW_COMMITMENT, fromBlock: from, toBlock: to })
@@ -114,22 +153,34 @@ async function loadLogs(): Promise<CachedLog[]> {
 }
 
 /** Rebuilds the Merkle tree from chain events and finds this account's unspent notes. */
-export async function sync(): Promise<Record<string, number>> {
+export async function sync(minBlock = 0n): Promise<Record<string, number>> {
   if (!keys) return {}
-  const logs = await loadLogs()
+  const logs = await loadLogs(minBlock)
   const t = new MerkleTree()
   const mine: Note[] = []
+  const privateOnes = new Set<Note>()
   for (const [index, c, , amount, enc] of logs) {
     if (index !== t.size) throw new Error('The vault history has a gap. Reload the page to scan again.')
     t.insert(BigInt(c))
     const d = decryptNote(enc, keys)
     if (!d) continue
     const note: Note = { ...d, amount: BigInt(amount) > 0n ? BigInt(amount) : d.amount, publicKey: keys.publicKey, index }
-    if (note.amount > 0n && commitment(note) === BigInt(c)) mine.push(note)
+    if (note.amount > 0n && commitment(note) === BigInt(c)) { mine.push(note); if (BigInt(amount) === 0n) privateOnes.add(note) }
   }
   const spent = await Promise.all(mine.map(n => pub.readContract({ ...V, functionName: 'nullifierSpent', args: [nullifier(n, keys!.privateKey)] })))
   tree = t
   notes = mine.filter((_, i) => !spent[i])
+  // A private note that this device did not create as change is money that arrived.
+  const firstScan = known === null
+  known ??= new Set()
+  mine.forEach((n, i) => {
+    const id = commitment(n).toString()
+    if (!privateOnes.has(n) || known!.has(id)) return
+    known!.add(id)
+    const tk = tokenByAddress(n.token)
+    if (!firstScan && !spent[i] && tk) received.push({ symbol: tk.symbol, amount: fromUnits(n.amount, tk.decimals) })
+  })
+  saveKnown()
   return shielded()
 }
 
@@ -153,10 +204,11 @@ function amountOf(sym: string, n: number, have: bigint) {
 
 const jsonBig = (_: string, v: unknown) => (typeof v === 'bigint' ? v.toString() : v)
 
-async function waitFor(hash: Hex, step: Step) {
+async function waitFor(hash: Hex, step: Step): Promise<bigint> {
   step('Waiting for the network')
   const rc = await pub.waitForTransactionReceipt({ hash })
   if (rc.status !== 'success') throw new Error('The transaction failed on chain.')
+  return rc.blockNumber
 }
 
 async function privately(req: Omit<TxRequest, 'keys' | 'tree'>, step: Step) {
@@ -164,19 +216,24 @@ async function privately(req: Omit<TxRequest, 'keys' | 'tree'>, step: Step) {
   step('Building your private proof')
   const { buildTransaction } = await import('./zk/prove')
   const tx = await buildTransaction({ ...req, keys, tree }, ART)
+  req.outputs.forEach((o, i) => { if (o.own) known?.add(commitment(tx.outNotes[i]).toString()) })
+  saveKnown()
   step('Sending through the relayer')
   let hash: Hex | undefined
   let res: Response | undefined
   try { res = await fetch(CFG.relayerUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ proof: tx.proof, ext: tx.ext }, jsonBig) }) } catch { /* relayer unreachable */ }
-  if (res?.ok) hash = (await res.json()).hash
-  else if (res?.status === 400) throw new Error('The vault rejected this transaction: ' + ((await res.json().catch(() => ({}))).error ?? 'unknown reason'))
+  const body: { hash?: Hex; error?: string } = res ? await res.json().catch(() => ({})) : {}
+  if (res?.ok && body.hash) hash = body.hash
+  else if (res?.status === 400) throw new Error('The vault rejected this transaction: ' + (body.error ?? 'unknown reason'))
   else {
     // The relayer is down. Sending from the user's wallet still works, but it puts their address on the transaction.
-    step('Relayer unavailable. Confirm in your wallet (this one will show your address)')
+    const why = !res ? 'could not be reached' : `answered ${res.status}${body.error ? ': ' + body.error : ''}`
+    console.warn('Hagi relayer ' + why)
+    step(`The relayer ${why}. Confirm in your wallet instead. Your address will show on this one`)
+    await ensureChain()
     hash = await wal().writeContract({ ...V, functionName: 'transact', args: [tx.proof, tx.ext], account })
   }
-  await waitFor(hash!, step)
-  await sync()
+  await sync(await waitFor(hash, step))
 }
 
 /** Picks one or two notes that cover `amount`, combining smaller notes first when two are not enough. */
@@ -188,17 +245,18 @@ async function inputsFor(sym: string, amount: bigint, step: Step): Promise<Note[
     if (mine[0].amount >= amount) return [mine[0]]
     if (mine[0].amount + mine[1].amount >= amount) return [mine[0], mine[1]]
     step('Combining smaller notes')
-    await privately({ token: t.address, inputs: [mine[0], mine[1]], outputs: [{ amount: mine[0].amount + mine[1].amount, publicKey: keys!.publicKey, encPublic: keys!.encPublic }] }, () => {})
+    await privately({ token: t.address, inputs: [mine[0], mine[1]], outputs: [{ amount: mine[0].amount + mine[1].amount, publicKey: keys!.publicKey, encPublic: keys!.encPublic, own: true }] }, () => {})
   }
 }
 const change = (inputs: Note[], spent: bigint) => {
   const left = inputs.reduce((s, n) => s + n.amount, 0n) - spent
-  return left > 0n ? [{ amount: left, publicKey: keys!.publicKey, encPublic: keys!.encPublic }] : []
+  return left > 0n ? [{ amount: left, publicKey: keys!.publicKey, encPublic: keys!.encPublic, own: true }] : []
 }
 
 // ---------- actions ----------
 
 export async function faucet(step: Step) {
+  await ensureChain()
   step('Confirm in your wallet')
   await waitFor(await wal().writeContract({ address: CFG.contracts.usdg, abi: erc20Abi, functionName: 'faucet', account: account! }), step)
 }
@@ -206,6 +264,7 @@ export async function faucet(step: Step) {
 export async function shield(sym: string, n: number, step: Step) {
   if (!keys || !account) throw new Error('Unlock your Hagi account first')
   const t = token(sym)
+  await ensureChain()
   const have = await pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'balanceOf', args: [account] })
   const amount = amountOf(sym, n, have)
   if (amount <= 0n || amount > have) throw new Error('Not enough ' + sym + ' in your wallet')
@@ -217,8 +276,7 @@ export async function shield(sym: string, n: number, step: Step) {
   const blinding = randomField()
   step('Confirm the deposit in your wallet')
   const hash = await wal().writeContract({ ...V, functionName: 'shield', args: [t.address, amount, partialCommitment(keys.publicKey, blinding), encryptNote({ amount, token: BigInt(t.address), blinding }, keys.encPublic)], account })
-  await waitFor(hash, step)
-  await sync()
+  await sync(await waitFor(hash, step))
 }
 
 export async function unshield(sym: string, n: number, step: Step) {
@@ -270,6 +328,7 @@ export async function buyBasket(b: Basket, n: number, step: Step) {
 }
 
 export async function createBasket(name: string, items: { symbol: string; weight: number }[], step: Step) {
+  await ensureChain()
   step('Confirm in your wallet')
   const hash = await wal().writeContract({ address: CFG.contracts.basketRegistry, abi: registryAbi, functionName: 'createBasket', args: [name, items.map(i => token(i.symbol).address), items.map(i => Math.round(i.weight * 100))], account: account! })
   await waitFor(hash, step)
@@ -284,6 +343,7 @@ export function friendly(e: unknown): string {
   if (/SwapOutputTooLow/.test(m)) return 'The price moved too far while this was sending. Try again.'
   if (/UnknownRoot|NullifierSpent/.test(m)) return 'Your balance changed while this was sending. Reload and try again.'
   if (/TokenNotListed|DuplicateToken|WeightsMustTotal/.test(m)) return 'That basket is not valid. Check the stocks and weights.'
+  if (/does not match the target chain|chain mismatch/i.test(m)) return 'Your wallet is on another network. Switch it to Robinhood Chain Testnet and try again.'
   if (/Failed to fetch|HTTP request failed|fetch failed/i.test(m)) return 'Could not reach the network. Check your connection and try again.'
   return m.length > 160 ? m.slice(0, 160) + '…' : m
 }

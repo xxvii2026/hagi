@@ -9,7 +9,8 @@ export type ProofStruct = {
   root: bigint; nullifiers: readonly [bigint, bigint]; commitments: readonly [bigint, bigint]
 }
 export type Artifacts = { wasm: string | Uint8Array; zkey: string | Uint8Array }
-export type Output = { amount: bigint; publicKey: bigint; encPublic: Uint8Array }
+/** `own` marks change coming back to the sender, so the app does not report it as money received. */
+export type Output = { amount: bigint; publicKey: bigint; encPublic: Uint8Array; own?: boolean }
 
 export type TxRequest = {
   keys: Keys
