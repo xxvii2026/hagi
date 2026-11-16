@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MAX_BASKET, TOKENS, fmt, token, type Basket } from '../data'
+import { asInput, MAX_BASKET, TOKENS, fmt, token, type Basket } from '../data'
 import { hashParam } from '../nav'
 import { useStore } from '../store'
 import { AmountField, Card, TokenIcon, Visibility } from '../ui'
@@ -35,9 +35,8 @@ function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: (t: st
     <div className="overlay" onClick={close}><div className="modal wide" onClick={e => e.stopPropagation()}>
       <div className="ch"><span>{b.name}</span><button className="x" onClick={close} aria-label="Close">×</button></div>
       <p className="muted">Created by {b.creator} · {b.buyers} buyers</p>
-      <div className="weights">{b.items.map(it => <div className="wb" key={it.symbol}><TokenIcon symbol={it.symbol} size={28} /><span>{it.symbol}</span><div className="bar"><i style={{ width: it.weight + '%' }} /></div><b>{it.weight}%</b></div>)}</div>
-      <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have)} USDG</>} onMax={() => setAmt(String(have))} right={<span className="unit">USDG</span>} />
-      {n > 0 && <div className="kv"><span>You get</span><b>{b.items.map(it => fmt((n * it.weight) / 100 / token(it.symbol).price, 3) + ' ' + it.symbol).join(' · ')}</b></div>}
+      <div className="weights">{b.items.map(it => <div className="wb" key={it.symbol}><TokenIcon symbol={it.symbol} size={28} /><span>{it.symbol}</span><div className="bar"><i style={{ width: it.weight + '%' }} /></div><b>{it.weight}%{n > 0 && <em>{fmt((n * it.weight) / 100 / token(it.symbol).price, 3)}</em>}</b></div>)}</div>
+      <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have)} USDG</>} onMax={() => setAmt(asInput(have))} right={<span className="unit">USDG</span>} />
       <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, () => d({ type: 'buyBasket', id: b.id, amount: n })) }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>
       <Visibility pub="this purchase: your wallet, the basket and the amount." priv="your total balance." />
     </div></div>

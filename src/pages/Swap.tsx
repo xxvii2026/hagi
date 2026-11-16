@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TOKENS, fmt, token } from '../data'
+import { asInput, TOKENS, fmt, token } from '../data'
 import { hashParam } from '../nav'
 import { useStore } from '../store'
 import { AmountField, Card, TokenIcon, TokenPicker, Visibility } from '../ui'
@@ -18,7 +18,7 @@ export function Swap({ run }: { run: (title: string, fn: () => void) => void }) 
   return (
     <div className="wrap c">
       <Card title="Swap">
-        <AmountField label="You pay" value={amt} onChange={setAmt} hint={<>You have {fmt(have, from === 'USDG' ? 2 : 4)} {from}</>} onMax={() => setAmt(String(have))}
+        <AmountField label="You pay" value={amt} onChange={setAmt} hint={<>You have {fmt(have, from === 'USDG' ? 2 : 4)} {from}</>} onMax={() => setAmt(asInput(have))}
           right={<TokenPicker value={from} onChange={v => { if (v === to) setTo(from); setFrom(v) }} options={all} />} />
         <button className="flip" onClick={flip} aria-label="Switch tokens">↓</button>
         <AmountField label="You get" value={n ? fmt(out, to === 'USDG' ? 2 : 4) : ''} readOnly hint={n ? <>About ${fmt(n * token(from).price)}</> : <>&nbsp;</>}

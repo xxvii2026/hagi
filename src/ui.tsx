@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode, type Ref } from 'react'
-import { token, fmt } from './data'
+import { token, fmt, withCommas } from './data'
 import { useStore } from './store'
 
 export function Mark({ size = 24, leaf = '#1b2140', block = '#566eba' }: { size?: number; leaf?: string; block?: string }) {
@@ -20,7 +20,8 @@ export function TokenIcon({ symbol, size = 40 }: { symbol: string; size?: number
   const t = token(symbol)
   const [bg, fg] = TINTS[hash(symbol) % TINTS.length]
   if (t.logoURI) return <img className="ti" src={t.logoURI} alt={symbol} width={size} height={size} />
-  return <span className="ti" style={{ width: size, height: size, background: bg, color: fg, fontSize: size * 0.36 }}>{symbol[0]}</span>
+  const full = size >= 34
+  return <span className="ti" style={{ width: size, height: size, background: bg, color: fg, fontSize: full ? size * 0.25 : size * 0.4, letterSpacing: full ? '-0.02em' : 0 }}>{full ? symbol.slice(0, 4) : symbol[0]}</span>
 }
 
 /** Pixel censor. Replaces a number with a mosaic when amounts are hidden. */
@@ -53,7 +54,7 @@ export function AmountField({ label, value, onChange, hint, onMax, right, readOn
     <div className="fld">
       <span className="fl">{label}</span>
       <div className="fv">
-        <input ref={inputRef} className="num" inputMode="decimal" placeholder="0" value={value} readOnly={readOnly} onChange={e => onChange?.(e.target.value.replace(/[^0-9.]/g, ''))} aria-label={label} />
+        <input ref={inputRef} className="num" inputMode="decimal" placeholder="0" value={readOnly ? value : withCommas(value)} readOnly={readOnly} onChange={e => onChange?.(e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1'))} aria-label={label} />
         {right}
       </div>
       <div className="hint"><span>{hint}</span>{onMax && <button className="tag" onClick={onMax}>Max</button>}</div>

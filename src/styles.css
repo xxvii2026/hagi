@@ -118,3 +118,20 @@ button{transition:background .12s ease,box-shadow .12s ease,transform .12s ease,
 @media (max-width:1000px){.nudge{border-radius:24px}}
 @media (prefers-reduced-motion:reduce){button,.row{transition:none}.card.flash{animation:none;box-shadow:0 0 0 3px var(--peri)}}
 .nudge>span>span{align-items:flex-start;gap:0}.addr.plain{font-family:inherit;font-size:13px}
+
+/* Review fixes */
+.wrap{grid-template-columns:minmax(0,1fr) 440px}.col,.card{min-width:0}
+.nav{padding-left:max(56px,calc((100% - 1480px)/2 + 56px));padding-right:max(56px,calc((100% - 1480px)/2 + 56px))}
+.bhd+.card{margin-top:20px}
+.wb{grid-template-columns:28px 52px 1fr auto}.wb b{white-space:nowrap}.wb b em{font-style:normal;color:var(--ink);font-weight:600;margin-left:10px;display:inline-block;min-width:52px}
+.ti{font-weight:700;line-height:1}
+@media (max-width:1000px){
+  html,body{overflow-x:hidden}
+  .wrap,.wrap.c{grid-template-columns:minmax(0,1fr)}
+  .nav{padding-left:16px;padding-right:16px}
+  .links{min-width:0;gap:2px;font-size:14px;scrollbar-width:none}.links::-webkit-scrollbar{display:none}.links a{padding:8px 11px;flex:none}
+  .hero .lab{flex-wrap:wrap;gap:10px}.heroR{gap:8px}.addr{white-space:nowrap}
+  .qas{display:grid;grid-template-columns:1fr 1fr}.qa{min-width:0}
+  .hold{flex-wrap:wrap}.rowacts{order:5;flex-basis:100%;padding-left:54px;margin-top:2px}
+  .bhd .acts{flex-wrap:wrap}.card{padding:22px 20px}
+}

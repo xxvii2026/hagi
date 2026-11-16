@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { FAUCET_URL, DEMO_MODE } from '../chain'
-import { fmt, token, usd } from '../data'
+import { asInput, fmt, token, usd } from '../data'
 import { go } from '../nav'
 import { total, useStore } from '../store'
 import { Amount, AmountField, Card, Censor, Mark, TokenIcon, TokenPicker, Visibility } from '../ui'
@@ -96,7 +96,7 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
         <Card title="Popular baskets" action={<button className="tag" onClick={() => go('baskets')}>See all</button>}>
           <div className="minis">{popular.map(b => (
             <div className="mini" key={b.id}>
-              <div className="st">{b.items.slice(0, 4).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={28} />)}{b.items.length > 4 && <span className="ti more sm">+{b.items.length - 4}</span>}</div>
+              <div className="st">{b.items.slice(0, 4).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={34} />)}{b.items.length > 4 && <span className="ti more">+{b.items.length - 4}</span>}</div>
               <b>{b.name}</b>
               <span>{b.items.length} stocks · {b.buyers} buyers</span>
               <button className="chip strong" onClick={() => go('baskets?buy=' + b.id)}>Buy</button>
@@ -109,7 +109,7 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
         <Card className={flash ? 'flash' : ''}>
           <div className="tabs"><button className={tab === 'shield' ? 'on' : ''} onClick={() => setTab('shield')}>Shield</button><button className={tab === 'unshield' ? 'on' : ''} onClick={() => setTab('unshield')}>Unshield</button></div>
           <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
-            hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have)} {cur}</>} onMax={() => setAmt(String(have))}
+            hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have)} {cur}</>} onMax={() => setAmt(asInput(have))}
             right={<TokenPicker value={cur} onChange={setSym} options={options} />} inputRef={amountRef} />
           <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', () => { d({ type: tab, symbol: cur, amount: n }); setAmt('') })}>
             {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}

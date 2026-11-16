@@ -29,5 +29,9 @@ export const SEED_BASKETS: Basket[] = [
 ]
 
 export const fmt = (n: number, d = 2) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })
+/** Adds thousands separators to a typed amount without changing what was typed. */
+export const withCommas = (v: string) => { const [i, f] = v.split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (f !== undefined ? '.' + f : '') }
+/** A balance as an input value: at most 6 decimals, rounded down so it never exceeds the balance. */
+export const asInput = (n: number) => String(Math.floor(n * 1e6) / 1e6)
 export const usd = (n: number) => '$' + fmt(n)
 export const short = (a: string) => (a.length > 12 ? a.slice(0, 6) + '…' + a.slice(-4) : a)
