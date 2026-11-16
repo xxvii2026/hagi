@@ -63,7 +63,9 @@ export default function App() {
       {DEMO_MODE && <div className="demo">Demo mode. The contracts aren’t deployed yet, so balances and transactions here are simulated.</div>}
       <header className="nav">
         <a className="lg" href="#/home"><Mark />hagi</a>
-        <nav className="links">{ready && page !== 'home' && PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}</nav>
+        <nav className="links">{page === 'home'
+          ? [['how', 'How it works'], ['private', 'What’s private'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)
+          : ready && PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}</nav>
         <div className="rt">
           <span className="net"><i />Testnet</span>
           {page === 'home' ? <a className="wal" href="#/portfolio">Open the app</a> : null}
@@ -73,7 +75,7 @@ export default function App() {
       <main>
         {page === 'home' ? <Landing /> : !ready ? <Welcome /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
       </main>
-      <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>
+      {page !== 'home' && <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>}
       {job && <Progress title={job.title} onDone={finish} doneText={job.done} />}
     </>
   )
