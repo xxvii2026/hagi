@@ -1,0 +1,21 @@
+name: Testnet smoke test
+# Sends a few real transactions through the live vault. Runs only when
+# contracts/deployments/request-smoke changes; its second line is the relayer URL to use.
+on:
+  push:
+    branches: [contracts]
+    paths: ['contracts/deployments/request-smoke']
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      RPC_URL: ${{ secrets.RPC_URL || 'https://rpc.testnet.chain.robinhood.com' }}
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Smoke test
+        run: RELAYER_URL="$(sed -n 2p contracts/deployments/request-smoke)" npx tsx contracts/e2e/testnet-smoke.ts

@@ -1,32 +1,27 @@
-export type Token = { symbol: string; name: string; price: number; address?: string; logoURI?: string }
+import { formatUnits, type Hex } from 'viem'
+import { CFG } from './chain'
 
-// Demo prices. `address` and `logoURI` get filled from the chain's token list
-// when the app goes live. With a logoURI set, the real logo shows automatically.
+export type Token = { symbol: string; name: string; decimals: number; address: Hex; price: number; logoURI?: string }
+
+// `price` is refreshed from the pools on chain. With a logoURI set, the real logo shows automatically.
 export const TOKENS: Token[] = [
-  { symbol: 'USDG', name: 'Global Dollar', price: 1 },
-  { symbol: 'TSLA', name: 'Tesla', price: 314.93 },
-  { symbol: 'NVDA', name: 'Nvidia', price: 145.1 },
-  { symbol: 'AAPL', name: 'Apple', price: 241.85 },
-  { symbol: 'MSFT', name: 'Microsoft', price: 428.4 },
-  { symbol: 'AMZN', name: 'Amazon', price: 212.3 },
-  { symbol: 'GOOG', name: 'Alphabet', price: 181.6 },
-  { symbol: 'META', name: 'Meta', price: 598.2 },
-  { symbol: 'AMD', name: 'AMD', price: 157.9 },
-  { symbol: 'TSM', name: 'TSMC', price: 194.5 },
-  { symbol: 'NFLX', name: 'Netflix', price: 912.0 },
-  { symbol: 'JPM', name: 'JPMorgan', price: 248.7 },
+  { symbol: 'USDG', name: 'Test USDG', decimals: 6, address: CFG.contracts.usdg, price: 1 },
+  { symbol: 'TSLA', name: 'Tesla', decimals: 18, address: CFG.tokens.TSLA, price: 0 },
+  { symbol: 'AMD', name: 'AMD', decimals: 18, address: CFG.tokens.AMD, price: 0 },
+  { symbol: 'AMZN', name: 'Amazon', decimals: 18, address: CFG.tokens.AMZN, price: 0 },
+  { symbol: 'NFLX', name: 'Netflix', decimals: 18, address: CFG.tokens.NFLX, price: 0 },
+  { symbol: 'PLTR', name: 'Palantir', decimals: 18, address: CFG.tokens.PLTR, price: 0 },
 ]
-export const token = (s: string) => TOKENS.find(t => t.symbol === s) ?? { symbol: s, name: s, price: 0 }
+export const STOCKS = TOKENS.filter(t => t.symbol !== 'USDG')
+export const token = (s: string): Token => TOKENS.find(t => t.symbol === s) ?? { symbol: s, name: s, decimals: 18, address: '0x0000000000000000000000000000000000000000', price: 0 }
+export const tokenByAddress = (a: string | bigint) => { const x = BigInt(a); return TOKENS.find(t => BigInt(t.address) === x) }
 
-export type Basket = { id: number; name: string; creator: string; items: { symbol: string; weight: number }[]; buyers: number; created: number }
+/** Whole units as shown in the app -> smallest units on chain. Inputs carry at most 6 decimals. */
+export const toUnits = (n: number, decimals: number) => BigInt(Math.round(n * 1e6)) * 10n ** BigInt(decimals - 6)
+export const fromUnits = (b: bigint, decimals: number) => Number(formatUnits(b, decimals))
+
+export type Basket = { id: number; name: string; creator: string; items: { symbol: string; weight: number; bps: number }[]; buyers: number; created: number }
 export const MAX_BASKET = 8
-
-export const SEED_BASKETS: Basket[] = [
-  { id: 1, name: 'Chip makers', creator: '0x91b2…04fa', items: [{ symbol: 'NVDA', weight: 40 }, { symbol: 'AMD', weight: 30 }, { symbol: 'TSM', weight: 30 }], buyers: 312, created: 1 },
-  { id: 2, name: 'Big seven', creator: '0x3c07…a9d1', items: ['AAPL', 'MSFT', 'NVDA', 'GOOG', 'AMZN', 'META', 'TSLA'].map((s, i) => ({ symbol: s, weight: i < 2 ? 15 : 14 })), buyers: 287, created: 2 },
-  { id: 3, name: 'Cloud giants', creator: '0x77c1…e210', items: [{ symbol: 'MSFT', weight: 40 }, { symbol: 'AMZN', weight: 35 }, { symbol: 'GOOG', weight: 25 }], buyers: 96, created: 3 },
-  { id: 4, name: 'Screens and streams', creator: '0x08aa…1f3e', items: [{ symbol: 'NFLX', weight: 50 }, { symbol: 'AAPL', weight: 25 }, { symbol: 'GOOG', weight: 25 }], buyers: 31, created: 4 },
-]
 
 export const fmt = (n: number, d = 2) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d })
 /** Adds thousands separators to a typed amount without changing what was typed. */

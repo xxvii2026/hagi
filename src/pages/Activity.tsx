@@ -23,7 +23,7 @@ export function ActivityList({ limit }: { limit?: number }) {
 }
 
 export function Activity() {
-  const { s, d } = useStore()
+  const { s, api } = useStore()
   const exportHistory = () => {
     const blob = new Blob([JSON.stringify({ account: s.hagiAddress, exportedAt: new Date().toISOString(), activity: s.activity }, null, 2)], { type: 'application/json' })
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'hagi-history.json'; a.click(); URL.revokeObjectURL(a.href)
@@ -32,7 +32,7 @@ export function Activity() {
     <div className="wrap one">
       <div className="bhd">
         <div><h2><span>Activity,</span> for your eyes only.</h2><p>This list is kept on this device. Private items stay pixelated until you tap them.</p></div>
-        <div className="acts"><button className="btn o" onClick={() => d({ type: 'toggleHidden' })}>{s.hidden ? 'Show amounts' : 'Hide amounts'}</button><button className="btn o" onClick={exportHistory} disabled={!s.activity.length}>Export my history</button></div>
+        <div className="acts"><button className="btn o" onClick={api.toggleHidden}>{s.hidden ? 'Show amounts' : 'Hide amounts'}</button><button className="btn o" onClick={exportHistory} disabled={!s.activity.length}>Export my history</button></div>
       </div>
       <Card><ActivityList /></Card>
     </div>

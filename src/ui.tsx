@@ -1,5 +1,6 @@
-import { useEffect, useState, type ReactNode, type Ref } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
 import { token, fmt, withCommas } from './data'
+import { friendly } from './engine'
 import { useStore } from './store'
 
 export function Mark({ size = 24, leaf = '#1b2140', block = '#566eba' }: { size?: number; leaf?: string; block?: string }) {
@@ -75,28 +76,36 @@ export function AmountField({ label, value, onChange, hint, onMax, right, readOn
 }
 
 const LEAF = 'M0 23A23 23 0 0 1 23 0A23 23 0 0 1 46 23V46H23A23 23 0 0 1 0 23Z'
-/** Steps shown while a private action is prepared, signed and confirmed. */
-const STEPS = ['Preparing your private transaction', 'Confirm in your wallet', 'Waiting for the network']
-export function Progress({ title, onDone, doneText }: { title: string; onDone: () => void; doneText?: string }) {
-  const [step, setStep] = useState(0)
+export type Step = (label: string) => void
+export type Run = (title: string, task: (step: Step) => Promise<void>, done?: string) => void
+
+/** Shows the real steps of an action as they happen, then the result or the error. */
+export function Progress({ title, task, doneText, onClose }: { title: string; task: (step: Step) => Promise<void>; doneText?: string; onClose: () => void }) {
+  const [steps, setSteps] = useState<string[]>([])
+  const [state, setState] = useState<'run' | 'done' | 'error'>('run')
+  const [error, setError] = useState('')
+  const started = useRef(false)
   useEffect(() => {
-    if (step >= STEPS.length) { const t = setTimeout(onDone, 1400); return () => clearTimeout(t) }
-    const t = setTimeout(() => setStep(step + 1), step === 0 ? 2200 : 1300)
-    return () => clearTimeout(t)
-  }, [step, onDone])
-  const done = step >= STEPS.length
+    if (started.current) return
+    started.current = true
+    task(l => setSteps(s => (s[s.length - 1] === l ? s : [...s, l]))).then(
+      () => { setState('done'); setTimeout(onClose, 1800) },
+      e => { setError(friendly(e)); setState('error') },
+    )
+  }, [task, onClose])
   return (
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="modal">
-        <div className={'loader ' + (done ? 'ok' : '')}>
+        <div className={'loader ' + (state !== 'run' ? 'ok' : '')}>
           <svg width="56" height="56" viewBox="0 0 100 100" aria-hidden>
             <path className="l1" d={LEAF} fill="#1b2140" /><path className="l2" d={LEAF} fill="#1b2140" transform="translate(100,0) scale(-1,1)" /><path className="l3" d={LEAF} fill="#1b2140" transform="translate(0,100) scale(1,-1)" />
-            <rect className="lb" x="54" y="54" width="42" height="42" fill="#566eba" />
+            <rect className="lb" x="54" y="54" width="42" height="42" fill={state === 'error' ? '#b0a7b8' : '#566eba'} />
           </svg>
         </div>
-        <h3>{done ? (doneText ?? 'Done.') : title}</h3>
-        <p className="muted">{done ? 'Your balance has been updated.' : 'This takes a few seconds. Please keep this tab open.'}</p>
-        <ol className="steps">{STEPS.map((t, i) => <li key={t} className={i < step ? 'd' : i === step ? 'a' : ''}><i />{t}</li>)}</ol>
+        <h3>{state === 'done' ? (doneText ?? 'Done.') : state === 'error' ? 'That didn’t go through' : title}</h3>
+        <p className="muted">{state === 'done' ? 'Your balance has been updated.' : state === 'error' ? error : 'Please keep this tab open.'}</p>
+        {steps.length > 0 && <ol className="steps">{steps.map((t, i) => <li key={t} className={i < steps.length - 1 || state === 'done' ? 'd' : state === 'error' ? '' : 'a'}><i />{t}</li>)}</ol>}
+        {state === 'error' && <button className="btn" onClick={onClose}>Close</button>}
       </div>
     </div>
   )

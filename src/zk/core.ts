@@ -9,6 +9,9 @@ export const LEVELS = 20
 export const NO_BASKET = 2n ** 256n - 1n
 export const ZERO_LEAF = BigInt(keccak256(toBytes('hagi.vault.empty'))) % FIELD
 
+/** The message a wallet signs to derive its Hagi account. Changing it changes every account. */
+export const SIGN_MESSAGE = 'Create my Hagi account.\n\nSigning this message is free and does not move any funds. The same wallet always recovers the same Hagi account.\n\nOnly sign this on the Hagi site.'
+
 export const randomField = () => BigInt(bytesToHex(crypto.getRandomValues(new Uint8Array(31))))
 const b32 = (n: bigint) => pad(toHex(n), { size: 32 })
 
