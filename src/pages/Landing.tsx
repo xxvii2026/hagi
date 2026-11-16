@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FAUCET_URL } from '../chain'
 import { TOKENS, fmt, token } from '../data'
-import { go } from '../nav'
+import { go, hashParam } from '../nav'
 import { useStore } from '../store'
 import { Censor, Icon, Mark, TokenIcon, type IconName } from '../ui'
 
@@ -39,6 +39,12 @@ export function Landing() {
   const { s } = useStore()
   const [me, setMe] = useState(false) // false = viewing as anyone else, so amounts are pixelated
   const open = () => go('portfolio')
+  // Navy is the default look. Add ?theme=light to the address to see the light version.
+  const navy = hashParam('theme') !== 'light'
+  useEffect(() => { document.body.classList.toggle('navy-page', navy); return () => document.body.classList.remove('navy-page') }, [navy])
+  const primary = navy ? 'btn light' : 'btn'
+  const secondary = navy ? 'btn ghost' : 'btn o'
+  const MIXC = navy ? ['#ffffff', '#8696cf', '#566eba', '#b0a7b8', '#c9d1ee', '#3a4a8a', '#7f86ad', '#d9def0'] : ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#3a4a8a', '#c9d1ee', '#7f86ad', '#d9def0']
   const popular = [...s.baskets].sort((a, b) => b.buyers - a.buyers).slice(0, 4)
   const Toggle = () => (
     <div className="viewer" role="group" aria-label="Choose whose view to show">
@@ -48,12 +54,12 @@ export function Landing() {
     </div>
   )
   return (
-    <div className="land2">
+    <div className={'land2' + (navy ? ' navy' : '')}>
       <section className="h2hero">
         <span className="eyebrow2"><i />Testnet preview on Robinhood Chain</span>
         <h1><span>Stocks,</span> off the record.</h1>
         <p>Hold, swap and send stock tokens without putting your portfolio on display. Your balance sits in a shared vault that only you can read.</p>
-        <div className="lcta2"><button className="btn" onClick={open}>Open the app</button><button className="btn o" onClick={() => jump('how')}>How it works</button></div>
+        <div className="lcta2"><button className={primary} onClick={open}>Open the app</button><button className={secondary} onClick={() => jump('how')}>How it works</button></div>
 
         <div className={'mock ' + (me ? 'peek' : '')}>
           <div className="mockbar"><span className="dots"><i /><i /><i /></span><span className="murl">hagi · portfolio</span><Toggle /></div>
@@ -117,12 +123,12 @@ export function Landing() {
       </section>
 
       <section className="lsec" id="baskets">
-        <div className="bhd"><div><h2><span>Baskets,</span> in one go.</h2><p>Buy a ready-made mix of stocks in a single transaction. Anyone can make one, and nobody can change it afterwards.</p></div><button className="btn o" onClick={() => go('baskets')}>See all baskets</button></div>
+        <div className="bhd"><div><h2><span>Baskets,</span> in one go.</h2><p>Buy a ready-made mix of stocks in a single transaction. Anyone can make one, and nobody can change it afterwards.</p></div><button className={secondary} onClick={() => go('baskets')}>See all baskets</button></div>
         <div className="grid four">{popular.map(b => (
           <div className="card bk" key={b.id}>
             <div className="st">{b.items.slice(0, 4).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={34} />)}{b.items.length > 4 && <span className="ti more">+{b.items.length - 4}</span>}</div>
             <div className="bn">{b.name}</div><div className="bm">{b.items.length} stocks · {b.buyers} buyers</div>
-            <div className="mixbar sm">{b.items.map((it, i) => <i key={it.symbol} style={{ width: it.weight + '%', background: ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#3a4a8a', '#c9d1ee', '#7f86ad', '#d9def0'][i % 8] }} />)}</div>
+            <div className="mixbar sm">{b.items.map((it, i) => <i key={it.symbol} style={{ width: it.weight + '%', background: MIXC[i % 8] }} />)}</div>
             <div className="bf"><span>by {b.creator}</span><button className="chip strong" onClick={() => go('baskets?buy=' + b.id)}>Buy</button></div>
           </div>
         ))}</div>
@@ -152,7 +158,7 @@ export function Landing() {
       </section>
 
       <footer className="bigfoot">
-        <div className="bf1"><span className="fm"><Mark size={22} /><b>hagi</b></span><p>Stocks, off the record.</p></div>
+        <div className="bf1"><span className="fm"><Mark size={22} leaf={navy ? '#ffffff' : undefined} /><b>hagi</b></span><p>Stocks, off the record.</p></div>
         <div><b>Product</b><a href="#/portfolio">Portfolio</a><a href="#/swap">Swap</a><a href="#/baskets">Baskets</a><a href="#/send">Send</a></div>
         <div><b>Learn</b><button onClick={() => jump('how')}>How it works</button><button onClick={() => jump('private')}>What’s private</button><button onClick={() => jump('faq')}>Questions</button></div>
         <div><b>More</b><a href="https://github.com/xxvii2026/hagi" target="_blank" rel="noopener noreferrer">GitHub</a><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a></div>

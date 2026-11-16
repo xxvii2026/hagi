@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { DEMO_MODE, FAUCET_URL } from './chain'
 import { short } from './data'
+import { hashParam } from './nav'
 import { useStore } from './store'
 import { Card, Icon, Mark, Progress } from './ui'
 import { connectWallet, createHagiAccount, hasWallet } from './wallet'
@@ -53,7 +54,9 @@ export default function App() {
   const { s, d } = useStore()
   const [page, setPage] = useState<Page>(read)
   const [job, setJob] = useState<{ title: string; fn: () => void; done?: string } | null>(null)
-  useEffect(() => { const f = () => setPage(read()); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
+  const [, setTick] = useState(0)
+  useEffect(() => { const f = () => { setPage(read()); setTick(t => t + 1) }; addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
+  const dark = page === 'home' && hashParam('theme') !== 'light'
   const run = useCallback((title: string, fn: () => void, done?: string) => setJob({ title, fn, done }), [])
   const finish = useCallback(() => { job?.fn(); setJob(null) }, [job])
   const ready = !!s.wallet && !!s.hagiAddress
@@ -62,7 +65,7 @@ export default function App() {
     <>
       {DEMO_MODE && <div className="demo">Demo mode. The contracts aren’t deployed yet, so balances and transactions here are simulated.</div>}
       <header className="nav">
-        <a className="lg" href="#/home"><Mark />hagi</a>
+        <a className="lg" href="#/home"><Mark leaf={dark ? '#ffffff' : undefined} />hagi</a>
         <nav className="links">{page === 'home'
           ? [['how', 'How it works'], ['private', 'What’s private'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)
           : ready && PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}</nav>
