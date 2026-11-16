@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { DEMO_MODE, FAUCET_URL } from './chain'
 import { short } from './data'
-import { hashParam } from './nav'
 import { useStore } from './store'
 import { Card, Icon, Mark, Progress } from './ui'
 import { connectWallet, createHagiAccount, hasWallet } from './wallet'
@@ -56,7 +55,7 @@ export default function App() {
   const [job, setJob] = useState<{ title: string; fn: () => void; done?: string } | null>(null)
   const [, setTick] = useState(0)
   useEffect(() => { const f = () => { setPage(read()); setTick(t => t + 1) }; addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
-  const dark = page === 'home' && hashParam('theme') !== 'light'
+  const dark = page === 'home'
   const run = useCallback((title: string, fn: () => void, done?: string) => setJob({ title, fn, done }), [])
   const finish = useCallback(() => { job?.fn(); setJob(null) }, [job])
   const ready = !!s.wallet && !!s.hagiAddress

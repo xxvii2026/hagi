@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { FAUCET_URL } from '../chain'
 import { TOKENS, fmt, token } from '../data'
-import { go, hashParam } from '../nav'
+import { go } from '../nav'
 import { useStore } from '../store'
 import { Censor, Icon, Mark, TokenIcon, type IconName } from '../ui'
 
@@ -39,8 +39,7 @@ export function Landing() {
   const { s } = useStore()
   const [me, setMe] = useState(false) // false = viewing as anyone else, so amounts are pixelated
   const open = () => go('portfolio')
-  // Navy is the default look. Add ?theme=light to the address to see the light version.
-  const navy = hashParam('theme') !== 'light'
+  const navy = true // the landing page is navy; the app itself stays light
   useEffect(() => { document.body.classList.toggle('navy-page', navy); return () => document.body.classList.remove('navy-page') }, [navy])
   const primary = navy ? 'btn light' : 'btn'
   const secondary = navy ? 'btn ghost' : 'btn o'
