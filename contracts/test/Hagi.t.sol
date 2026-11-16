@@ -248,7 +248,7 @@ contract HagiTest is Test {
         reg.createBasket("ok", nine, nineW);
     }
 
-    function test_recorder_is_set_once_and_gates_buys() public {
+    function test_recorder_gates_buys() public {
         (address[] memory t, uint16[] memory w) = _pair();
         reg.createBasket("ok", t, w);
         vm.expectRevert(BasketRegistry.NotRecorder.selector);
@@ -257,10 +257,12 @@ contract HagiTest is Test {
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, user));
         reg.setRecorder(user);
         vm.startPrank(owner);
-        reg.setRecorder(address(0xADA));
-        vm.expectRevert(BasketRegistry.RecorderAlreadySet.selector);
         reg.setRecorder(address(0xBEEF));
+        reg.setRecorder(address(0xADA));
         vm.stopPrank();
+        vm.prank(address(0xBEEF));
+        vm.expectRevert(BasketRegistry.NotRecorder.selector);
+        reg.recordBuy(0);
         vm.startPrank(address(0xADA));
         reg.recordBuy(0);
         reg.recordBuy(0);

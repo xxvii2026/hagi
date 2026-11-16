@@ -26,7 +26,7 @@ contract BasketRegistry is Ownable {
     }
 
     IHagiSwapPools public immutable swap;
-    /// @notice The only address allowed to record buys. Set once, when the swap adapter is deployed.
+    /// @notice The only address allowed to record buys: the vault. The owner can repoint it if the vault is redeployed.
     address public recorder;
 
     Basket[] private _baskets;
@@ -42,7 +42,6 @@ contract BasketRegistry is Ownable {
     error ZeroWeight();
     error WeightsMustTotal10000(uint256 total);
     error NotRecorder();
-    error RecorderAlreadySet();
     error NoBasket(uint256 id);
 
     constructor(IHagiSwapPools swap_, address owner_) Ownable(owner_) {
@@ -98,7 +97,6 @@ contract BasketRegistry is Ownable {
     }
 
     function setRecorder(address recorder_) external onlyOwner {
-        if (recorder != address(0)) revert RecorderAlreadySet();
         recorder = recorder_;
         emit RecorderSet(recorder_);
     }
