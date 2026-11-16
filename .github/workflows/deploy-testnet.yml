@@ -1,0 +1,32 @@
+name: Deploy to testnet
+# Runs only when contracts/deployments/request-testnet changes on the contracts branch,
+# so a deployment is always a deliberate, visible commit.
+on:
+  push:
+    branches: [contracts]
+    paths: ['contracts/deployments/request-testnet']
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      RPC: ${{ secrets.RPC_URL || 'https://rpc.testnet.chain.robinhood.com' }}
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci
+      - name: Test
+        run: forge test
+      - name: Deploy and seed
+        run: |
+          # Accept the key with or without a 0x prefix. The value is never printed.
+          export DEPLOYER_PRIVATE_KEY="0x${DEPLOYER_PRIVATE_KEY#0x}"
+          forge script script/Deploy.s.sol:Deploy --rpc-url "$RPC" --broadcast --slow --gas-estimate-multiplier 150
+      - name: Deployer balance after
+        run: echo "deployer ETH left $(cast from-wei $(cast balance 0xd16863014B75dfA19149E8db6078B17525021594 --rpc-url $RPC))"

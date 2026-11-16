@@ -1,0 +1,23 @@
+name: Probe testnet
+# Read-only checks against Robinhood Chain Testnet. Sends no transactions.
+on:
+  workflow_dispatch:
+  push:
+    branches: [contracts]
+    paths: ['.github/workflows/probe.yml']
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      RPC: ${{ secrets.RPC_URL || 'https://rpc.testnet.chain.robinhood.com' }}
+      EXP: https://explorer.testnet.chain.robinhood.com/api/v2
+      DEPLOYER: '0xd16863014B75dfA19149E8db6078B17525021594'
+      RELAYER: '0x56077D89f3179f061C9F436d2dF7623625898891'
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+    steps:
+      - name: Who has been sending vault transactions
+        run: |
+          echo "== relayer wallet transactions"
+          curl -sS -m 20 "$EXP/addresses/$RELAYER/transactions" | jq -r '.items[]? | "rel \(.timestamp) \(.method // "-") to=\(.to.hash // "-") status=\(.status) result=\(.result)"' | head -12
+          echo "== vault transactions"
+          curl -sS -m 20 "$EXP/addresses/0x0C3C8c6929851818d6a15A4c57D68F9342B81798/transactions" | jq -r '.items[]? | "vault \(.timestamp) \(.method // "-") from=\(.from.hash) status=\(.status) result=\(.result)"' | head -30

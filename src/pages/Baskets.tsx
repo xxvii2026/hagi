@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { asInput, MAX_BASKET, TOKENS, fmt, token, type Basket } from '../data'
+import { asInput, MAX_BASKET, STOCKS, fmt, token, type Basket } from '../data'
+import * as engine from '../engine'
 import { hashParam } from '../nav'
 import { useStore } from '../store'
-import { AmountField, Card, Icon, TokenIcon, Visibility } from '../ui'
+import { AmountField, Card, Icon, TokenIcon, Visibility, type Run } from '../ui'
 
 /** Draws a branded 1200x675 image of a basket and downloads it, ready to post. */
 function shareBasket(b: Basket) {
@@ -26,8 +27,8 @@ function shareBasket(b: Basket) {
   const a = document.createElement('a'); a.href = c.toDataURL('image/png'); a.download = 'hagi-basket-' + b.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png'; a.click()
 }
 
-function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: (title: string, fn: () => void, done?: string) => void }) {
-  const { s, d } = useStore()
+function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: Run }) {
+  const { s, api } = useStore()
   const [amt, setAmt] = useState('')
   const n = parseFloat(amt) || 0
   const have = s.shielded.USDG ?? 0
@@ -37,14 +38,18 @@ function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: (title
       <p className="muted">Created by {b.creator} · {b.buyers} buyers</p>
       <div className="weights">{b.items.map(it => <div className="wb" key={it.symbol}><TokenIcon symbol={it.symbol} size={28} /><span>{it.symbol}</span><div className="bar"><i style={{ width: it.weight + '%' }} /></div><b>{it.weight}%{n > 0 && <em>{fmt((n * it.weight) / 100 / token(it.symbol).price, 3)}</em>}</b></div>)}</div>
       <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have)} USDG</>} onMax={() => setAmt(asInput(have))} right={<span className="unit">USDG</span>} />
-      <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, () => d({ type: 'buyBasket', id: b.id, amount: n }), 'Bought. Straight into the vault.') }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>
-      <Visibility pub="this purchase: your wallet, the basket and the amount." priv="your total balance." />
+      <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, async step => {
+        await engine.buyBasket(b, n, step)
+        api.log({ kind: 'basket', title: 'Bought basket: ' + b.name, detail: fmt(n) + ' USDG' })
+        await api.refresh()
+      }, 'Bought. Straight into the vault.') }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>
+      <Visibility pub="that someone bought this basket, and for how much." priv="who bought it and your balance." />
     </div></div>
   )
 }
 
-function CreateModal({ close }: { close: () => void }) {
-  const { d } = useStore()
+function CreateModal({ close, run }: { close: () => void; run: Run }) {
+  const { api } = useStore()
   const [name, setName] = useState('')
   const [w, setW] = useState<Record<string, number>>({})
   const picked = Object.keys(w)
@@ -57,24 +62,24 @@ function CreateModal({ close }: { close: () => void }) {
       <div className="ch"><span>Create a basket</span><button className="x" onClick={close} aria-label="Close"><Icon name="close" size={15} /></button></div>
       <div className="fld"><span className="fl">Name</span><input className="txt" placeholder="e.g. Chip makers" maxLength={32} value={name} onChange={e => setName(e.target.value)} aria-label="Basket name" /></div>
       <span className="fl pad">Pick 2 to {MAX_BASKET} stocks</span>
-      <div className="pop">{TOKENS.filter(t => t.symbol !== 'USDG').map(t => <button key={t.symbol} className={'chip ' + (t.symbol in w ? 'on' : '')} onClick={() => toggle(t.symbol)}><TokenIcon symbol={t.symbol} size={26} />{t.symbol}</button>)}</div>
+      <div className="pop">{STOCKS.map(t => <button key={t.symbol} className={'chip ' + (t.symbol in w ? 'on' : '')} onClick={() => toggle(t.symbol)}><TokenIcon symbol={t.symbol} size={26} />{t.symbol}</button>)}</div>
       {picked.length > 0 && <>
         <div className="lab pad"><span>Weights · total {sum}%</span><button className="tag" onClick={even}>Split evenly</button></div>
         <div className="weights">{picked.map(k => <div className="wb" key={k}><TokenIcon symbol={k} size={28} /><span>{k}</span><div className="bar"><i style={{ width: Math.min(100, w[k] || 0) + '%' }} /></div><input className="pct" inputMode="numeric" value={w[k] || ''} onChange={e => setW({ ...w, [k]: Math.min(100, parseInt(e.target.value.replace(/\D/g, '')) || 0) })} aria-label={k + ' weight'} /></div>)}</div>
       </>}
-      <button className="btn" disabled={!ok} onClick={() => { d({ type: 'createBasket', name: name.trim(), items: picked.map(k => ({ symbol: k, weight: w[k] })) }); close() }}>{picked.length >= 2 && sum !== 100 ? `Weights must total 100% (now ${sum}%)` : 'Create basket'}</button>
+      <button className="btn" disabled={!ok} onClick={() => { close(); run('Creating your basket', async step => { await engine.createBasket(name.trim(), picked.map(k => ({ symbol: k, weight: w[k] })), step); await api.refresh() }, 'Basket created. It’s permanent now.') }}>{picked.length >= 2 && sum !== 100 ? `Weights must total 100% (now ${sum}%)` : 'Create basket'}</button>
       <p className="muted small">A basket can’t be changed after it’s created. To change the mix, make a new one.</p>
     </div></div>
   )
 }
 
-export function Baskets({ run }: { run: (title: string, fn: () => void, done?: string) => void }) {
+export function Baskets({ run }: { run: Run }) {
   const { s } = useStore()
   const [sort, setSort] = useState<'top' | 'new' | 'mine'>('top')
   const [buy, setBuy] = useState<Basket | null>(() => s.baskets.find(b => String(b.id) === hashParam('buy')) ?? null)
   const [creating, setCreating] = useState(false)
   const me = s.wallet ? s.wallet.slice(0, 6) + '…' + s.wallet.slice(-4) : ''
-  const list = [...s.baskets].filter(b => sort !== 'mine' || b.creator === me).sort((a, b) => (sort === 'new' ? b.created - a.created : b.buyers - a.buyers))
+  const list = [...s.baskets].filter(b => sort !== 'mine' || b.creator.toLowerCase() === me.toLowerCase()).sort((a, b) => (sort === 'new' ? b.created - a.created : b.buyers - a.buyers))
   return (
     <div className="wrap one">
       <div className="bhd"><div><h2><span>Baskets,</span> in one go.</h2><p>Buy a ready-made mix of stocks in one transaction. Anyone can make one.</p></div><button className="btn o" onClick={() => setCreating(true)}>+ Create a basket</button></div>
@@ -90,7 +95,7 @@ export function Baskets({ run }: { run: (title: string, fn: () => void, done?: s
         ))}</div>
       )}
       {buy && <BuyModal b={buy} close={() => setBuy(null)} run={run} />}
-      {creating && <CreateModal close={() => setCreating(false)} />}
+      {creating && <CreateModal close={() => setCreating(false)} run={run} />}
     </div>
   )
 }

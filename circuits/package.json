@@ -1,0 +1,8 @@
+{
+  "name": "hagi-circuits",
+  "private": true,
+  "description": "Zero-knowledge circuits for the Hagi vault",
+  "scripts": { "build": "bash build.sh" },
+  "dependencies": { "circomlib": "2.0.5" },
+  "devDependencies": { "circom2": "0.2.22", "snarkjs": "0.7.5" }
+}

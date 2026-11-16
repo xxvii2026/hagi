@@ -1,0 +1,37 @@
+name: Deploy vault to testnet
+# Runs only when contracts/deployments/request-vault changes on the contracts branch.
+on:
+  push:
+    branches: [contracts]
+    paths: ['contracts/deployments/request-vault']
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      RPC: ${{ secrets.RPC_URL || 'https://rpc.testnet.chain.robinhood.com' }}
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+      HAGI_USDG: '0x48fdc557DE6Fe7efD3341e6c28A626Be021d117a'
+      HAGI_SWAP: '0xA81738A148743645EB46Ff579CE6E81c63896BE6'
+      # Order matters: TSLA, AMD, AMZN, NFLX, PLTR
+      HAGI_TOKENS: '0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E,0x71178BAc73cBeb415514eB542a8995b82669778d,0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02,0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93,0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci
+      - run: npm ci
+        working-directory: contracts
+      - name: Unit tests
+        run: forge test
+        working-directory: contracts
+      - name: End-to-end test with real proofs on a local chain
+        run: npx tsx contracts/e2e/e2e.ts
+      - name: Deploy the vault
+        working-directory: contracts
+        run: |
+          export DEPLOYER_PRIVATE_KEY="0x${DEPLOYER_PRIVATE_KEY#0x}"
+          forge script script/DeployVault.s.sol:DeployVault --rpc-url "$RPC" --broadcast --slow --gas-estimate-multiplier 150
+      - name: Deployer balance after
+        run: echo "deployer ETH left $(cast from-wei $(cast balance 0xd16863014B75dfA19149E8db6078B17525021594 --rpc-url $RPC))"
