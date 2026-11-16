@@ -135,3 +135,27 @@ button{transition:background .12s ease,box-shadow .12s ease,transform .12s ease,
   .hold{flex-wrap:wrap}.rowacts{order:5;flex-basis:100%;padding-left:54px;margin-top:2px}
   .bhd .acts{flex-wrap:wrap}.card{padding:22px 20px}
 }
+
+/* ---- Brand pass ---- */
+/* Flat navy buttons: depth comes from the balance card and card shadows only */
+.btn{background:var(--ink);box-shadow:0 8px 16px -10px rgba(27,33,64,.5)}.btn:hover:not(:disabled){background:#252c55;box-shadow:0 12px 20px -10px rgba(27,33,64,.55)}
+.chip.strong,.mini .chip.strong{background:var(--ink);box-shadow:none}.chip.strong:hover{background:#252c55}
+/* Public is lavender grey, private is periwinkle. Amber is kept for the shield nudge only */
+.vis .a{background:var(--lav)}
+.ic{display:block;flex:none}.addr .ic{opacity:.75}.x .ic{margin:auto}
+h2 span,.ptitle h2 span{color:var(--lav)}h2{font-weight:400}
+.ptitle{grid-column:1/-1;margin-bottom:6px}.ptitle p{color:var(--mute);font-size:15px;margin-top:4px}
+.big{font-weight:400}
+/* Loader: three leaves, then the hidden one */
+.loader{width:88px;height:88px;border-radius:50%;background:#eef0f8;display:flex;align-items:center;justify-content:center;margin:0 auto}
+.loader path,.loader rect{animation:leaf 2s ease-in-out infinite both}.loader .lb{transform-box:fill-box;transform-origin:center}
+.loader .l2{animation-delay:.18s}.loader .l3{animation-delay:.36s}.loader .lb{animation-name:block;animation-delay:.6s}
+@keyframes leaf{0%{opacity:0}18%,82%{opacity:1}100%{opacity:0}}
+@keyframes block{0%{opacity:0;transform:translateY(-10px) scale(.6)}22%,80%{opacity:1;transform:none}100%{opacity:0}}
+.loader.ok path,.loader.ok rect{animation:none;opacity:1}
+@media (prefers-reduced-motion:reduce){.loader path,.loader rect{animation:none;opacity:1}}
+.reveal{display:inline-flex;align-items:center;font:inherit;color:inherit;border-radius:6px;padding:2px}.reveal:hover{background:#eceef6}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;max-width:1480px;margin:0 auto;padding:22px 56px 34px;font-size:13.5px;color:var(--soft)}
+.fm{display:flex;align-items:center;gap:8px}.fm b{color:var(--ink);font-size:17px;letter-spacing:-.05em;font-variation-settings:"opsz" 32}.fl2{display:flex;gap:18px;align-items:center}.fl2 a:hover{color:var(--ink)}
+main{min-height:calc(100vh - 260px)}
+@media (max-width:1000px){.foot{padding:18px 18px 28px}}

@@ -12,7 +12,8 @@ export function Mark({ size = 24, leaf = '#1b2140', block = '#566eba' }: { size?
   )
 }
 
-const TINTS = [['#e3f1ea', '#2f7a55'], ['#fbe6e6', '#b33a3a'], ['#e8f3dc', '#4c7a1c'], ['#ececf0', '#33364a'], ['#e6ecfb', '#3a55b3'], ['#fdebe0', '#b3562a'], ['#e2f0fa', '#256a9c'], ['#fdf3d9', '#96700f']]
+// Placeholder icons stay inside the brand palette until a token has a real logo.
+const TINTS = [['#e8ebf7', '#1b2140'], ['#e3e8f9', '#4a61ab'], ['#efecf2', '#6b6177'], ['#1b2140', '#ffffff'], ['#566eba', '#ffffff'], ['#d9def0', '#3a4a8a']]
 const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7)
 
 /** Shows the token's logo when the token list provides one, otherwise a coloured initial. */
@@ -22,6 +23,17 @@ export function TokenIcon({ symbol, size = 40 }: { symbol: string; size?: number
   if (t.logoURI) return <img className="ti" src={t.logoURI} alt={symbol} width={size} height={size} />
   const full = size >= 34
   return <span className="ti" style={{ width: size, height: size, background: bg, color: fg, fontSize: full ? size * 0.25 : size * 0.4, letterSpacing: full ? '-0.02em' : 0 }}>{full ? symbol.slice(0, 4) : symbol[0]}</span>
+}
+
+const ICONS = {
+  down: 'M10 4v12M5 11l5 5 5-5', up: 'M10 16V4M5 9l5-5 5 5', swap: 'M4 7h11M12 4l3 3-3 3M16 13H5M8 10l-3 3 3 3',
+  right: 'M4 10h12M11 5l5 5-5 5', left: 'M16 10H4M9 5l-5 5 5 5', basket: 'M4 4h5v5H4zM11 4h5v5h-5zM4 11h5v5H4zM11 11h5v5h-5z',
+  copy: 'M7 7h9v9H7zM4 13V4h9', alert: 'M10 5v6M10 14.4v.2', close: 'M5 5l10 10M15 5L5 15', check: 'M4 10.5l4 4 8-9',
+} as const
+export type IconName = keyof typeof ICONS
+/** One drawn icon set with a single line weight, so icons look the same on every device. */
+export function Icon({ name, size = 16 }: { name: IconName; size?: number }) {
+  return <svg className="ic" width={size} height={size} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={ICONS[name]} /></svg>
 }
 
 /** Pixel censor. Replaces a number with a mosaic when amounts are hidden. */
@@ -62,12 +74,13 @@ export function AmountField({ label, value, onChange, hint, onMax, right, readOn
   )
 }
 
+const LEAF = 'M0 23A23 23 0 0 1 23 0A23 23 0 0 1 46 23V46H23A23 23 0 0 1 0 23Z'
 /** Steps shown while a private action is prepared, signed and confirmed. */
 const STEPS = ['Preparing your private transaction', 'Confirm in your wallet', 'Waiting for the network']
-export function Progress({ title, onDone }: { title: string; onDone: () => void }) {
+export function Progress({ title, onDone, doneText }: { title: string; onDone: () => void; doneText?: string }) {
   const [step, setStep] = useState(0)
   useEffect(() => {
-    if (step >= STEPS.length) { const t = setTimeout(onDone, 900); return () => clearTimeout(t) }
+    if (step >= STEPS.length) { const t = setTimeout(onDone, 1400); return () => clearTimeout(t) }
     const t = setTimeout(() => setStep(step + 1), step === 0 ? 2200 : 1300)
     return () => clearTimeout(t)
   }, [step, onDone])
@@ -75,8 +88,13 @@ export function Progress({ title, onDone }: { title: string; onDone: () => void 
   return (
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="modal">
-        <div className={'spin ' + (done ? 'ok' : '')}><Mark size={34} /></div>
-        <h3>{done ? 'Done' : title}</h3>
+        <div className={'loader ' + (done ? 'ok' : '')}>
+          <svg width="56" height="56" viewBox="0 0 100 100" aria-hidden>
+            <path className="l1" d={LEAF} fill="#1b2140" /><path className="l2" d={LEAF} fill="#1b2140" transform="translate(100,0) scale(-1,1)" /><path className="l3" d={LEAF} fill="#1b2140" transform="translate(0,100) scale(1,-1)" />
+            <rect className="lb" x="54" y="54" width="42" height="42" fill="#566eba" />
+          </svg>
+        </div>
+        <h3>{done ? (doneText ?? 'Done.') : title}</h3>
         <p className="muted">{done ? 'Your balance has been updated.' : 'This takes a few seconds. Please keep this tab open.'}</p>
         <ol className="steps">{STEPS.map((t, i) => <li key={t} className={i < step ? 'd' : i === step ? 'a' : ''}><i />{t}</li>)}</ol>
       </div>

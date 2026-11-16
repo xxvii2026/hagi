@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { asInput, MAX_BASKET, TOKENS, fmt, token, type Basket } from '../data'
 import { hashParam } from '../nav'
 import { useStore } from '../store'
-import { AmountField, Card, TokenIcon, Visibility } from '../ui'
+import { AmountField, Card, Icon, TokenIcon, Visibility } from '../ui'
 
 /** Draws a branded 1200x675 image of a basket and downloads it, ready to post. */
 function shareBasket(b: Basket) {
@@ -26,18 +26,18 @@ function shareBasket(b: Basket) {
   const a = document.createElement('a'); a.href = c.toDataURL('image/png'); a.download = 'hagi-basket-' + b.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png'; a.click()
 }
 
-function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: (t: string, fn: () => void) => void }) {
+function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: (title: string, fn: () => void, done?: string) => void }) {
   const { s, d } = useStore()
   const [amt, setAmt] = useState('')
   const n = parseFloat(amt) || 0
   const have = s.shielded.USDG ?? 0
   return (
     <div className="overlay" onClick={close}><div className="modal wide" onClick={e => e.stopPropagation()}>
-      <div className="ch"><span>{b.name}</span><button className="x" onClick={close} aria-label="Close">×</button></div>
+      <div className="ch"><span>{b.name}</span><button className="x" onClick={close} aria-label="Close"><Icon name="close" size={15} /></button></div>
       <p className="muted">Created by {b.creator} · {b.buyers} buyers</p>
       <div className="weights">{b.items.map(it => <div className="wb" key={it.symbol}><TokenIcon symbol={it.symbol} size={28} /><span>{it.symbol}</span><div className="bar"><i style={{ width: it.weight + '%' }} /></div><b>{it.weight}%{n > 0 && <em>{fmt((n * it.weight) / 100 / token(it.symbol).price, 3)}</em>}</b></div>)}</div>
       <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have)} USDG</>} onMax={() => setAmt(asInput(have))} right={<span className="unit">USDG</span>} />
-      <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, () => d({ type: 'buyBasket', id: b.id, amount: n })) }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>
+      <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, () => d({ type: 'buyBasket', id: b.id, amount: n }), 'Bought. This one’s on the record.') }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>
       <Visibility pub="this purchase: your wallet, the basket and the amount." priv="your total balance." />
     </div></div>
   )
@@ -54,7 +54,7 @@ function CreateModal({ close }: { close: () => void }) {
   const ok = name.trim().length >= 2 && picked.length >= 2 && sum === 100 && picked.every(k => w[k] > 0)
   return (
     <div className="overlay" onClick={close}><div className="modal wide" onClick={e => e.stopPropagation()}>
-      <div className="ch"><span>Create a basket</span><button className="x" onClick={close} aria-label="Close">×</button></div>
+      <div className="ch"><span>Create a basket</span><button className="x" onClick={close} aria-label="Close"><Icon name="close" size={15} /></button></div>
       <div className="fld"><span className="fl">Name</span><input className="txt" placeholder="e.g. Chip makers" maxLength={32} value={name} onChange={e => setName(e.target.value)} aria-label="Basket name" /></div>
       <span className="fl pad">Pick 2 to {MAX_BASKET} stocks</span>
       <div className="pop">{TOKENS.filter(t => t.symbol !== 'USDG').map(t => <button key={t.symbol} className={'chip ' + (t.symbol in w ? 'on' : '')} onClick={() => toggle(t.symbol)}><TokenIcon symbol={t.symbol} size={26} />{t.symbol}</button>)}</div>
@@ -68,7 +68,7 @@ function CreateModal({ close }: { close: () => void }) {
   )
 }
 
-export function Baskets({ run }: { run: (title: string, fn: () => void) => void }) {
+export function Baskets({ run }: { run: (title: string, fn: () => void, done?: string) => void }) {
   const { s } = useStore()
   const [sort, setSort] = useState<'top' | 'new' | 'mine'>('top')
   const [buy, setBuy] = useState<Basket | null>(() => s.baskets.find(b => String(b.id) === hashParam('buy')) ?? null)
@@ -77,7 +77,7 @@ export function Baskets({ run }: { run: (title: string, fn: () => void) => void 
   const list = [...s.baskets].filter(b => sort !== 'mine' || b.creator === me).sort((a, b) => (sort === 'new' ? b.created - a.created : b.buyers - a.buyers))
   return (
     <div className="wrap one">
-      <div className="bhd"><div><h2>Baskets</h2><p>Buy a ready-made mix of stocks in one go. Anyone can make one.</p></div><button className="btn o" onClick={() => setCreating(true)}>+ Create a basket</button></div>
+      <div className="bhd"><div><h2><span>Baskets,</span> in one go.</h2><p>Buy a ready-made mix of stocks in one transaction. Anyone can make one.</p></div><button className="btn o" onClick={() => setCreating(true)}>+ Create a basket</button></div>
       <div className="seg">{([['top', 'Most bought'], ['new', 'Newest'], ['mine', 'Mine']] as const).map(([k, t]) => <button key={k} className={sort === k ? 'on' : ''} onClick={() => setSort(k)}>{t}</button>)}</div>
       {list.length === 0 ? <Card><div className="empty"><b>You haven’t made a basket yet</b><p>Pick a few stocks, set the weights and share it.</p><button className="btn sm" onClick={() => setCreating(true)}>Create a basket</button></div></Card> : (
         <div className="grid">{list.map(b => (

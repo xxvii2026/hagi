@@ -3,12 +3,12 @@ import { FAUCET_URL, DEMO_MODE } from '../chain'
 import { asInput, fmt, token, usd } from '../data'
 import { go } from '../nav'
 import { total, useStore } from '../store'
-import { Amount, AmountField, Card, Censor, Mark, TokenIcon, TokenPicker, Visibility } from '../ui'
+import { Amount, AmountField, Card, Censor, Icon, Mark, TokenIcon, TokenPicker, Visibility } from '../ui'
 import { ActivityList } from './Activity'
 
 const MIX = ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#3a4a8a', '#c9d1ee', '#7f86ad', '#d9def0']
 
-export function Portfolio({ run }: { run: (title: string, fn: () => void) => void }) {
+export function Portfolio({ run }: { run: (title: string, fn: () => void, done?: string) => void }) {
   const { s, d } = useStore()
   const [tab, setTab] = useState<'shield' | 'unshield'>('shield')
   const [sym, setSym] = useState('USDG')
@@ -35,7 +35,7 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
   const faucet = () => { if (DEMO_MODE) d({ type: 'faucet' }); window.open(FAUCET_URL, '_blank', 'noopener') }
   const copy = async () => { try { await navigator.clipboard.writeText(addr); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch { /* clipboard blocked */ } }
   // Live version: one transaction per token. The demo applies them together.
-  const shieldAll = () => run('Shielding', () => Object.entries(s.walletBal).forEach(([k, v]) => d({ type: 'shield', symbol: k, amount: v })))
+  const shieldAll = () => run('Shielding', () => Object.entries(s.walletBal).forEach(([k, v]) => d({ type: 'shield', symbol: k, amount: v })), 'Shielded. Off the record now.')
 
   return (
     <div className="wrap">
@@ -45,22 +45,22 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
           <div className="lab">
             <span>Your private balance</span>
             <span className="heroR">
-              <button className="addr" onClick={copy} title="Copy your Hagi address">{copied ? 'Copied' : addr.slice(0, 9) + '…' + addr.slice(-4)}<i>⧉</i></button>
+              <button className="addr" onClick={copy} title="Copy your Hagi address">{copied ? 'Copied' : addr.slice(0, 9) + '…' + addr.slice(-4)}<Icon name="copy" size={13} /></button>
               <button className="addr plain" onClick={() => d({ type: 'toggleHidden' })}>{s.hidden ? 'Show amounts' : 'Hide amounts'}</button>
             </span>
           </div>
           <div className="big">{s.hidden ? <Censor seed="balance" cols={12} cell={22} onDark /> : <>${whole}<small>.{cents}</small></>}</div>
           <div className="qas">
-            <button className="qa p" onClick={() => openForm('shield')}><i>↓</i>Shield</button>
-            <button className="qa" onClick={() => openForm('unshield')}><i>↑</i>Unshield</button>
-            <button className="qa" onClick={() => go('swap')}><i>⇄</i>Swap</button>
-            <button className="qa" onClick={() => go('send')}><i>→</i>Send</button>
+            <button className="qa p" onClick={() => openForm('shield')}><i><Icon name="down" /></i>Shield</button>
+            <button className="qa" onClick={() => openForm('unshield')}><i><Icon name="up" /></i>Unshield</button>
+            <button className="qa" onClick={() => go('swap')}><i><Icon name="swap" /></i>Swap</button>
+            <button className="qa" onClick={() => go('send')}><i><Icon name="right" /></i>Send</button>
           </div>
         </Card>
 
         {unshielded > 0 && (
           <div className="nudge">
-            <span><i>!</i><span><b>{usd(unshielded)} in your wallet isn’t private yet.</b><em>Shield it to add it to your private balance.</em></span></span>
+            <span><i><Icon name="alert" /></i><span><b>{usd(unshielded)} in your wallet isn’t private yet.</b><em>Shield it to add it to your private balance.</em></span></span>
             <button className="btn sm" onClick={shieldAll}>Shield all</button>
           </div>
         )}
@@ -111,7 +111,7 @@ export function Portfolio({ run }: { run: (title: string, fn: () => void) => voi
           <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
             hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have)} {cur}</>} onMax={() => setAmt(asInput(have))}
             right={<TokenPicker value={cur} onChange={setSym} options={options} />} inputRef={amountRef} />
-          <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', () => { d({ type: tab, symbol: cur, amount: n }); setAmt('') })}>
+          <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', () => { d({ type: tab, symbol: cur, amount: n }); setAmt('') }, tab === 'shield' ? 'Shielded. Off the record now.' : 'Unshielded. Back on the record.')}>
             {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
           </button>
           {have === 0 && tab === 'shield' && <button className="link center" onClick={faucet}>Wallet empty? Get test funds</button>}

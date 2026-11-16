@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { asInput, TOKENS, fmt, token } from '../data'
 import { hashParam } from '../nav'
 import { useStore } from '../store'
-import { AmountField, Card, TokenIcon, TokenPicker, Visibility } from '../ui'
+import { AmountField, Card, Icon, TokenIcon, TokenPicker, Visibility } from '../ui'
 
-export function Swap({ run }: { run: (title: string, fn: () => void) => void }) {
+export function Swap({ run }: { run: (title: string, fn: () => void, done?: string) => void }) {
   const { s, d } = useStore()
   const all = TOKENS.map(t => t.symbol)
   const start = hashParam('from')
@@ -17,10 +17,11 @@ export function Swap({ run }: { run: (title: string, fn: () => void) => void }) 
   const flip = () => { setFrom(to); setTo(from); setAmt('') }
   return (
     <div className="wrap c">
-      <Card title="Swap">
+      <div className="ptitle"><h2><span>Swap,</span> on the record.</h2><p>Trade from your private balance through Uniswap. The trade is public, your balance isn’t.</p></div>
+      <Card>
         <AmountField label="You pay" value={amt} onChange={setAmt} hint={<>You have {fmt(have, from === 'USDG' ? 2 : 4)} {from}</>} onMax={() => setAmt(asInput(have))}
           right={<TokenPicker value={from} onChange={v => { if (v === to) setTo(from); setFrom(v) }} options={all} />} />
-        <button className="flip" onClick={flip} aria-label="Switch tokens">↓</button>
+        <button className="flip" onClick={flip} aria-label="Switch tokens"><Icon name="down" /></button>
         <AmountField label="You get" value={n ? fmt(out, to === 'USDG' ? 2 : 4) : ''} readOnly hint={n ? <>About ${fmt(n * token(from).price)}</> : <>&nbsp;</>}
           right={<TokenPicker value={to} onChange={v => { if (v === from) setFrom(to); setTo(v) }} options={all} />} />
         <div className="kvs">
@@ -28,7 +29,7 @@ export function Swap({ run }: { run: (title: string, fn: () => void) => void }) 
           <div className="kv"><span>Route</span><b>Uniswap</b></div>
           <div className="kv"><span>Slippage limit</span><b>0.5%</b></div>
         </div>
-        <button className="btn" disabled={n <= 0 || n > have} onClick={() => run('Swapping', () => { d({ type: 'swap', from, to, amount: n }); setAmt('') })}>
+        <button className="btn" disabled={n <= 0 || n > have} onClick={() => run('Swapping', () => { d({ type: 'swap', from, to, amount: n }); setAmt('') }, 'Done. This one’s on the record.')}>
           {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + from : 'Swap'}
         </button>
       </Card>
