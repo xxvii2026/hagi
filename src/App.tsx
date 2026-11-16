@@ -12,7 +12,7 @@ import { Activity } from './pages/Activity'
 
 const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
 type Page = (typeof PAGES)[number]
-const read = (): Page => { const h = location.hash.replace('#/', ''); return (PAGES as readonly string[]).includes(h) ? (h as Page) : 'portfolio' }
+const read = (): Page => { const h = location.hash.replace('#/', '').split('?')[0]; return (PAGES as readonly string[]).includes(h) ? (h as Page) : 'portfolio' }
 
 function Welcome() {
   const { s, d } = useStore()
@@ -52,7 +52,6 @@ export default function App() {
   const [page, setPage] = useState<Page>(read)
   const [job, setJob] = useState<{ title: string; fn: () => void } | null>(null)
   useEffect(() => { const f = () => setPage(read()); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
-  const go = (p: string) => { location.hash = '#/' + p }
   const run = useCallback((title: string, fn: () => void) => setJob({ title, fn }), [])
   const finish = useCallback(() => { job?.fn(); setJob(null) }, [job])
   const ready = !!s.wallet && !!s.hagiAddress
@@ -69,7 +68,7 @@ export default function App() {
         </div>
       </header>
       <main>
-        {!ready ? <Welcome /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} go={go} />}
+        {!ready ? <Welcome /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
       </main>
       {job && <Progress title={job.title} onDone={finish} />}
     </>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import { fmt } from '../data'
+import { hashParam } from '../nav'
 import { useStore } from '../store'
 import { AmountField, Card, TokenPicker, Visibility } from '../ui'
 
@@ -8,7 +9,7 @@ export function Send({ run }: { run: (title: string, fn: () => void) => void }) 
   const { s, d } = useStore()
   const [tab, setTab] = useState<'send' | 'receive'>('send')
   const options = Object.keys(s.shielded).length ? Object.keys(s.shielded) : ['USDG']
-  const [sym, setSym] = useState(options[0])
+  const [sym, setSym] = useState(hashParam('token') ?? options[0])
   const cur = options.includes(sym) ? sym : options[0]
   const [to, setTo] = useState('')
   const [amt, setAmt] = useState('')

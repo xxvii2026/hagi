@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { MAX_BASKET, TOKENS, fmt, token, type Basket } from '../data'
+import { hashParam } from '../nav'
 import { useStore } from '../store'
 import { AmountField, Card, TokenIcon, Visibility } from '../ui'
 
@@ -71,7 +72,7 @@ function CreateModal({ close }: { close: () => void }) {
 export function Baskets({ run }: { run: (title: string, fn: () => void) => void }) {
   const { s } = useStore()
   const [sort, setSort] = useState<'top' | 'new' | 'mine'>('top')
-  const [buy, setBuy] = useState<Basket | null>(null)
+  const [buy, setBuy] = useState<Basket | null>(() => s.baskets.find(b => String(b.id) === hashParam('buy')) ?? null)
   const [creating, setCreating] = useState(false)
   const me = s.wallet ? s.wallet.slice(0, 6) + '…' + s.wallet.slice(-4) : ''
   const list = [...s.baskets].filter(b => sort !== 'mine' || b.creator === me).sort((a, b) => (sort === 'new' ? b.created - a.created : b.buyers - a.buyers))

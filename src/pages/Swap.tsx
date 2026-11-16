@@ -1,13 +1,15 @@
 import { useState } from 'react'
 import { TOKENS, fmt, token } from '../data'
+import { hashParam } from '../nav'
 import { useStore } from '../store'
 import { AmountField, Card, TokenIcon, TokenPicker, Visibility } from '../ui'
 
 export function Swap({ run }: { run: (title: string, fn: () => void) => void }) {
   const { s, d } = useStore()
   const all = TOKENS.map(t => t.symbol)
-  const [from, setFrom] = useState('USDG')
-  const [to, setTo] = useState('TSLA')
+  const start = hashParam('from')
+  const [from, setFrom] = useState(start && all.includes(start) ? start : 'USDG')
+  const [to, setTo] = useState(start && start !== 'USDG' ? 'USDG' : 'TSLA')
   const [amt, setAmt] = useState('')
   const n = parseFloat(amt) || 0
   const have = s.shielded[from] ?? 0
