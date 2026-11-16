@@ -20,12 +20,6 @@ const FEED: { icon: IconName; title: string; when: string; amount: string; pub: 
   { icon: 'basket', title: 'Bought basket: All five', when: 'Yesterday', amount: '900.00 USDG', pub: true, note: 'Basket and size are public' },
   { icon: 'down', title: 'Shielded USDG', when: '2 days ago', amount: '4,000.00 USDG', pub: true, note: 'Deposits are public' },
 ]
-const STEPS: [string, string][] = [
-  ['Connect', 'Use the wallet you already have. Sign one free message and your Hagi account exists. The same wallet always recovers it.'],
-  ['Shield', 'Move USDG or stock tokens into the vault. This deposit is the last thing the public sees of that money.'],
-  ['Trade', 'Swap or buy a whole basket in one transaction, straight out of the vault and back in.'],
-  ['Send or leave', 'Pay another Hagi address privately, or unshield to any wallet whenever you want out.'],
-]
 const FAQ: [string, string][] = [
   ['Is this real money?', 'No. Hagi runs on Robinhood Chain Testnet. The tokens are free test tokens with no value.'],
   ['What stays private?', 'Your balance, which stocks you hold, and who you send to and how much. Inside the vault your funds are encrypted receipts that only your key can read.'],
@@ -59,7 +53,7 @@ export function Landing() {
         <span className="eyebrow2"><i />Testnet preview on Robinhood Chain</span>
         <h1><span>Stocks,</span> off the record.</h1>
         <p>Hold, swap and send stock tokens without putting your portfolio on display. Your balance sits in a shared vault that only you can read.</p>
-        <div className="lcta2"><button className={primary} onClick={open}>Open the app</button><button className={secondary} onClick={() => jump('how')}>How it works</button></div>
+        <div className="lcta2"><button className={primary} onClick={open}>Open the app</button><button className={secondary} onClick={() => jump('private')}>See what stays private</button></div>
 
         <div className={'mock ' + (me ? 'peek' : '')}>
           <div className="mockbar"><span className="dots"><i /><i /><i /></span><span className="murl">hagi · portfolio</span><Toggle /></div>
@@ -117,11 +111,6 @@ export function Landing() {
         </div>
       </section>
 
-      <section className="lsec" id="how">
-        <h2><span>From wallet to vault,</span> in four steps.</h2>
-        <div className="steps4">{STEPS.map(([t, p], i) => <div className="card" key={t}><span className="stepno">{String(i + 1).padStart(2, '0')}</span><b>{t}</b><p>{p}</p></div>)}</div>
-      </section>
-
       <section className="lsec" id="baskets">
         <div className="bhd"><div><h2><span>Baskets,</span> in one go.</h2><p>Buy a ready-made mix of stocks in a single transaction. Anyone can make one, and nobody can change it afterwards.</p></div><button className={secondary} onClick={() => go('baskets')}>See all baskets</button></div>
         <div className="grid four">{popular.map(b => (
@@ -132,16 +121,6 @@ export function Landing() {
             <div className="bf"><span>by {b.creator}</span><button className="chip strong" onClick={() => go('baskets?buy=' + b.id)}>Buy</button></div>
           </div>
         ))}</div>
-      </section>
-
-      <section className="lsec">
-        <h2><span>Don’t trust us,</span> check it yourself.</h2>
-        <div className="checks">
-          <a className="card" href="https://github.com/xxvii2026/hagi" target="_blank" rel="noopener noreferrer"><b>Read the code</b><p>Everything is open source, from the app to the contracts as they land.</p><span className="tag">GitHub</span></a>
-          <a className="card" href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer"><b>Watch the chain</b><p>Every deposit, swap and withdrawal can be looked up on the public explorer.</p><span className="tag">Explorer</span></a>
-          <button className="card" onClick={() => jump('faq')}><b>Read the risks</b><p>Testnet only and not audited. The plain answers are in the questions below.</p><span className="tag">Questions</span></button>
-          <a className="card" href={FAUCET_URL} target="_blank" rel="noopener noreferrer"><b>Try it for free</b><p>Get test funds from the faucet and use the whole app without spending anything.</p><span className="tag">Faucet</span></a>
-        </div>
       </section>
 
       <section className="lsec faqsec" id="faq">
@@ -160,7 +139,7 @@ export function Landing() {
       <footer className="bigfoot">
         <div className="bf1"><span className="fm"><Mark size={22} leaf={navy ? '#ffffff' : undefined} /><b>hagi</b></span><p>Stocks, off the record.</p></div>
         <div><b>Product</b><a href="#/portfolio">Portfolio</a><a href="#/swap">Swap</a><a href="#/baskets">Baskets</a><a href="#/send">Send</a></div>
-        <div><b>Learn</b><button onClick={() => jump('how')}>How it works</button><button onClick={() => jump('private')}>What’s private</button><button onClick={() => jump('faq')}>Questions</button></div>
+        <div><b>Learn</b><button onClick={() => jump('private')}>What’s private</button><button onClick={() => jump('faq')}>Questions</button></div>
         <div><b>More</b><a href="https://github.com/xxvii2026/hagi" target="_blank" rel="noopener noreferrer">GitHub</a><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a></div>
       </footer>
     </div>

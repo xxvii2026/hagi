@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
 import { token, fmt, withCommas } from './data'
-import { friendly } from './engine'
+import { friendly, onRelayerDown } from './engine'
 import { useStore } from './store'
 
 export function Mark({ size = 24, leaf = '#1b2140', block = '#566eba' }: { size?: number; leaf?: string; block?: string }) {
@@ -113,6 +113,11 @@ export function Progress({ title, task, doneText, onClose }: { title: string; ta
   const [state, setState] = useState<'run' | 'done' | 'error'>('run')
   const [error, setError] = useState('')
   const started = useRef(false)
+  const [ask, setAsk] = useState<{ why: string; answer: (ok: boolean) => void } | null>(null)
+  useEffect(() => {
+    onRelayerDown(why => new Promise(resolve => setAsk({ why, answer: ok => { setAsk(null); resolve(ok) } })))
+    return () => onRelayerDown(null)
+  }, [])
   useEffect(() => {
     if (started.current) return
     started.current = true
@@ -130,9 +135,10 @@ export function Progress({ title, task, doneText, onClose }: { title: string; ta
             <rect className="lb" x="54" y="54" width="42" height="42" fill={state === 'error' ? '#b0a7b8' : '#566eba'} />
           </svg>
         </div>
-        <h3>{state === 'done' ? (doneText ?? 'Done.') : state === 'error' ? 'That didn’t go through' : title}</h3>
-        <p className="muted">{state === 'done' ? 'Your balance has been updated.' : state === 'error' ? error : 'Please keep this tab open.'}</p>
+        <h3>{ask ? 'Private sending is unavailable' : state === 'done' ? (doneText ?? 'Done.') : state === 'error' ? 'That didn’t go through' : title}</h3>
+        <p className="muted">{ask ? 'The relayer that hides your wallet isn’t working right now. You can still send this from your own wallet, but your address will be visible on the transaction.' : state === 'done' ? 'Your balance has been updated.' : state === 'error' ? error : 'Please keep this tab open.'}</p>
         {steps.length > 0 && <ol className="steps">{steps.map((t, i) => <li key={t} className={i < steps.length - 1 || state === 'done' ? 'd' : state === 'error' ? '' : 'a'}><i />{t}</li>)}</ol>}
+        {ask && <div className="askrow"><button className="btn" onClick={() => ask.answer(false)}>Stop, keep it private</button><button className="btn o" onClick={() => ask.answer(true)}>Send from my wallet</button></div>}
         {state === 'error' && <button className="btn" onClick={onClose}>Close</button>}
       </div>
     </div>

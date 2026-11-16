@@ -32,7 +32,6 @@ export function Portfolio({ run }: { run: Run }) {
   const [whole, cents] = fmt(bal).split('.')
   const holdings = Object.entries(s.shielded).sort((a, b) => b[1] * token(b[0]).price - a[1] * token(a[0]).price)
   const unshielded = total(s.walletBal)
-  const popular = [...s.baskets].sort((a, b) => b.buyers - a.buyers).slice(0, 3)
   const addr = s.hagiAddress ?? ''
   const amt4 = (k: string, v: number) => fmt(v, k === 'USDG' ? 2 : 4) + ' ' + k
   // Gas comes first: without testnet ETH nothing else can be sent.
@@ -67,7 +66,7 @@ export function Portfolio({ run }: { run: Run }) {
           </div>
         </Card>
 
-        {unshielded > 0 && (
+        {unshielded > 0 && holdings.length === 0 && (
           <div className="nudge">
             <span><i><Icon name="alert" /></i><span><b>{usd(unshielded)} in your wallet isn’t private yet.</b><em>Shield it to add it to your private balance.</em></span></span>
             <button className="btn sm" onClick={shieldAll}>Shield all</button>
@@ -102,16 +101,6 @@ export function Portfolio({ run }: { run: Run }) {
           </>}
         </Card>
 
-        <Card title="Popular baskets" action={<button className="tag" onClick={() => go('baskets')}>See all</button>}>
-          <div className="minis">{popular.map(b => (
-            <div className="mini" key={b.id}>
-              <div className="st">{b.items.slice(0, 4).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={34} />)}{b.items.length > 4 && <span className="ti more">+{b.items.length - 4}</span>}</div>
-              <b>{b.name}</b>
-              <span>{b.items.length} stocks · {b.buyers} buyers</span>
-              <button className="chip strong" onClick={() => go('baskets?buy=' + b.id)}>Buy</button>
-            </div>
-          ))}</div>
-        </Card>
       </div>
 
       <div className="col">

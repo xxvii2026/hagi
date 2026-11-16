@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { FAUCET_URL } from './chain'
 import * as engine from './engine'
 import { short } from './data'
@@ -15,6 +15,40 @@ const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
 const ROUTES = ['home', ...PAGES] as const
 type Page = (typeof ROUTES)[number]
 const read = (): Page => { const h = location.hash.replace('#/', '').split('?')[0]; return (ROUTES as readonly string[]).includes(h) ? (h as Page) : 'home' }
+
+/** The wallet pill opens a small menu for the things that are not everyday actions. */
+function WalletMenu() {
+  const { s, api } = useStore()
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const away = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false) }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', away); document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc) }
+  }, [open])
+  const copy = async () => { try { await navigator.clipboard.writeText(s.hagiAddress ?? ''); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch { /* clipboard blocked */ } }
+  const exportHistory = () => {
+    const blob = new Blob([JSON.stringify({ account: s.hagiAddress, exportedAt: new Date().toISOString(), activity: s.activity }, null, 2)], { type: 'application/json' })
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'hagi-history.json'; a.click(); URL.revokeObjectURL(a.href)
+    setOpen(false)
+  }
+  return (
+    <div className="tpw" ref={box}>
+      <button className="wal" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)}><i />{short(s.wallet!)}<Icon name="chevron" size={13} /></button>
+      {open && (
+        <ul className="tpl menu" role="menu">
+          {s.hagiAddress && <li><button onClick={copy}><span className="g"><b>{copied ? 'Copied' : 'Copy my Hagi address'}</b><span>{s.hagiAddress.slice(0, 12)}…{s.hagiAddress.slice(-6)}</span></span><Icon name="copy" size={15} /></button></li>}
+          <li><button onClick={() => { api.toggleHidden(); setOpen(false) }}><span className="g"><b>{s.hidden ? 'Show amounts' : 'Hide amounts'}</b><span>Pixelates every balance on screen</span></span></button></li>
+          <li><button onClick={exportHistory} disabled={!s.activity.length}><span className="g"><b>Export my history</b><span>{s.activity.length ? 'Downloads your activity as a file' : 'Nothing to export yet'}</span></span></button></li>
+          <li><button onClick={() => { setOpen(false); api.disconnect() }}><span className="g"><b>Disconnect</b><span>Locks your Hagi account on this tab</span></span></button></li>
+        </ul>
+      )}
+    </div>
+  )
+}
 
 function Welcome() {
   const { s, api } = useStore()
@@ -66,12 +100,12 @@ export default function App() {
       <header className="nav">
         <a className="lg" href="#/home"><Mark leaf={dark ? '#ffffff' : undefined} />hagi</a>
         <nav className="links">{page === 'home'
-          ? [['how', 'How it works'], ['private', 'What’s private'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)
+          ? [['private', 'What’s private'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)
           : ready && PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}</nav>
         <div className="rt">
           <span className="net"><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>
           {page === 'home' ? <a className="wal" href="#/portfolio">Open the app</a> : null}
-          {s.wallet && page !== 'home' ? <button className="wal" title="Disconnect" onClick={() => { if (confirm('Disconnect this wallet?')) api.disconnect() }}><i />{short(s.wallet)}</button> : null}
+          {s.wallet && page !== 'home' ? <WalletMenu /> : null}
         </div>
       </header>
       <main>

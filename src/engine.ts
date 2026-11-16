@@ -202,6 +202,11 @@ function amountOf(sym: string, n: number, have: bigint) {
 
 // ---------- sending transactions ----------
 
+// When the relayer is down the app never sends from the user's wallet by itself, because that puts
+// their address on the transaction. It asks first, through whatever the interface registers here.
+let confirmWalletSend: (why: string) => Promise<boolean> = async () => false
+export const onRelayerDown = (ask: typeof confirmWalletSend | null) => { confirmWalletSend = ask ?? (async () => false) }
+
 const jsonBig = (_: string, v: unknown) => (typeof v === 'bigint' ? v.toString() : v)
 
 async function waitFor(hash: Hex, step: Step): Promise<bigint> {
@@ -229,7 +234,9 @@ async function privately(req: Omit<TxRequest, 'keys' | 'tree'>, step: Step) {
     // The relayer is down. Sending from the user's wallet still works, but it puts their address on the transaction.
     const why = !res ? 'could not be reached' : `answered ${res.status}${body.error ? ': ' + body.error : ''}`
     console.warn('Hagi relayer ' + why)
-    step(`The relayer ${why}. Confirm in your wallet instead. Your address will show on this one`)
+    step('The relayer ' + why)
+    if (!(await confirmWalletSend(why))) throw new Error('Stopped. Nothing was sent and your funds have not moved.')
+    step('Confirm in your wallet. Your address will show on this one')
     await ensureChain()
     hash = await wal().writeContract({ ...V, functionName: 'transact', args: [tx.proof, tx.ext], account })
   }
