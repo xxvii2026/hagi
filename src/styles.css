@@ -271,3 +271,4 @@ body.navy-page{background:radial-gradient(1100px 620px at 50% -10%,#34407f 0,rgb
 .bhd .btn{width:auto;margin:0;padding:13px 22px;font-size:15px;flex:none}
 .navy .strip .ti,.navy .grid.four .ti{box-shadow:0 0 0 1px rgba(255,255,255,.28)}
 .navy .mockbody .card.hero{box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 18px 30px -18px rgba(0,0,0,.6)}
+.ti.logo{background:#fff;object-fit:cover;box-shadow:0 0 0 1px rgba(27,33,64,.08)}

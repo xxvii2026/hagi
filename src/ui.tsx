@@ -20,8 +20,9 @@ const hash = (s: string) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >
 /** Shows the token's logo when the token list provides one, otherwise a coloured initial. */
 export function TokenIcon({ symbol, size = 40 }: { symbol: string; size?: number }) {
   const t = token(symbol)
+  const [broken, setBroken] = useState(false)
   const [bg, fg] = TINTS[hash(symbol) % TINTS.length]
-  if (t.logoURI) return <img className="ti" src={t.logoURI} alt={symbol} width={size} height={size} />
+  if (t.logoURI && !broken) return <img className="ti logo" src={t.logoURI} alt={t.name} title={t.name} width={size} height={size} loading="lazy" onError={() => setBroken(true)} />
   const full = size >= 34
   return <span className="ti" style={{ width: size, height: size, background: bg, color: fg, fontSize: full ? size * 0.25 : size * 0.4, letterSpacing: full ? '-0.02em' : 0 }}>{full ? symbol.slice(0, 4) : symbol[0]}</span>
 }

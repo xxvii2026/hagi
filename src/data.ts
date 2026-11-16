@@ -4,13 +4,17 @@ import { CFG } from './chain'
 export type Token = { symbol: string; name: string; decimals: number; address: Hex; price: number; logoURI?: string }
 
 // `price` is refreshed from the pools on chain. With a logoURI set, the real logo shows automatically.
+// Stock logos load at runtime from an open-source icon set served by jsDelivr. Nothing is copied into this repo.
+// If a logo fails to load, the app falls back to the ticker badge.
+const logo = (ticker: string) => `https://cdn.jsdelivr.net/gh/nvstly/icons@main/ticker_icons/${ticker}.png`
+
 export const TOKENS: Token[] = [
   { symbol: 'USDG', name: 'Test USDG', decimals: 6, address: CFG.contracts.usdg, price: 1 },
-  { symbol: 'TSLA', name: 'Tesla', decimals: 18, address: CFG.tokens.TSLA, price: 0 },
-  { symbol: 'AMD', name: 'AMD', decimals: 18, address: CFG.tokens.AMD, price: 0 },
-  { symbol: 'AMZN', name: 'Amazon', decimals: 18, address: CFG.tokens.AMZN, price: 0 },
-  { symbol: 'NFLX', name: 'Netflix', decimals: 18, address: CFG.tokens.NFLX, price: 0 },
-  { symbol: 'PLTR', name: 'Palantir', decimals: 18, address: CFG.tokens.PLTR, price: 0 },
+  { symbol: 'TSLA', name: 'Tesla', decimals: 18, address: CFG.tokens.TSLA, price: 0, logoURI: logo('TSLA') },
+  { symbol: 'AMD', name: 'AMD', decimals: 18, address: CFG.tokens.AMD, price: 0, logoURI: logo('AMD') },
+  { symbol: 'AMZN', name: 'Amazon', decimals: 18, address: CFG.tokens.AMZN, price: 0, logoURI: logo('AMZN') },
+  { symbol: 'NFLX', name: 'Netflix', decimals: 18, address: CFG.tokens.NFLX, price: 0, logoURI: logo('NFLX') },
+  { symbol: 'PLTR', name: 'Palantir', decimals: 18, address: CFG.tokens.PLTR, price: 0, logoURI: logo('PLTR') },
 ]
 export const STOCKS = TOKENS.filter(t => t.symbol !== 'USDG')
 export const token = (s: string): Token => TOKENS.find(t => t.symbol === s) ?? { symbol: s, name: s, decimals: 18, address: '0x0000000000000000000000000000000000000000', price: 0 }
