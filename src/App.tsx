@@ -10,11 +10,12 @@ import { Baskets } from './pages/Baskets'
 import { Send } from './pages/Send'
 import { Activity } from './pages/Activity'
 import { Landing } from './pages/Landing'
+import { Docs } from './pages/Docs'
 
 const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
-const ROUTES = ['home', ...PAGES] as const
+const ROUTES = ['home', 'docs', ...PAGES] as const
 type Page = (typeof ROUTES)[number]
-const read = (): Page => { const h = location.hash.replace('#/', '').split('?')[0]; return (ROUTES as readonly string[]).includes(h) ? (h as Page) : 'home' }
+const read = (): Page => { const h = location.hash.replace('#/', '').split('?')[0].split('/')[0]; return (ROUTES as readonly string[]).includes(h) ? (h as Page) : 'home' }
 
 /** The wallet pill opens a small menu for the things that are not everyday actions. */
 function WalletMenu() {
@@ -99,18 +100,18 @@ export default function App() {
       <header className="nav">
         <a className="lg" href="#/home"><Mark leaf={dark ? '#ffffff' : undefined} />hagi</a>
         <nav className="links">{page === 'home'
-          ? [['private', 'What’s private'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)
-          : ready && PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}</nav>
+          ? <>{[['private', 'What’s private'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)}<a href="#/docs">Docs</a></>
+          : <>{ready && PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}<a href="#/docs" className={page === 'docs' ? 'on' : ''}>Docs</a></>}</nav>
         <div className="rt">
-          {page !== 'home' && <span className="net"><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>}
-          {page === 'home' ? <a className="wal" href="#/portfolio">Open the app</a> : null}
-          {s.wallet && page !== 'home' ? <WalletMenu /> : null}
+          {page !== 'home' && page !== 'docs' && <span className="net"><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>}
+          {page === 'home' || (page === 'docs' && !ready) ? <a className="wal" href="#/portfolio">Open the app</a> : null}
+          {s.wallet && page !== 'home' && !(page === 'docs' && !ready) ? <WalletMenu /> : null}
         </div>
       </header>
       <main key={page} className="pg">
-        {page === 'home' ? <Landing /> : !ready ? <Welcome /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
+        {page === 'home' ? <Landing /> : page === 'docs' ? <Docs /> : !ready ? <Welcome /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
       </main>
-      {page !== 'home' && <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>}
+      {page !== 'home' && <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href="#/docs">Docs</a><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>}
       {job && <Progress title={job.title} task={job.task} doneText={job.done} onClose={closeJob} />}
     </>
   )
