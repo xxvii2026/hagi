@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { FAUCET_URL } from '../chain'
 import { TOKENS, fmt, token, type Basket } from '../data'
 import { go } from '../nav'
@@ -47,6 +48,20 @@ const FAQ: [string, string][] = [
 export function Landing() {
   const { s } = useStore()
   const [me, setMe] = useState(false) // false = viewing as anyone else, so amounts are pixelated
+  // On a phone the preview flips between the two views by itself until the visitor takes over.
+  const [touched, setTouched] = useState(false)
+  useEffect(() => {
+    if (touched || !matchMedia('(max-width: 700px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const t = setInterval(() => setMe(v => !v), 2800)
+    return () => clearInterval(t)
+  }, [touched])
+  const pick = (v: boolean) => { setTouched(true); setMe(v) }
+  // A floating button on phones, shown between the hero and the closing block.
+  const [cta, setCta] = useState(false)
+  useEffect(() => {
+    const f = () => { const end = document.querySelector('.lend')?.getBoundingClientRect().top ?? Infinity; setCta(scrollY > 620 && end > innerHeight * 0.85) }
+    f(); addEventListener('scroll', f, { passive: true }); return () => removeEventListener('scroll', f)
+  }, [])
   const open = () => go('portfolio')
   const navy = true // the landing page is navy; the app itself stays light
   useEffect(() => { document.body.classList.toggle('navy-page', navy); return () => document.body.classList.remove('navy-page') }, [navy])
@@ -60,8 +75,8 @@ export function Landing() {
   const Toggle = () => (
     <div className="viewer" role="group" aria-label="Choose whose view to show">
       <span>Viewing as</span>
-      <button className={me ? 'on' : ''} onClick={() => setMe(true)}>You</button>
-      <button className={!me ? 'on' : ''} onClick={() => setMe(false)}>Anyone else</button>
+      <button className={me ? 'on' : ''} onClick={() => pick(true)}>You</button>
+      <button className={!me ? 'on' : ''} onClick={() => pick(false)}>Anyone else</button>
     </div>
   )
   return (
@@ -143,6 +158,9 @@ export function Landing() {
         <div className="lcta2"><button className="btn light" onClick={open}>Open the app</button><a className="btn ghost" href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Get test funds</a></div>
         <small>Testnet only. Not audited. Nothing on this page is financial advice, and stock tokens are not shares.</small>
       </section>
+
+      {/* Rendered on the body so it stays pinned to the screen, whatever the page around it is doing. */}
+      {createPortal(<div className={'mcta' + (cta ? ' on' : '')} aria-hidden={!cta}><button className="btn light" tabIndex={cta ? 0 : -1} onClick={open}>Open the app</button></div>, document.body)}
 
       <footer className="bigfoot">
         <div className="bf1"><span className="fm"><Mark size={22} leaf={navy ? '#ffffff' : undefined} /><b>hagi</b></span><p>Stocks, off the record.</p></div>

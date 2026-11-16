@@ -352,3 +352,39 @@ body.navy-page{background:radial-gradient(1100px 620px at 50% -10%,#34407f 0,rgb
   .dtable td:first-child{white-space:normal}.daddr code{max-width:170px}.dnext a{min-width:0;flex:1}
 }
 @media (prefers-reduced-motion:reduce){.dmain{animation:none}}
+
+/* Landing page on phones */
+.demo em{display:none;font-style:normal}.mcta{display:none}
+@media (max-width:700px){
+  .demo{font-size:12.5px;padding:7px 12px}.demo span{display:none}.demo em{display:inline}
+  .navy-page .nav{flex-wrap:nowrap;padding:10px 16px;gap:10px}.navy-page .links{display:none}.navy-page .rt{margin-left:auto}
+  .h2hero{padding:38px 18px 0}.h2hero h1{font-size:56px;line-height:.98;letter-spacing:-.05em}.h2hero h1 span{display:block}
+  .h2hero>p{font-size:16.5px;line-height:1.5;margin-top:16px;max-width:336px}
+  .h2hero .lcta2{flex-direction:column;align-items:stretch;width:100%;gap:2px;margin-top:26px}.h2hero .lcta2 .btn{width:100%;padding:17px}
+  .h2hero .lcta2 .btn.ghost{background:none;box-shadow:none;border:0;padding:13px;font-size:15px;font-weight:500;color:#c9d1ee}
+  .mock{margin-top:26px;padding:10px;border-radius:30px}.mockbar{padding:0 0 10px}.dots{display:none}
+  .viewer{margin:0;width:100%;padding:5px}.viewer span{display:none}.viewer button{flex:1;padding:11px 8px;font-size:14.5px}
+  .mockbody,.mockbody .col{gap:10px}.mockbody .card{padding:18px;border-radius:24px}
+  .mockbody .card.hero .qas{display:none}.mockbody .card.hero .big{min-height:58px;margin-top:6px}
+  .mockbody .col:first-child .card:nth-child(2) .row:nth-child(n+5){display:none}
+  .mockbody .col:nth-child(2) .card:first-child{display:none}
+  .mockbody .row{padding:10px 12px}.note2 p{font-size:14px}
+  .demo2{margin-top:12px}
+  .strip{padding:30px 0 0;gap:12px}.strip div{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;width:100%;padding:2px 18px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.strip div::-webkit-scrollbar{display:none}.strip .chip{flex:none}
+  .lsec{padding:56px 18px 0}.lsec h2{font-size:40px;line-height:1.02}.lsec h2 span{display:block}.lsub,.bhd p{font-size:15.5px;line-height:1.45;margin-top:10px}
+  .facts{gap:0;margin-top:22px;border-radius:26px;overflow:hidden}
+  .navy .facts{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09)}
+  .navy .facts div,.facts div{display:grid;grid-template-columns:42px minmax(0,1fr);column-gap:14px;align-items:start;padding:18px;border:0;border-radius:0;background:none;box-shadow:none}
+  .facts div+div{border-top:1px solid rgba(255,255,255,.08)}
+  .facts i{grid-row:1/3;margin:2px 0 0}.facts b{font-size:17.5px;margin-bottom:3px}.facts span{font-size:14.5px;line-height:1.45}
+  .lsec .bhd{gap:14px}.lsec .bhd .btn{width:auto;padding:11px 20px;font-size:14.5px}
+  .grid.four{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:20px -18px 0;padding:2px 18px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.grid.four::-webkit-scrollbar{display:none}
+  .grid.four .bk{flex:0 0 80%;scroll-snap-align:center}
+  .faq{margin-top:20px;gap:8px}.faq summary{font-size:16.5px;padding:17px 18px}.faq p{font-size:15.5px;padding:0 18px 18px}
+  .lend{margin:52px 14px 14px;padding:44px 20px 38px;border-radius:30px}.lend h2{font-size:30px;margin:18px 0 10px;letter-spacing:-.04em}.lend p{font-size:15.5px}
+  .lend .lcta2{flex-direction:column;align-items:stretch;width:100%;gap:10px;margin-top:24px}.lend .lcta2 .btn{width:100%;margin:0;padding:16px}.lend small{margin-top:20px}
+  .bigfoot{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 12px;padding:26px 20px 104px;font-size:14px}.bf1{grid-column:1/-1}
+  .mcta{display:block;position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:30;transform:translateY(160%);transition:transform .32s cubic-bezier(.2,.7,.2,1);pointer-events:none}
+  .mcta.on{transform:none;pointer-events:auto}.mcta .btn{width:100%;margin:0;padding:17px;font-size:16.5px;box-shadow:0 0 0 1px rgba(27,33,64,.06),0 16px 36px -10px rgba(5,8,26,.75)}
+}
+@media (max-width:700px) and (prefers-reduced-motion:reduce){.mcta{transition:none}}

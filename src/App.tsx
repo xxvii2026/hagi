@@ -96,7 +96,7 @@ export default function App() {
 
   return (
     <>
-      <div className="demo">Testnet preview. These tokens have no value, and nothing here has been audited.</div>
+      <div className="demo">Testnet preview. <span>These tokens have no value, and nothing here has been audited.</span><em>Free test tokens. Not audited.</em></div>
       <header className="nav">
         <a className="lg" href="#/home"><Mark leaf={dark ? '#ffffff' : undefined} />hagi</a>
         <nav className="links">{page === 'home'
