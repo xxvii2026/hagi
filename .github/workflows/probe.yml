@@ -15,28 +15,12 @@ jobs:
       RELAYER: '0x56077D89f3179f061C9F436d2dF7623625898891'
       DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
     steps:
-      - uses: foundry-rs/foundry-toolchain@v1
-      - name: Vault deployment block and log queries
-        env:
-          VAULT: '0x0C3C8c6929851818d6a15A4c57D68F9342B81798'
+      - name: Token icons
         run: |
-          LATEST=$(cast block-number --rpc-url $RPC); echo "latest block: $LATEST"
-          echo "block gas limit: $(cast block latest --field gasLimit --rpc-url $RPC)"
-          echo "gas price wei: $(cast gas-price --rpc-url $RPC)"
-          curl -sS "$EXP/addresses/$VAULT" | jq -r '"creation tx: \(.creation_transaction_hash // .creation_tx_hash)"' | tee /tmp/c.txt
-          TX=$(cut -d' ' -f3 /tmp/c.txt)
-          DEPLOY=$(cast receipt $TX blockNumber --rpc-url $RPC); echo "vault deploy block: $DEPLOY"
-          echo "-- getLogs full range"
-          curl -sS -X POST $RPC -H 'content-type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_getLogs\",\"params\":[{\"address\":\"$VAULT\",\"fromBlock\":\"$(cast to-hex $DEPLOY)\",\"toBlock\":\"latest\"}]}" | head -c 400; echo
-          echo "-- getLogs from block 1"
-          curl -sS -X POST $RPC -H 'content-type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_getLogs\",\"params\":[{\"address\":\"$VAULT\",\"fromBlock\":\"0x1\",\"toBlock\":\"latest\"}]}" | head -c 400; echo
-          echo "-- RPC CORS"
-          curl -sS -i -X POST $RPC -H 'content-type: application/json' -H 'Origin: https://hagi.example' -d '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' | grep -iE "^HTTP|access-control|^\{" | head -6
-          curl -sS -i -X OPTIONS $RPC -H 'Origin: https://hagi.example' -H 'Access-Control-Request-Method: POST' -H 'Access-Control-Request-Headers: content-type' | grep -iE "^HTTP|access-control" | head -6
-          echo "-- explorer CORS"
-          curl -sS -i "$EXP/addresses/$VAULT/logs" -H 'Origin: https://hagi.example' | grep -iE "^HTTP|access-control" | head -4
-          echo "-- vault state"
-          echo "next index: $(cast call $VAULT 'nextIndex()(uint32)' --rpc-url $RPC)"
-          echo "usdg allowed: $(cast call $VAULT 'allowedToken(address)(bool)' 0x48fdc557DE6Fe7efD3341e6c28A626Be021d117a --rpc-url $RPC)"
-          echo "baskets: $(cast call 0x66D458817B7bCA5655ffB32d5d51770F2C964738 'basketCount()(uint256)' --rpc-url $RPC)"
-          echo "TSLA spot: $(cast call 0xA81738A148743645EB46Ff579CE6E81c63896BE6 'spotPrice(address)(uint256)' 0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E --rpc-url $RPC)"
+          for a in 0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E 0x71178BAc73cBeb415514eB542a8995b82669778d 0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02 0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93 0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0; do
+            curl -sS "$EXP/tokens/$a" | jq -r '"explorer \(.symbol) icon=\(.icon_url)"'
+          done
+          for u in https://financialmodelingprep.com/image-stock/TSLA.png https://assets.parqet.com/logos/symbol/TSLA https://images.financialmodelingprep.com/symbol/TSLA.png https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/TSLA.png https://storage.googleapis.com/iexcloud-hl37opg/api/logos/TSLA.png https://cdn.jsdelivr.net/gh/nvstly/icons@main/ticker_icons/TSLA.png https://raw.githubusercontent.com/nvstly/icons/main/ticker_icons/TSLA.png; do
+            echo "cand $u -> $(curl -sS -o /dev/null -L -m 15 -H 'Origin: https://hagi.example' -H 'Referer: https://hagi.example/' -w '%{http_code} %{content_type} %{size_download}' "$u")"
+          done
+          for s in TSLA AMD AMZN NFLX PLTR; do echo "nvstly $s -> $(curl -sS -o /dev/null -L -m 15 -w '%{http_code} %{content_type} %{size_download}' https://cdn.jsdelivr.net/gh/nvstly/icons@main/ticker_icons/$s.png)"; done
