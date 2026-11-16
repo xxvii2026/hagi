@@ -1,0 +1,38 @@
+name: Probe testnet
+# Read-only checks against Robinhood Chain Testnet. Sends no transactions.
+on:
+  workflow_dispatch:
+  push:
+    branches: [contracts]
+    paths: ['.github/workflows/probe.yml']
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      RPC: ${{ secrets.RPC_URL || 'https://rpc.testnet.chain.robinhood.com' }}
+      EXP: https://explorer.testnet.chain.robinhood.com/api/v2
+      DEPLOYER: '0xd16863014B75dfA19149E8db6078B17525021594'
+      RELAYER: '0x56077D89f3179f061C9F436d2dF7623625898891'
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+    steps:
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Chain and wallets
+        run: |
+          echo "chain id: $(cast chain-id --rpc-url $RPC)"
+          echo "block: $(cast block-number --rpc-url $RPC)"
+          if [ -n "$DEPLOYER_PRIVATE_KEY" ]; then
+            A=$(cast wallet address --private-key "$DEPLOYER_PRIVATE_KEY")
+            [ "${A,,}" = "${DEPLOYER,,}" ] && echo "deployer secret matches address: yes" || echo "deployer secret matches address: NO"
+          else echo "deployer secret: missing"; fi
+          echo "deployer ETH: $(cast from-wei $(cast balance $DEPLOYER --rpc-url $RPC))"
+          echo "relayer ETH: $(cast from-wei $(cast balance $RELAYER --rpc-url $RPC))"
+          echo "permit2 code bytes: $(cast code 0x000000000022D473030F116dDEE9F6B43aC78BA3 --rpc-url $RPC | wc -c)"
+      - name: Deployer token holdings
+        run: curl -sS "$EXP/addresses/$DEPLOYER/token-balances" | jq -r '.[]? | "\(.token.symbol)\t\(.token.address_hash // .token.address)\tdec=\(.token.decimals)\traw=\(.value)\t\(.token.name)"' || true
+      - name: Search explorer
+        run: |
+          for q in uniswap PoolManager UniversalRouter SwapRouter USDG WETH; do
+            echo "== $q"; curl -sS "$EXP/search?q=$q" | jq -r '.items[]? | "\(.type)\t\(.name // .symbol)\t\(.address_hash // .address)\t\(.symbol // "")\tverified=\(.is_smart_contract_verified // "")"' | head -12 || true
+          done
+      - name: Listed tokens
+        run: curl -sS "$EXP/tokens?type=ERC-20" | jq -r '.items[]? | "\(.symbol)\t\(.address_hash // .address)\tdec=\(.decimals)\tholders=\(.holders_count // .holder_count)\t\(.name)"' | head -60 || true
