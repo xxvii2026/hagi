@@ -23,7 +23,7 @@ export function TokenIcon({ symbol, size = 40 }: { symbol: string; size?: number
   const [broken, setBroken] = useState(false)
   const [bg, fg] = TINTS[hash(symbol) % TINTS.length]
   // Company marks are square and reach their edges, so they sit inside the circle with a margin and are never cropped.
-  if (t.logoURI && !broken) return <span className={'ti logo ' + (t.logoFill ? 'fill' : 'pad')} style={{ width: size, height: size }} title={t.name}><img src={t.logoURI} alt={t.name} loading="lazy" onError={() => setBroken(true)} /></span>
+  if (t.logoURI && !broken) return <span className={'ti logo ' + (t.logoFill ? 'fill' : 'pad') + (t.logoDark ? ' dark' : '')} style={{ width: size, height: size }} title={t.name}><img src={t.logoURI} alt={t.name} loading="lazy" onError={() => setBroken(true)} /></span>
   const full = size >= 34
   return <span className="ti" style={{ width: size, height: size, background: bg, color: fg, fontSize: full ? size * 0.25 : size * 0.4, letterSpacing: full ? '-0.02em' : 0 }}>{full ? symbol.slice(0, 4) : symbol[0]}</span>
 }
@@ -31,7 +31,7 @@ export function TokenIcon({ symbol, size = 40 }: { symbol: string; size?: number
 const ICONS = {
   down: 'M10 4v12M5 11l5 5 5-5', up: 'M10 16V4M5 9l5-5 5 5', swap: 'M4 7h11M12 4l3 3-3 3M16 13H5M8 10l-3 3 3 3',
   right: 'M4 10h12M11 5l5 5-5 5', left: 'M16 10H4M9 5l-5 5 5 5', basket: 'M4 4h5v5H4zM11 4h5v5h-5zM4 11h5v5H4zM11 11h5v5h-5z',
-  copy: 'M7 7h9v9H7zM4 13V4h9', alert: 'M10 5v6M10 14.4v.2', close: 'M5 5l10 10M15 5L5 15', check: 'M4 10.5l4 4 8-9',
+  chevron: 'M5 8l5 5 5-5', copy: 'M7 7h9v9H7zM4 13V4h9', alert: 'M10 5v6M10 14.4v.2', close: 'M5 5l10 10M15 5L5 15', check: 'M4 10.5l4 4 8-9',
 } as const
 export type IconName = keyof typeof ICONS
 /** One drawn icon set with a single line weight, so icons look the same on every device. */
@@ -55,12 +55,38 @@ export function Card({ title, action, children, className = '' }: { title?: stri
   return <section className={'card ' + className}>{title && <div className="ch"><span>{title}</span>{action}</div>}{children}</section>
 }
 
-export function TokenPicker({ value, onChange, options }: { value: string; onChange: (s: string) => void; options: string[] }) {
+/** A token menu with logos, names and balances, in place of the browser's plain list. */
+export function TokenPicker({ value, onChange, options, balances }: { value: string; onChange: (s: string) => void; options: string[]; balances?: Record<string, number> }) {
+  const [open, setOpen] = useState(false)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const away = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false) }
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', away)
+    document.addEventListener('keydown', esc)
+    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc) }
+  }, [open])
   return (
-    <label className="tp">
-      <TokenIcon symbol={value} size={26} />
-      <select value={value} onChange={e => onChange(e.target.value)} aria-label="Token">{options.map(o => <option key={o}>{o}</option>)}</select>
-    </label>
+    <div className="tpw" ref={box}>
+      <button type="button" className={'tp' + (open ? ' open' : '')} aria-haspopup="listbox" aria-expanded={open} aria-label={'Token: ' + value} onClick={() => setOpen(o => !o)}>
+        <TokenIcon symbol={value} size={26} />{value}<Icon name="chevron" size={14} />
+      </button>
+      {open && (
+        <ul className="tpl" role="listbox">
+          {options.map(o => (
+            <li key={o} role="option" aria-selected={o === value}>
+              <button type="button" className={o === value ? 'on' : ''} onClick={() => { onChange(o); setOpen(false) }}>
+                <TokenIcon symbol={o} size={34} />
+                <span className="g"><b>{token(o).name}</b><span>{o}</span></span>
+                {balances && <span className="bal">{fmt(balances[o] ?? 0, o === 'USDG' ? 2 : 4)}</span>}
+                {o === value && <Icon name="check" size={15} />}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 

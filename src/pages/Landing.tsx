@@ -146,7 +146,7 @@ export function Landing() {
 
       <section className="lsec faqsec" id="faq">
         <h2><span>Questions,</span> answered plainly.</h2>
-        <div className="faq">{FAQ.map(([q, a], i) => <details key={q} open={i === 0}><summary>{q}<i><Icon name="down" size={16} /></i></summary><p>{a}</p></details>)}</div>
+        <div className="faq">{FAQ.map(([q, a], i) => <details key={q} open={i === 0}><summary>{q}<i><Icon name="chevron" size={16} /></i></summary><p>{a}</p></details>)}</div>
       </section>
 
       <section className="lend">

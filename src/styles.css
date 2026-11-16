@@ -277,3 +277,17 @@ body.navy-page{background:radial-gradient(1100px 620px at 50% -10%,#34407f 0,rgb
 .ti.logo img{display:block;width:58%;height:58%;object-fit:contain}
 .ti.logo.fill{background:#fff;box-shadow:0 0 0 1px rgba(27,33,64,.08)}.ti.logo.fill img{width:100%;height:100%;object-fit:cover}
 .navy .ti.logo.pad,.card.dark .ti.logo.pad,.hero .ti.logo.pad{box-shadow:0 0 0 1px rgba(255,255,255,.28)}
+/* Token menu */
+.tpw{position:relative;flex:none}
+.tp{cursor:pointer;padding:6px 10px 6px 6px;gap:7px}.tp .ic{color:var(--soft);transition:transform .15s ease}.tp.open .ic{transform:rotate(180deg)}.tp.open{box-shadow:0 0 0 1.5px var(--peri)}
+.tpl{position:absolute;right:0;top:calc(100% + 8px);z-index:30;list-style:none;background:#fff;border-radius:22px;padding:6px;width:290px;max-height:380px;overflow:auto;border:1px solid rgba(27,33,64,.06);box-shadow:0 2px 4px rgba(27,33,64,.06),0 24px 48px -16px rgba(27,33,64,.35)}
+.tpl button{display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px 9px 9px;border-radius:16px;text-align:left}.tpl button:hover{background:var(--page)}.tpl button.on{background:#eef0f8}
+.tpl .g b{display:block;font-weight:600;font-size:15px}.tpl .g span{font-size:12.5px;color:var(--soft)}
+.tpl .bal{font-size:13.5px;font-weight:500;color:var(--mute)}.tpl .ic{color:var(--peri);flex:none}
+@media (max-width:1000px){.tpl{width:min(290px,78vw)}}
+@media (prefers-reduced-motion:reduce){.tp .ic{transition:none}}
+/* Logos keep their own colours on a white disc; only white marks get a dark one */
+.ti.logo.pad{background:#fff;box-shadow:0 0 0 1px rgba(27,33,64,.1)}
+.ti.logo.pad.dark{background:#111318;box-shadow:none}
+.navy .ti.logo.pad.dark,.card.dark .ti.logo.pad.dark,.hero .ti.logo.pad.dark{box-shadow:0 0 0 1px rgba(255,255,255,.28)}
+.navy .ti.logo.pad:not(.dark),.card.dark .ti.logo.pad:not(.dark){box-shadow:none}

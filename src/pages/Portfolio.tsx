@@ -119,7 +119,7 @@ export function Portfolio({ run }: { run: Run }) {
           <div className="tabs"><button className={tab === 'shield' ? 'on' : ''} onClick={() => setTab('shield')}>Shield</button><button className={tab === 'unshield' ? 'on' : ''} onClick={() => setTab('unshield')}>Unshield</button></div>
           <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
             hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))}
-            right={<TokenPicker value={cur} onChange={setSym} options={options} />} inputRef={amountRef} />
+            right={<TokenPicker value={cur} onChange={setSym} options={options} balances={s.hidden ? undefined : src} />} inputRef={amountRef} />
           <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
             await engine[tab](cur, n, step)
             api.log({ kind: tab, title: (tab === 'shield' ? 'Shielded ' : 'Unshielded ') + cur, detail: amt4(cur, n) })

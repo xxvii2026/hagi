@@ -21,10 +21,10 @@ export function Swap({ run }: { run: Run }) {
       <div className="ptitle"><h2><span>Swap,</span> off the record.</h2><p>Trade from your private balance, straight out of the vault and back in.</p></div>
       <Card>
         <AmountField label="You pay" value={amt} onChange={setAmt} hint={<>You have {fmt(have, from === 'USDG' ? 2 : 4)} {from}</>} onMax={() => setAmt(asInput(have))}
-          right={<TokenPicker value={from} onChange={v => { if (v === to) setTo(from); setFrom(v) }} options={all} />} />
+          right={<TokenPicker value={from} onChange={v => { if (v === to) setTo(from); setFrom(v) }} options={all} balances={s.hidden ? undefined : s.shielded} />} />
         <button className="flip" onClick={flip} aria-label="Switch tokens"><Icon name="down" /></button>
         <AmountField label="You get" value={n ? fmt(out, to === 'USDG' ? 2 : 4) : ''} readOnly hint={n ? <>About ${fmt(n * token(from).price)}</> : <>&nbsp;</>}
-          right={<TokenPicker value={to} onChange={v => { if (v === from) setFrom(to); setTo(v) }} options={all} />} />
+          right={<TokenPicker value={to} onChange={v => { if (v === from) setFrom(to); setTo(v) }} options={all} balances={s.hidden ? undefined : s.shielded} />} />
         <div className="kvs">
           <div className="kv"><span>Price</span><b>{token(from).price > 0 ? <>1 {to} = {fmt(token(to).price / token(from).price, from === 'USDG' ? 2 : 4)} {from}</> : 'Loading'}</b></div>
           <div className="kv"><span>Route</span><b>Hagi test pools</b></div>
