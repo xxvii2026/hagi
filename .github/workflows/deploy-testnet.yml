@@ -24,9 +24,14 @@ jobs:
       - name: Test
         run: forge test
       - name: Deploy and seed
-        run: forge script script/Deploy.s.sol:Deploy --rpc-url "$RPC" --broadcast --slow --gas-estimate-multiplier 150
+        run: |
+          # Accept the key with or without a 0x prefix. The value is never printed.
+          export DEPLOYER_PRIVATE_KEY="0x${DEPLOYER_PRIVATE_KEY#0x}"
+          forge script script/Deploy.s.sol:Deploy --rpc-url "$RPC" --broadcast --slow --gas-estimate-multiplier 150
       - name: Verify on the explorer
         continue-on-error: true
-        run: forge script script/Deploy.s.sol:Deploy --rpc-url "$RPC" --resume --verify --verifier blockscout --verifier-url https://explorer.testnet.chain.robinhood.com/api/
+        run: |
+          export DEPLOYER_PRIVATE_KEY="0x${DEPLOYER_PRIVATE_KEY#0x}"
+          forge script script/Deploy.s.sol:Deploy --rpc-url "$RPC" --resume --verify --verifier blockscout --verifier-url https://explorer.testnet.chain.robinhood.com/api/
       - name: Deployer balance after
         run: echo "deployer ETH left $(cast from-wei $(cast balance 0xd16863014B75dfA19149E8db6078B17525021594 --rpc-url $RPC))"
