@@ -9,10 +9,12 @@ import { Swap } from './pages/Swap'
 import { Baskets } from './pages/Baskets'
 import { Send } from './pages/Send'
 import { Activity } from './pages/Activity'
+import { Landing } from './pages/Landing'
 
 const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
-type Page = (typeof PAGES)[number]
-const read = (): Page => { const h = location.hash.replace('#/', '').split('?')[0]; return (PAGES as readonly string[]).includes(h) ? (h as Page) : 'portfolio' }
+const ROUTES = ['home', ...PAGES] as const
+type Page = (typeof ROUTES)[number]
+const read = (): Page => { const h = location.hash.replace('#/', '').split('?')[0]; return (ROUTES as readonly string[]).includes(h) ? (h as Page) : 'home' }
 
 function Welcome() {
   const { s, d } = useStore()
@@ -60,15 +62,16 @@ export default function App() {
     <>
       {DEMO_MODE && <div className="demo">Demo mode. The contracts aren’t deployed yet, so balances and transactions here are simulated.</div>}
       <header className="nav">
-        <a className="lg" href="#/portfolio"><Mark />hagi</a>
-        <nav className="links">{ready && PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}</nav>
+        <a className="lg" href="#/home"><Mark />hagi</a>
+        <nav className="links">{ready && page !== 'home' && PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}</nav>
         <div className="rt">
           <span className="net"><i />Testnet</span>
-          {s.wallet ? <button className="wal" title="Disconnect" onClick={() => { if (confirm('Disconnect this wallet? Demo balances on this device will be cleared.')) d({ type: 'disconnect' }) }}><i />{short(s.wallet)}</button> : null}
+          {page === 'home' ? <a className="wal" href="#/portfolio">Open the app</a> : null}
+          {s.wallet && page !== 'home' ? <button className="wal" title="Disconnect" onClick={() => { if (confirm('Disconnect this wallet? Demo balances on this device will be cleared.')) d({ type: 'disconnect' }) }}><i />{short(s.wallet)}</button> : null}
         </div>
       </header>
       <main>
-        {!ready ? <Welcome /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
+        {page === 'home' ? <Landing /> : !ready ? <Welcome /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
       </main>
       <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>
       {job && <Progress title={job.title} onDone={finish} doneText={job.done} />}
