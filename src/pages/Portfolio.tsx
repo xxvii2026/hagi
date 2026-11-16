@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { FAUCET_URL, DEMO_MODE } from '../chain'
 import { fmt, token } from '../data'
 import { total, useStore } from '../store'
-import { Amount, AmountField, Card, Censor, TokenIcon, TokenPicker, Visibility } from '../ui'
+import { Amount, AmountField, Card, Censor, Mark, TokenIcon, TokenPicker, Visibility } from '../ui'
 import { ActivityList } from './Activity'
 
 export function Portfolio({ run, go }: { run: (title: string, fn: () => void) => void; go: (p: string) => void }) {
@@ -24,8 +24,9 @@ export function Portfolio({ run, go }: { run: (title: string, fn: () => void) =>
     <div className="wrap">
       <div className="col">
         <Card className="hero">
+          <div className="ghost"><Mark size={320} leaf="#252d5a" block="#313c74" /></div>
           <div className="lab"><span>Your private balance</span><button className="link" onClick={() => d({ type: 'toggleHidden' })}>{s.hidden ? 'Show' : 'Hide'}</button></div>
-          <div className="big">{s.hidden ? <Censor seed="balance" cols={12} cell={22} /> : <>${whole}<small>.{cents}</small></>}</div>
+          <div className="big">{s.hidden ? <Censor seed="balance" cols={12} cell={22} onDark /> : <>${whole}<small>.{cents}</small></>}</div>
           <div className="qas">
             <button className="qa p" onClick={() => setTab('shield')}><i>↓</i>Shield</button>
             <button className="qa" onClick={() => setTab('unshield')}><i>↑</i>Unshield</button>
