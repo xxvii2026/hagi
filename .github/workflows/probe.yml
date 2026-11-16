@@ -15,12 +15,10 @@ jobs:
       RELAYER: '0x56077D89f3179f061C9F436d2dF7623625898891'
       DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
     steps:
-      - name: Token icons
+      - name: USDG icon sources
         run: |
-          for a in 0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E 0x71178BAc73cBeb415514eB542a8995b82669778d 0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02 0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93 0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0; do
-            curl -sS "$EXP/tokens/$a" | jq -r '"explorer \(.symbol) icon=\(.icon_url)"'
+          echo "mainnet-explorer $(curl -sS -m 20 https://robinhoodchain.blockscout.com/api/v2/tokens/0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168 | jq -r '"\(.symbol) \(.name) icon=\(.icon_url)"')"
+          echo "coingecko $(curl -sS -m 20 'https://api.coingecko.com/api/v3/coins/global-dollar?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false' | jq -r '"\(.symbol) \(.name) \(.image.large)"')"
+          for u in https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/assets/0xe343167631d89B6Ffc58B88d6b7fB0228795491D/logo.png https://cdn.jsdelivr.net/gh/nvstly/icons@main/crypto_icons/USDG.png https://cdn.jsdelivr.net/gh/nvstly/icons@main/ticker_icons/USDG.png; do
+            echo "cand $u -> $(curl -sS -o /dev/null -L -m 15 -w '%{http_code} %{content_type} %{size_download}' "$u")"
           done
-          for u in https://financialmodelingprep.com/image-stock/TSLA.png https://assets.parqet.com/logos/symbol/TSLA https://images.financialmodelingprep.com/symbol/TSLA.png https://static2.finnhub.io/file/publicdatany/finnhubimage/stock_logo/TSLA.png https://storage.googleapis.com/iexcloud-hl37opg/api/logos/TSLA.png https://cdn.jsdelivr.net/gh/nvstly/icons@main/ticker_icons/TSLA.png https://raw.githubusercontent.com/nvstly/icons/main/ticker_icons/TSLA.png; do
-            echo "cand $u -> $(curl -sS -o /dev/null -L -m 15 -H 'Origin: https://hagi.example' -H 'Referer: https://hagi.example/' -w '%{http_code} %{content_type} %{size_download}' "$u")"
-          done
-          for s in TSLA AMD AMZN NFLX PLTR; do echo "nvstly $s -> $(curl -sS -o /dev/null -L -m 15 -w '%{http_code} %{content_type} %{size_download}' https://cdn.jsdelivr.net/gh/nvstly/icons@main/ticker_icons/$s.png)"; done
