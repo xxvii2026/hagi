@@ -15,10 +15,9 @@ jobs:
       RELAYER: '0x56077D89f3179f061C9F436d2dF7623625898891'
       DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
     steps:
-      - name: RPC batching and rate limits
+      - name: Who has been sending vault transactions
         run: |
-          echo "batch -> $(curl -sS -m 20 -X POST $RPC -H 'content-type: application/json' -d '[{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]},{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}]' | head -c 200)"
-          ok=0; bad=0; for i in $(seq 1 40); do c=$(curl -sS -m 10 -o /dev/null -w '%{http_code}' -X POST $RPC -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'); [ "$c" = "200" ] && ok=$((ok+1)) || { bad=$((bad+1)); echo "status $c on request $i"; }; done; echo "burst of 40: ok=$ok bad=$bad"
-          curl -sS -m 10 -i -X POST $RPC -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' | grep -iE "ratelimit|retry-after|^HTTP" | head -5
-          echo "relayer ETH: $(curl -sS -m 10 -X POST $RPC -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_getBalance","params":["0x56077D89f3179f061C9F436d2dF7623625898891","latest"]}' | head -c 120)"
-          echo "relayer nonce: $(curl -sS -m 10 -X POST $RPC -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_getTransactionCount","params":["0x56077D89f3179f061C9F436d2dF7623625898891","latest"]}' | head -c 120)"
+          echo "== relayer wallet transactions"
+          curl -sS -m 20 "$EXP/addresses/$RELAYER/transactions" | jq -r '.items[]? | "rel \(.timestamp) \(.method // "-") to=\(.to.hash // "-") status=\(.status) result=\(.result)"' | head -12
+          echo "== vault transactions"
+          curl -sS -m 20 "$EXP/addresses/0x0C3C8c6929851818d6a15A4c57D68F9342B81798/transactions" | jq -r '.items[]? | "vault \(.timestamp) \(.method // "-") from=\(.from.hash) status=\(.status) result=\(.result)"' | head -30
