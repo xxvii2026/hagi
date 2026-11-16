@@ -4,7 +4,7 @@ import * as engine from '../engine'
 import { TOKENS, asInput, fmt, token, usd } from '../data'
 import { go } from '../nav'
 import { total, useStore } from '../store'
-import { Amount, AmountField, Card, Icon, Mark, TokenIcon, TokenPicker, Visibility, type Run } from '../ui'
+import { Amount, AmountField, Card, Icon, Mark, TokenIcon, TokenPicker, Visibility, useCountUp, type Run } from '../ui'
 import { ActivityList } from './Activity'
 
 const MIX = ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#3a4a8a', '#c9d1ee', '#7f86ad', '#d9def0']
@@ -22,7 +22,7 @@ export function Portfolio({ run }: { run: Run }) {
   const have = src[cur] ?? 0
   const n = parseFloat(amt) || 0
   const bal = total(s.shielded)
-  const [whole, cents] = fmt(bal).split('.')
+  const [whole, cents] = fmt(useCountUp(bal)).split('.')
   const holdings = Object.entries(s.shielded).sort((a, b) => b[1] * token(b[0]).price - a[1] * token(a[0]).price)
   const unshielded = total(s.walletBal)
   const addr = s.hagiAddress ?? ''

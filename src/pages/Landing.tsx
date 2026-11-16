@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { FAUCET_URL } from '../chain'
-import { TOKENS, fmt, token } from '../data'
+import { TOKENS, fmt, token, type Basket } from '../data'
 import { go } from '../nav'
 import { useStore } from '../store'
 import { Censor, Icon, Mark, TokenIcon, type IconName } from '../ui'
@@ -8,6 +8,22 @@ import { Censor, Icon, Mark, TokenIcon, type IconName } from '../ui'
 /** A value that shows plainly to its owner and as a pixel censor to everyone else. */
 function Peek({ text, seed, cols = 7, cell = 9, onDark = false }: { text: string; seed: string; cols?: number; cell?: number; onDark?: boolean }) {
   return <span className="pk"><span className="pk-c"><Censor seed={seed} cols={cols} cell={cell} onDark={onDark} /></span><span className="pk-n">{text}</span></span>
+}
+const starter = (id: number, name: string, mix: [string, number][]): Basket => ({ id, name, creator: 'Hagi', buyers: 0, created: 0, items: mix.map(([symbol, weight]) => ({ symbol, weight, bps: weight * 100 })) })
+const STARTERS = [
+  starter(-1, 'All five', [['TSLA', 20], ['AMD', 20], ['AMZN', 20], ['NFLX', 20], ['PLTR', 20]]),
+  starter(-2, 'Chips and data', [['AMD', 60], ['PLTR', 40]]),
+  starter(-3, 'Screens and carts', [['NFLX', 50], ['AMZN', 50]]),
+]
+/** Sections fade up a little the first time they scroll into view. */
+function useReveal() {
+  useEffect(() => {
+    if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const els = [...document.querySelectorAll<HTMLElement>('.land2 .strip, .land2 .lsec, .land2 .lend, .land2 .bigfoot')]
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } }), { rootMargin: '0px 0px -12% 0px' })
+    els.forEach(el => { el.classList.add('rv'); io.observe(el) })
+    return () => { io.disconnect(); els.forEach(el => el.classList.remove('rv', 'in')) }
+  }, [])
 }
 const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
@@ -22,8 +38,6 @@ const FEED: { icon: IconName; title: string; when: string; amount: string; pub: 
 ]
 const FAQ: [string, string][] = [
   ['Is this real money?', 'No. Hagi runs on Robinhood Chain Testnet. The tokens are free test tokens with no value.'],
-  ['What stays private?', 'Your balance, which stocks you hold, and who you send to and how much. Inside the vault your funds are encrypted receipts that only your key can read.'],
-  ['What can other people see?', 'Money going into the vault, money coming out, and the size of a swap. Private transactions are sent by a relayer, so your wallet isn’t on them.'],
   ['Has Hagi been audited?', 'No. It is an early testnet build. Do not treat it as safe for real funds until an independent audit is published.'],
   ['Who can move my funds?', 'By design, only a proof made with your own key. The vault is a smart contract with no admin withdrawal.'],
   ['Do I need a new wallet or a seed phrase?', 'No. Your Hagi account is derived from a signature by your existing wallet, so there is nothing new to write down.'],
@@ -39,7 +53,10 @@ export function Landing() {
   const primary = navy ? 'btn light' : 'btn'
   const secondary = navy ? 'btn ghost' : 'btn o'
   const MIXC = navy ? ['#ffffff', '#8696cf', '#566eba', '#b0a7b8', '#c9d1ee', '#3a4a8a', '#7f86ad', '#d9def0'] : ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#3a4a8a', '#c9d1ee', '#7f86ad', '#d9def0']
-  const popular = [...s.baskets].sort((a, b) => b.buyers - a.buyers).slice(0, 4)
+  // The live list comes from the chain. Until it loads, or if the chain can't be reached, show the three starter baskets.
+  const live = s.baskets.length > 0
+  const popular = live ? [...s.baskets].sort((a, b) => b.buyers - a.buyers).slice(0, 4) : STARTERS
+  useReveal()
   const Toggle = () => (
     <div className="viewer" role="group" aria-label="Choose whose view to show">
       <span>Viewing as</span>
@@ -50,7 +67,6 @@ export function Landing() {
   return (
     <div className={'land2' + (navy ? ' navy' : '')}>
       <section className="h2hero">
-        <span className="eyebrow2"><i />Testnet preview on Robinhood Chain</span>
         <h1><span>Stocks,</span> off the record.</h1>
         <p>Hold, swap and send stock tokens without putting your portfolio on display. Your balance sits in a shared vault that only you can read.</p>
         <div className="lcta2"><button className={primary} onClick={open}>Open the app</button><button className={secondary} onClick={() => jump('private')}>See what stays private</button></div>
@@ -95,19 +111,11 @@ export function Landing() {
 
       <section className="lsec" id="private">
         <h2><span>One account,</span> two views.</h2>
-        <p className="lsub">The same four actions, as you see them and as the chain shows them to everyone else.</p>
-        <div className="views">
-          <div className="card"><span className="tagl"><i className="b" />What you see</span>
-            {FEED.map(f => <div className="row" key={f.title}><span className="ai"><Icon name={f.icon} /></span><div className="g"><b>{f.title}</b><span>{f.when}</span></div><div className="r"><b>{f.amount}</b></div></div>)}
-          </div>
-          <div className="card dark"><span className="tagl"><i className="a" />What anyone else sees</span>
-            {FEED.map(f => <div className="row" key={f.title}><span className="ai"><Icon name={f.icon} /></span><div className="g"><b>{f.pub ? f.title : 'A private transfer'}</b><span>{f.note}</span></div><div className="r"><b>{f.pub ? f.amount : <Censor seed={f.title} cell={7} onDark />}</b></div></div>)}
-          </div>
-        </div>
+        <p className="lsub">Flip the switch in the preview to see both. This is the short version.</p>
         <div className="facts">
-          <div><b>Always private</b><span>Your balance, your holdings, your sends</span></div>
-          <div><b>Always public</b><span>Deposits, withdrawals and swap sizes</span></div>
-          <div><b>Never possible</b><span>Anyone but you moving your funds</span></div>
+          <div><i><Icon name="lock" size={20} /></i><b>Always private</b><span>Your balance, which stocks you hold, and who you send to and how much.</span></div>
+          <div><i><Icon name="eye" size={20} /></i><b>Always public</b><span>Money going into the vault, money coming out, and the size of a swap.</span></div>
+          <div><i><Icon name="shield" size={20} /></i><b>Never possible</b><span>Anyone but you moving your funds. The vault has no admin withdrawal.</span></div>
         </div>
       </section>
 
@@ -116,9 +124,9 @@ export function Landing() {
         <div className="grid four">{popular.map(b => (
           <div className="card bk" key={b.id}>
             <div className="st">{b.items.slice(0, 4).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={34} />)}{b.items.length > 4 && <span className="ti more">+{b.items.length - 4}</span>}</div>
-            <div className="bn">{b.name}</div><div className="bm">{b.items.length} stocks · {b.buyers} buyers</div>
+            <div className="bn">{b.name}</div><div className="bm">{b.items.length} stocks{live ? ' · ' + b.buyers + ' buyers' : ''}</div>
             <div className="mixbar sm">{b.items.map((it, i) => <i key={it.symbol} style={{ width: it.weight + '%', background: MIXC[i % 8] }} />)}</div>
-            <div className="bf"><span>by {b.creator}</span><button className="chip strong" onClick={() => go('baskets?buy=' + b.id)}>Buy</button></div>
+            <div className="bf"><span>{live ? 'by ' + b.creator : 'Starter basket'}</span><button className="chip strong" onClick={() => go(live ? 'baskets?buy=' + b.id : 'baskets')}>Buy</button></div>
           </div>
         ))}</div>
       </section>

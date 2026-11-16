@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
 import { token, fmt, withCommas } from './data'
 import { friendly, onRelayerDown } from './engine'
 import { useStore } from './store'
+import { shownBalance } from './roll'
 
 export function Mark({ size = 24, leaf = '#1b2140', block = '#566eba' }: { size?: number; leaf?: string; block?: string }) {
   const p = 'M0 23A23 23 0 0 1 23 0A23 23 0 0 1 46 23V46H23A23 23 0 0 1 0 23Z'
@@ -32,6 +33,7 @@ const ICONS = {
   down: 'M10 4v12M5 11l5 5 5-5', up: 'M10 16V4M5 9l5-5 5 5', swap: 'M4 7h11M12 4l3 3-3 3M16 13H5M8 10l-3 3 3 3',
   right: 'M4 10h12M11 5l5 5-5 5', left: 'M16 10H4M9 5l-5 5 5 5', basket: 'M4 4h5v5H4zM11 4h5v5h-5zM4 11h5v5H4zM11 11h5v5h-5z',
   chevron: 'M5 8l5 5 5-5', copy: 'M7 7h9v9H7zM4 13V4h9', alert: 'M10 5v6M10 14.4v.2', close: 'M5 5l10 10M15 5L5 15', check: 'M4 10.5l4 4 8-9',
+  lock: 'M5.5 9h9v7.5h-9zM7.5 9V6.5a2.5 2.5 0 0 1 5 0V9', eye: 'M2.5 10s3-5 7.5-5 7.5 5 7.5 5-3 5-7.5 5-7.5-5-7.5-5zM10 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z', shield: 'M10 3l6 2v5c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V5z',
 } as const
 export type IconName = keyof typeof ICONS
 /** One drawn icon set with a single line weight, so icons look the same on every device. */
@@ -107,6 +109,33 @@ export type Step = (label: string) => void
 export type Run = (title: string, task: (step: Step) => Promise<void>, done?: string) => void
 
 /** Shows the real steps of an action as they happen, then the result or the error. */
+/** Rolls a number from its last value to the new one. Starts from zero on first load.
+ *  While the progress window is open the roll waits, so it plays where the user can see it. */
+export function useCountUp(value: number, ms = 700) {
+  const [shown, setShown] = useState(shownBalance.last)
+  const from = useRef(shownBalance.last)
+  useEffect(() => {
+    const start = from.current
+    if (start === value) return
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { from.current = shownBalance.last = value; setShown(value); return }
+    let raf = 0
+    const roll = () => {
+      const t0 = performance.now()
+      const tick = (t: number) => {
+        const k = Math.max(0, Math.min(1, (t - t0) / ms))
+        const v = k === 1 ? value : start + (value - start) * (1 - Math.pow(1 - k, 3))
+        from.current = shownBalance.last = v; setShown(v)
+        if (k < 1) raf = requestAnimationFrame(tick)
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    if (document.body.classList.contains('busy')) addEventListener(IDLE, roll, { once: true }); else roll()
+    return () => { cancelAnimationFrame(raf); removeEventListener(IDLE, roll) }
+  }, [value, ms])
+  return shown
+}
+const IDLE = 'hagi-idle'
+
 export function Progress({ title, task, doneText, onClose }: { title: string; task: (step: Step) => Promise<void>; doneText?: string; onClose: () => void }) {
   const [steps, setSteps] = useState<string[]>([])
   const [state, setState] = useState<'run' | 'done' | 'error'>('run')
@@ -116,6 +145,10 @@ export function Progress({ title, task, doneText, onClose }: { title: string; ta
   useEffect(() => {
     onRelayerDown(why => new Promise(resolve => setAsk({ why, answer: ok => { setAsk(null); resolve(ok) } })))
     return () => onRelayerDown(null)
+  }, [])
+  useEffect(() => {
+    document.body.classList.add('busy')
+    return () => { document.body.classList.remove('busy'); dispatchEvent(new Event(IDLE)) }
   }, [])
   useEffect(() => {
     if (started.current) return
@@ -128,7 +161,7 @@ export function Progress({ title, task, doneText, onClose }: { title: string; ta
   return (
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="modal">
-        <div className={'loader ' + (state !== 'run' ? 'ok' : '')}>
+        <div className={'loader ' + (state === 'done' ? 'ok' : state === 'error' ? 'still' : '')}>
           <svg width="56" height="56" viewBox="0 0 100 100" aria-hidden>
             <path className="l1" d={LEAF} fill="#1b2140" /><path className="l2" d={LEAF} fill="#1b2140" transform="translate(100,0) scale(-1,1)" /><path className="l3" d={LEAF} fill="#1b2140" transform="translate(0,100) scale(1,-1)" />
             <rect className="lb" x="54" y="54" width="42" height="42" fill={state === 'error' ? '#b0a7b8' : '#566eba'} />

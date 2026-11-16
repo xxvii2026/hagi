@@ -152,7 +152,10 @@ h2 span,.ptitle h2 span{color:var(--lav)}h2{font-weight:400}
 .loader .l2{animation-delay:.18s}.loader .l3{animation-delay:.36s}.loader .lb{animation-name:block;animation-delay:.6s}
 @keyframes leaf{0%{opacity:0}18%,82%{opacity:1}100%{opacity:0}}
 @keyframes block{0%{opacity:0;transform:translateY(-10px) scale(.6)}22%,80%{opacity:1;transform:none}100%{opacity:0}}
-.loader.ok path,.loader.ok rect{animation:none;opacity:1}
+.loader.ok path,.loader.still path,.loader.still rect{animation:none;opacity:1}
+.loader.ok .lb{animation:drop .5s cubic-bezier(.3,1.5,.5,1) both}.loader.ok{animation:okring .6s ease-out}
+@keyframes drop{0%{opacity:0;transform:translateY(-16px) scale(.5)}100%{opacity:1;transform:none}}
+@keyframes okring{0%{box-shadow:0 0 0 0 rgba(86,110,186,.45)}100%{box-shadow:0 0 0 16px rgba(86,110,186,0)}}
 @media (prefers-reduced-motion:reduce){.loader path,.loader rect{animation:none;opacity:1}}
 .reveal{display:inline-flex;align-items:center;font:inherit;color:inherit;border-radius:6px;padding:2px}.reveal:hover{background:#eceef6}
 .foot{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;max-width:1480px;margin:0 auto;padding:22px 56px 34px;font-size:13.5px;color:var(--soft)}
@@ -297,3 +300,15 @@ body.navy-page{background:radial-gradient(1100px 620px at 50% -10%,#34407f 0,rgb
 
 .hero .qas{max-width:420px}
 @media (max-width:1000px){.hero .qas{max-width:none}}
+
+/* Landing: three facts as cards */
+.facts{margin-top:34px}.facts div{padding:28px;border-radius:28px;background:#fff;box-shadow:0 1px 2px rgba(27,33,64,.05)}
+.facts i{font-style:normal;width:42px;height:42px;border-radius:50%;background:var(--page);color:var(--peri);display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.facts b{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:8px}.facts span{font-size:16px;line-height:1.5}
+.navy .facts div{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);box-shadow:none}.navy .facts i{background:rgba(255,255,255,.1);color:#c9d1ee}
+/* Motion */
+.pg{animation:pgin .2s ease-out both}@keyframes pgin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.mix .mixbar{animation:grow .8s cubic-bezier(.2,.7,.2,1) both}.mix .mixbar i{transition:width .5s ease}
+@keyframes grow{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.rv{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.2,1)}.rv.in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.pg,.mix .mixbar,.loader.ok,.loader.ok .lb{animation:none}.mix .mixbar i{transition:none}.rv{opacity:1;transform:none;transition:none}}

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { token, type Basket } from './data'
 import * as engine from './engine'
+import { shownBalance } from './roll'
 
 export type Activity = { id: number; kind: 'shield' | 'unshield' | 'swap' | 'send' | 'basket' | 'receive'; title: string; detail: string; time: number; isPrivate?: boolean }
 export type State = {
@@ -75,7 +76,7 @@ export function Store({ children }: { children: ReactNode }) {
       patch({ hagiAddress })
       await refresh()
     },
-    disconnect: () => { engine.lock(); setS(x => ({ ...initial, baskets: x.baskets })) },
+    disconnect: () => { engine.lock(); shownBalance.last = 0; setS(x => ({ ...initial, baskets: x.baskets })) },
     refresh,
     log: a => setS(x => {
       const activity = [{ ...a, id: Date.now(), time: Date.now() }, ...x.activity].slice(0, 200)
