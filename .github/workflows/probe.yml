@@ -15,10 +15,10 @@ jobs:
       RELAYER: '0x56077D89f3179f061C9F436d2dF7623625898891'
       DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
     steps:
-      - name: USDG icon sources
+      - name: RPC batching and rate limits
         run: |
-          echo "mainnet-explorer $(curl -sS -m 20 https://robinhoodchain.blockscout.com/api/v2/tokens/0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168 | jq -r '"\(.symbol) \(.name) icon=\(.icon_url)"')"
-          echo "coingecko $(curl -sS -m 20 'https://api.coingecko.com/api/v3/coins/global-dollar?localization=false&tickers=false&market_data=false&community_data=false&developer_data=false' | jq -r '"\(.symbol) \(.name) \(.image.large)"')"
-          for u in https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/assets/0xe343167631d89B6Ffc58B88d6b7fB0228795491D/logo.png https://cdn.jsdelivr.net/gh/nvstly/icons@main/crypto_icons/USDG.png https://cdn.jsdelivr.net/gh/nvstly/icons@main/ticker_icons/USDG.png; do
-            echo "cand $u -> $(curl -sS -o /dev/null -L -m 15 -w '%{http_code} %{content_type} %{size_download}' "$u")"
-          done
+          echo "batch -> $(curl -sS -m 20 -X POST $RPC -H 'content-type: application/json' -d '[{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]},{"jsonrpc":"2.0","id":2,"method":"eth_blockNumber","params":[]}]' | head -c 200)"
+          ok=0; bad=0; for i in $(seq 1 40); do c=$(curl -sS -m 10 -o /dev/null -w '%{http_code}' -X POST $RPC -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}'); [ "$c" = "200" ] && ok=$((ok+1)) || { bad=$((bad+1)); echo "status $c on request $i"; }; done; echo "burst of 40: ok=$ok bad=$bad"
+          curl -sS -m 10 -i -X POST $RPC -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' | grep -iE "ratelimit|retry-after|^HTTP" | head -5
+          echo "relayer ETH: $(curl -sS -m 10 -X POST $RPC -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_getBalance","params":["0x56077D89f3179f061C9F436d2dF7623625898891","latest"]}' | head -c 120)"
+          echo "relayer nonce: $(curl -sS -m 10 -X POST $RPC -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_getTransactionCount","params":["0x56077D89f3179f061C9F436d2dF7623625898891","latest"]}' | head -c 120)"
