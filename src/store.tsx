@@ -34,6 +34,8 @@ export function Store({ children }: { children: ReactNode }) {
   const [s, setS] = useState<State>(initial)
   const patch = useCallback((p: Partial<State>) => setS(x => ({ ...x, ...p })), [])
   const busy = useRef(false)
+  const polls = useRef(0)
+  const misses = useRef(0)
   const logRef = useRef<Api['log']>(() => {})
 
   // A quiet refresh is the background check for new funds: it doesn't flash "Syncing" in the top bar.
@@ -42,10 +44,13 @@ export function Store({ children }: { children: ReactNode }) {
     busy.current = true
     if (!quiet) patch({ syncing: true })
     try {
-      const [baskets] = await Promise.all([engine.readBaskets(), engine.readPools()])
+      // Background checks look at balances every time, and at baskets and prices every fifth time.
+      const full = !quiet || polls.current++ % 5 === 0
+      const baskets = full ? (await Promise.all([engine.readBaskets(), engine.readPools()]))[0] : null
       const w = await engine.readWallet()
       const shielded = await engine.sync()
-      patch({ baskets, walletBal: w.balances, eth: w.eth, shielded, offline: false })
+      patch({ ...(baskets ? { baskets } : {}), walletBal: w.balances, eth: w.eth, shielded, offline: false })
+      misses.current = 0
       for (const r of engine.takeReceived()) {
         const detail = r.amount.toLocaleString('en-US', { maximumFractionDigits: r.symbol === 'USDG' ? 2 : 4 }) + ' ' + r.symbol
         logRef.current({ kind: 'receive', title: 'Received ' + r.symbol, detail, isPrivate: true })
@@ -53,7 +58,9 @@ export function Store({ children }: { children: ReactNode }) {
       }
     } catch (e) {
       console.warn('Hagi could not read the chain', e)
-      patch({ offline: true })
+      // One missed background check is usually the RPC's rate limit. Only say the chain is unreachable
+      // when a check the user asked for fails, or two background checks in a row do.
+      if (!quiet || ++misses.current >= 2) patch({ offline: true })
     } finally {
       busy.current = false
       if (!quiet) patch({ syncing: false })

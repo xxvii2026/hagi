@@ -12,7 +12,9 @@ type Eth = { request: (a: { method: string; params?: unknown[] }) => Promise<unk
 const provider = (): Eth | undefined => (window as unknown as { ethereum?: Eth }).ethereum
 export const hasWallet = () => !!provider()
 // Reads are grouped into one request where possible, to stay well inside the public endpoint's limits.
-const pub = createPublicClient({ chain, transport: http(CFG.rpc, { batch: { wait: 20 } }) })
+// The public RPC rate-limits, and answers an oversized batch with a 429 that browsers then block
+// (its error replies carry a broken CORS header). Keep batches small and retry briefly.
+const pub = createPublicClient({ chain, transport: http(CFG.rpc, { batch: { wait: 20, batchSize: 20 }, retryCount: 3, retryDelay: 500 }) })
 const wal = () => createWalletClient({ chain, transport: custom(provider()!) })
 const V = { address: CFG.contracts.vault, abi: vaultAbi } as const
 const ART = { wasm: `${import.meta.env.BASE_URL}zk/transaction.wasm`, zkey: `${import.meta.env.BASE_URL}zk/transaction.zkey` }
@@ -29,6 +31,10 @@ let known: Set<string> | null = null
 let received: { symbol: string; amount: number }[] = []
 const knownSlot = () => 'hagi-known-' + keys!.publicKey.toString(16).slice(0, 24)
 const saveKnown = () => { try { if (known) localStorage.setItem(knownSlot(), JSON.stringify([...known])) } catch { /* optional */ } }
+// A spent receipt stays spent, so each one is only asked about until the first time it comes back spent.
+let spentSeen = new Set<string>()
+const spentSlot = () => 'hagi-spent-' + CFG.contracts.vault.toLowerCase().slice(2, 10) + '-' + keys!.publicKey.toString(16).slice(0, 24)
+const saveSpent = () => { try { localStorage.setItem(spentSlot(), JSON.stringify([...spentSeen])) } catch { /* optional */ } }
 /** Hands over, once, the notes that arrived since the last call. */
 export const takeReceived = () => { const r = received; received = []; return r }
 const reserves: Record<string, [bigint, bigint]> = {}
@@ -53,6 +59,7 @@ const sigSlot = () => 'hagi-sig-' + account!.toLowerCase()
 function adopt(sig: Hex) {
   keys = deriveKeys(sig)
   try { const raw = localStorage.getItem(knownSlot()); known = raw ? new Set(JSON.parse(raw)) : null } catch { known = null }
+  try { const raw = localStorage.getItem(spentSlot()); spentSeen = new Set(raw ? JSON.parse(raw) : []) } catch { spentSeen = new Set() }
   return toAddress(keys)
 }
 
@@ -89,7 +96,7 @@ export const hasCachedKey = () => { try { return !!account && !!sessionStorage.g
 
 export function lock() {
   if (account) try { sessionStorage.removeItem('hagi-sig-' + account.toLowerCase()) } catch { /* storage unavailable */ }
-  account = null; keys = null; notes = []; tree = new MerkleTree(); known = null; received = []
+  account = null; keys = null; notes = []; tree = new MerkleTree(); known = null; received = []; spentSeen = new Set()
 }
 
 // ---------- reads ----------
@@ -180,7 +187,11 @@ export async function sync(minBlock = 0n): Promise<Record<string, number>> {
     const note: Note = { ...d, amount: BigInt(amount) > 0n ? BigInt(amount) : d.amount, publicKey: keys.publicKey, index }
     if (note.amount > 0n && commitment(note) === BigInt(c)) { mine.push(note); if (BigInt(amount) === 0n) privateOnes.add(note) }
   }
-  const spent = await Promise.all(mine.map(n => pub.readContract({ ...V, functionName: 'nullifierSpent', args: [nullifier(n, keys!.privateKey)] })))
+  const nfs = mine.map(n => nullifier(n, keys!.privateKey).toString())
+  const spent = await Promise.all(mine.map((_, i) => spentSeen.has(nfs[i]) ? true
+    : pub.readContract({ ...V, functionName: 'nullifierSpent', args: [BigInt(nfs[i])] })))
+  spent.forEach((sp, i) => { if (sp) spentSeen.add(nfs[i]) })
+  saveSpent()
   tree = t
   notes = mine.filter((_, i) => !spent[i])
   // A private note that this device did not create as change is money that arrived.
