@@ -15,26 +15,6 @@ jobs:
       RELAYER: '0x56077D89f3179f061C9F436d2dF7623625898891'
       DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - name: Wallet history the way the site reads it
-        run: |
-          npm i --no-save --silent viem@2
-          cat > /tmp/history.mjs <<'JS'
-          import { createPublicClient, http, parseAbiItem, defineChain, getAddress } from 'viem'
-          const chain = defineChain({ id: 46630, name: 'rh', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: ['https://rpc.testnet.chain.robinhood.com'] } } })
-          const client = createPublicClient({ chain, transport: http(undefined, { batch: { wait: 16 } }) })
-          const T = ['0x48fdc557DE6Fe7efD3341e6c28A626Be021d117a','0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E','0x71178BAc73cBeb415514eB542a8995b82669778d','0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02','0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93','0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0']
-          const ev = parseAbiItem('event Transfer(address indexed from, address indexed to, uint256 value)')
-          const a = getAddress('0xd16863014B75dfA19149E8db6078B17525021594')
-          const latest = await client.getBlockNumber(); const fromBlock = latest - 9_500_000n
-          const t0 = Date.now()
-          const per = await Promise.all(T.flatMap(t => [client.getLogs({ address: t, event: ev, args: { from: a }, fromBlock, toBlock: latest }), client.getLogs({ address: t, event: ev, args: { to: a }, fromBlock, toBlock: latest })]))
-          console.log('history ok:', per.flat().length, 'transfers in', Date.now() - t0, 'ms')
-          const b = await client.getBlock({ blockNumber: per.flat()[0].blockNumber }); console.log('first block time', new Date(Number(b.timestamp) * 1000).toISOString())
-          JS
-          cp /tmp/history.mjs ./history.mjs && node history.mjs
       - name: Who has been sending vault transactions
         run: |
           echo "== relayer wallet transactions"

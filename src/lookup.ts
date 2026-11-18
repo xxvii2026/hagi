@@ -42,11 +42,13 @@ export async function lookup(input: string): Promise<Seen> {
     const latest = await client.getBlockNumber()
     // The public RPC answers at most 10 million blocks per query.
     const fromBlock = latest > 9_500_000n ? latest - 9_500_000n : 0n
-    const addrs = TOKENS.map(t => t.address)
-    const [out, inn] = await Promise.all([
-      client.getLogs({ address: addrs, event: TRANSFER, args: { from: address }, fromBlock, toBlock: latest }),
-      client.getLogs({ address: addrs, event: TRANSFER, args: { to: address }, fromBlock, toBlock: latest }),
-    ])
+    // The RPC only allows a wide block range when each filter field holds a single value, so ask one token
+    // and one direction at a time. That is twelve small queries, sent together in one batch.
+    const per = await Promise.all(TOKENS.flatMap(t => [
+      client.getLogs({ address: t.address, event: TRANSFER, args: { from: address }, fromBlock, toBlock: latest }),
+      client.getLogs({ address: t.address, event: TRANSFER, args: { to: address }, fromBlock, toBlock: latest }),
+    ]))
+    const out = per.flat(), inn: typeof out = []
     const seen = new Set<string>()
     const logs = [...out, ...inn].filter(l => { const k = l.transactionHash + ':' + l.logIndex; if (seen.has(k)) return false; seen.add(k); return true })
       .sort((a, b) => (a.blockNumber === b.blockNumber ? (b.logIndex ?? 0) - (a.logIndex ?? 0) : Number((b.blockNumber ?? 0n) - (a.blockNumber ?? 0n))))
