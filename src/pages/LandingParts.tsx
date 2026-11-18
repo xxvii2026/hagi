@@ -12,7 +12,11 @@ const hoverable = () => matchMedia('(hover: hover) and (pointer: fine)').matches
 
 /** Wraps the preview. In the public view, a circle follows the pointer and shows the real numbers under it.
  *  On touch screens with no pointer, the lens drifts by itself, and a tap moves it. */
-export function Lens({ active, children, reveal }: { active: boolean; children: ReactNode; reveal: ReactNode }) {
+export function Lens({ active: wanted, children, reveal }: { active: boolean; children: ReactNode; reveal: ReactNode }) {
+  // Phones keep the simpler landing page, so the lens is for larger screens only.
+  const [phone, setPhone] = useState(() => matchMedia('(max-width: 700px)').matches)
+  useEffect(() => { const q = matchMedia('(max-width: 700px)'); const f = () => setPhone(q.matches); q.addEventListener('change', f); return () => q.removeEventListener('change', f) }, [])
+  const active = wanted && !phone
   const box = useRef<HTMLDivElement>(null)
   const [on, setOn] = useState(false)
   const user = useRef(0) // time of the last real pointer move

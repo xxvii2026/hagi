@@ -50,13 +50,12 @@ export function Landing() {
   const { s } = useStore()
   const [me, setMe] = useState(true) // true = viewing as you, so amounts are readable
   // On a phone the preview flips between the two views by itself until the visitor takes over.
-  // The public view stays up longer, because that is where the lens drifts over the numbers.
   const [touched, setTouched] = useState(false)
   useEffect(() => {
     if (touched || !matchMedia('(max-width: 700px)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const t = setTimeout(() => setMe(v => !v), me ? 2600 : 6500)
-    return () => clearTimeout(t)
-  }, [touched, me])
+    const t = setInterval(() => setMe(v => !v), 2800)
+    return () => clearInterval(t)
+  }, [touched])
   const pick = (v: boolean) => { setTouched(true); setMe(v) }
   // A floating button on phones, shown between the hero and the closing block.
   const [cta, setCta] = useState(false)

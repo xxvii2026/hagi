@@ -528,3 +528,6 @@ body.navy-page{background:radial-gradient(1100px 620px at 50% -10%,#34407f 0,rgb
   .bb-legend{order:5}.bb-tools{order:6}.bb-ctl .btn{order:7}.bb-ctl small{order:8}
 }
 @media (max-width:700px){.bb-brush{flex-wrap:nowrap;overflow-x:auto;margin-left:-22px;margin-right:-22px;padding:4px 22px 6px;scrollbar-width:none}.bb-brush::-webkit-scrollbar{display:none}.bb-b{flex:none}}
+
+/* Phones keep the simpler landing page: no wallet check, swap story or basket painter */
+@media (max-width:700px){.wcheck,.story,.bb{display:none}}
