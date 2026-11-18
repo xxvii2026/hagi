@@ -8,47 +8,6 @@ import { Censor, Icon, TokenIcon } from '../ui'
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 const hoverable = () => matchMedia('(hover: hover) and (pointer: fine)').matches
 
-/* ---------- 1. Hero background: the public trade feed, with a row going private now and then ---------- */
-
-function seeded(n: number) { let h = n * 2654435761 >>> 0; return () => { h = (h * 1103515245 + 12345) >>> 0; return h / 4294967296 } }
-const HEX = '0123456789abcdef'
-
-export function HeroFeed() {
-  const rows = useMemo(() => {
-    const r = seeded(7)
-    const pick = <T,>(a: T[]) => a[Math.floor(r() * a.length)]
-    return Array.from({ length: 14 }, (_, i) => ({
-      addr: '0x' + Array.from({ length: 4 }, () => pick([...HEX])).join('') + '…' + Array.from({ length: 4 }, () => pick([...HEX])).join(''),
-      verb: r() > 0.3 ? 'bought' : 'sold',
-      sym: pick(STOCKS.map(s => s.symbol)),
-      qty: pick(['0.5000', '1.2500', '3.0000', '7.7500', '12.0000', '40.0000']),
-      time: String(Math.floor(r() * 24)).padStart(2, '0') + ':' + String(Math.floor(r() * 60)).padStart(2, '0'),
-      hue: Math.floor(r() * 360),
-      goes: i % 4 === 1, // every fourth row turns private for a moment
-      delay: (i * 1.7) % 9,
-    }))
-  }, [])
-  const Row = ({ x, k }: { x: (typeof rows)[number]; k: string }) => (
-    <div className={'hf-row' + (x.goes ? ' goes' : '')} key={k} style={{ ['--d' as string]: x.delay + 's' }}>
-      <span className="av" style={{ background: `linear-gradient(135deg,hsl(${x.hue} 60% 62%),hsl(${(x.hue + 70) % 360} 60% 45%))` }} />
-      <span className="ad"><span className="hf-a">{x.addr}</span>{x.goes && <span className="hf-c"><Censor seed={x.addr} cols={9} cell={11} onDark /></span>}</span>
-      <span className="vb">{x.verb}</span><span className="am">{x.qty} {x.sym}</span><TokenIcon symbol={x.sym} size={30} /><span className="tm">{x.time}</span>
-      {x.goes && <em>Private</em>}
-    </div>
-  )
-  return (
-    <div className="hfeed" aria-hidden>
-      <div className="hf-tilt">
-        {[0, 1].map(c => (
-          <div className="hf-col" key={c}><div className="hf-run">
-            {[...rows, ...rows].map((x, i) => <Row x={x} k={c + '-' + i} key={c + '-' + i} />)}
-          </div></div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 /* ---------- 2. Privacy lens over the preview ---------- */
 
 /** Wraps the preview. In the public view, a circle follows the pointer and shows the real numbers under it.
@@ -226,46 +185,61 @@ export function SwapStory() {
   )
 }
 
-/* ---------- 5. Build a basket ---------- */
+/* ---------- 5. Paint a basket: 100 pixels, 100 percent ---------- */
 
-/** Turns raw slider values into whole percentages that add up to exactly 100. */
-function percents(w: Record<string, number>) {
-  const keys = Object.keys(w); const sum = keys.reduce((t, k) => t + w[k], 0) || 1
-  const raw = keys.map(k => ({ k, v: (w[k] / sum) * 100 }))
-  const out: Record<string, number> = {}; raw.forEach(r => (out[r.k] = Math.max(1, Math.floor(r.v))))
-  let left = 100 - Object.values(out).reduce((a, b) => a + b, 0)
-  raw.sort((a, b) => (b.v % 1) - (a.v % 1))
-  for (let i = 0; left > 0; i = (i + 1) % raw.length, left--) out[raw[i].k]++
-  for (let i = 0; left < 0; i = (i + 1) % raw.length) if (out[raw[i].k] > 1) { out[raw[i].k]--; left++ }
-  return out
-}
+// One colour per stock, picked to sit well on navy and stay distinct from each other.
+const PAINT: Record<string, string> = { TSLA: '#ffffff', AMD: '#566eba', AMZN: '#e0a23a', NFLX: '#b0a7b8', PLTR: '#8fd0c0' }
+const fill = (mix: [string, number][]) => mix.flatMap(([k, n]) => Array<string>(n).fill(k))
 
-export function BasketBuilder({ colors }: { colors: string[] }) {
-  const [w, setW] = useState<Record<string, number>>({ TSLA: 60, AMD: 40 })
+export function BasketBuilder() {
+  const [cells, setCells] = useState<string[]>(() => fill([['TSLA', 60], ['AMD', 40]]))
+  const [brush, setBrush] = useState('AMZN')
   const [name, setName] = useState('')
-  const picked = STOCKS.map(s => s.symbol).filter(k => k in w)
-  const pct = percents(w)
-  const toggle = (k: string) => { const n = { ...w }; if (k in n) { if (picked.length > 2) delete n[k] } else n[k] = 30; setW(n) }
-  const make = () => go('baskets?name=' + encodeURIComponent(name.trim() || 'My basket') + '&mix=' + picked.map(k => k + ':' + pct[k]).join(','))
+  const painting = useRef(false)
+  const grid = useRef<HTMLDivElement>(null)
+  const count: Record<string, number> = {}
+  cells.forEach(k => (count[k] = (count[k] ?? 0) + 1))
+  const mix = STOCKS.map(s => s.symbol).filter(k => count[k]).sort((a, b) => count[b] - count[a])
+  const ok = mix.length >= 2
+  const paintAt = (x: number, y: number) => {
+    const el = document.elementFromPoint(x, y) as HTMLElement | null
+    const i = el?.dataset.i
+    if (i === undefined || !grid.current?.contains(el)) return
+    setCells(c => (c[+i] === brush ? c : c.map((v, j) => (j === +i ? brush : v))))
+  }
+  const even = () => { const ks = mix.length >= 2 ? mix : STOCKS.slice(0, 2).map(s => s.symbol); const base = Math.floor(100 / ks.length); setCells(fill(ks.map((k, i) => [k, base + (i < 100 - base * ks.length ? 1 : 0)]))) }
+  const shuffle = () => {
+    const ks = [...STOCKS.map(s => s.symbol)].sort(() => Math.random() - 0.5).slice(0, 2 + Math.floor(Math.random() * 3))
+    const raw = ks.map(() => 1 + Math.random() * 4); const sum = raw.reduce((a, b) => a + b, 0)
+    const n = raw.map(r => Math.max(1, Math.round((r / sum) * 100))); n[0] += 100 - n.reduce((a, b) => a + b, 0)
+    setCells(fill(ks.map((k, i) => [k, n[i]] as [string, number])).sort(() => Math.random() - 0.5))
+  }
+  const make = () => go('baskets?name=' + encodeURIComponent(name.trim() || 'My basket') + '&mix=' + mix.map(k => k + ':' + count[k]).join(','))
   return (
     <div className="bb card">
-      <div className="bb-ctl">
-        <span className="bb-k">Build your own</span>
-        <input className="bb-name" value={name} onChange={e => setName(e.target.value)} placeholder="Name your basket" maxLength={32} aria-label="Basket name" />
-        <div className="bb-pick">{STOCKS.map(s => (
-          <button key={s.symbol} className={'chip' + (s.symbol in w ? ' on' : '')} onClick={() => toggle(s.symbol)} aria-pressed={s.symbol in w}><TokenIcon symbol={s.symbol} size={24} />{s.symbol}</button>
-        ))}</div>
-        <div className="bb-sl">{picked.map(k => (
-          <label key={k}><span>{k}</span><input type="range" min={1} max={100} value={w[k]} onChange={e => setW({ ...w, [k]: Number(e.target.value) })} aria-label={k + ' weight'} /><b>{pct[k]}%</b></label>
-        ))}</div>
+      <div className="bb-art">
+        <div className="bb-grid" ref={grid} role="img" aria-label={'Basket mix: ' + mix.map(k => k + ' ' + count[k] + '%').join(', ')}
+          onPointerDown={e => { painting.current = true; (e.target as HTMLElement).releasePointerCapture?.(e.pointerId); paintAt(e.clientX, e.clientY) }}
+          onPointerMove={e => { if (painting.current) paintAt(e.clientX, e.clientY) }}
+          onPointerUp={() => (painting.current = false)} onPointerLeave={() => (painting.current = false)}>
+          {cells.map((k, i) => <i key={i} data-i={i} style={{ background: PAINT[k], ['--d' as string]: ((i * 37) % 100) * 9 + 'ms' }} />)}
+        </div>
+        <span className="bb-cap">100 pixels, 100 percent. Pick a stock, then paint.</span>
       </div>
-      <div className="bb-prev">
-        <div className="st">{picked.slice(0, 5).map(k => <TokenIcon key={k} symbol={k} size={40} />)}</div>
-        <div className="bn">{name.trim() || 'My basket'}</div>
-        <div className="bm">{picked.length} stocks · {picked.map(k => k + ' ' + pct[k]).join(' · ')}</div>
-        <div className="mixbar">{picked.map((k, i) => <i key={k} style={{ width: pct[k] + '%', background: colors[i % colors.length] }} />)}</div>
-        <button className="btn light" onClick={make}>Make this basket</button>
-        <small>Opens the app with your mix filled in. A basket can’t be changed once it’s made.</small>
+      <div className="bb-ctl">
+        <span className="bb-k">Paint your basket</span>
+        <input className="bb-name" value={name} onChange={e => setName(e.target.value)} placeholder="Name it" maxLength={32} aria-label="Basket name" />
+        <div className="bb-brush" role="radiogroup" aria-label="Pick a stock to paint with">{STOCKS.map(s => (
+          <button key={s.symbol} role="radio" aria-checked={brush === s.symbol} className={'bb-b' + (brush === s.symbol ? ' on' : '')} onClick={() => setBrush(s.symbol)} style={{ ['--c' as string]: PAINT[s.symbol] }}>
+            <TokenIcon symbol={s.symbol} size={30} /><span>{s.symbol}</span><i />
+          </button>
+        ))}</div>
+        <div className="bb-legend">{mix.map(k => (
+          <div key={k}><i style={{ background: PAINT[k] }} /><span>{token(k).name}</span><b>{count[k]}%</b></div>
+        ))}</div>
+        <div className="bb-tools"><button onClick={shuffle}>Shuffle</button><button onClick={even}>Split evenly</button></div>
+        <button className="btn light" disabled={!ok} onClick={make}>{ok ? 'Make this basket' : 'Paint at least two stocks'}</button>
+        <small>Opens the app with your mix filled in. Once it’s made, nobody can change it.</small>
       </div>
     </div>
   )

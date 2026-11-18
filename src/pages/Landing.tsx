@@ -5,7 +5,7 @@ import { TOKENS, fmt, token, type Basket } from '../data'
 import { go } from '../nav'
 import { useStore } from '../store'
 import { Censor, Icon, Mark, TokenIcon, type IconName } from '../ui'
-import { BasketBuilder, HeroFeed, Lens, SwapStory, WalletCheck } from './LandingParts'
+import { BasketBuilder, Lens, SwapStory, WalletCheck } from './LandingParts'
 
 /** A value that shows plainly to its owner and as a pixel censor to everyone else. */
 function Peek({ text, seed, cols = 7, cell = 9, onDark = false }: { text: string; seed: string; cols?: number; cell?: number; onDark?: boolean }) {
@@ -61,7 +61,13 @@ export function Landing() {
   // A floating button on phones, shown between the hero and the closing block.
   const [cta, setCta] = useState(false)
   useEffect(() => {
-    const f = () => { const end = document.querySelector('.lend')?.getBoundingClientRect().top ?? Infinity; setCta(scrollY > 620 && end > innerHeight * 0.85) }
+    const f = () => {
+      const end = document.querySelector('.lend')?.getBoundingClientRect().top ?? Infinity
+      // Step aside while the basket painter is on screen, so it doesn't cover the painter's own button.
+      const bb = document.querySelector('.bb')?.getBoundingClientRect()
+      const painting = !!bb && bb.top < innerHeight && bb.bottom > 0
+      setCta(scrollY > 620 && end > innerHeight * 0.85 && !painting)
+    }
     f(); addEventListener('scroll', f, { passive: true }); return () => removeEventListener('scroll', f)
   }, [])
   const open = () => go('portfolio')
@@ -114,7 +120,6 @@ export function Landing() {
   return (
     <div className={'land2' + (navy ? ' navy' : '')}>
       <section className="h2hero">
-        <HeroFeed />
         <h1><span>Stocks,</span> off the record.</h1>
         <p>Hold, swap and send stock tokens without putting your portfolio on display. Your balance sits in a shared vault that only you can read.</p>
         <div className="lcta2"><button className={primary} onClick={open}>Open the app</button><button className={secondary} onClick={() => jump('private')}>See what stays private</button></div>
@@ -123,7 +128,6 @@ export function Landing() {
           <div className="mockbar"><Toggle /></div>
           <Lens active={!me} reveal={body}>{body}</Lens>
         </div>
-        <span className="demo2">Demo with example data</span>
       </section>
 
       <section className="strip">
@@ -147,7 +151,7 @@ export function Landing() {
 
       <section className="lsec" id="baskets">
         <div className="bhd"><div><h2><span>Baskets,</span> in one go.</h2><p>Buy a ready-made mix of stocks in a single transaction. Anyone can make one, and nobody can change it afterwards.</p></div><button className={secondary} onClick={() => go('baskets')}>See all baskets</button></div>
-        <BasketBuilder colors={MIXC} />
+        <BasketBuilder />
         <div className="grid four">{popular.map(b => (
           <div className="card bk" key={b.id}>
             <div className="st">{b.items.slice(0, 4).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={34} />)}{b.items.length > 4 && <span className="ti more">+{b.items.length - 4}</span>}</div>
