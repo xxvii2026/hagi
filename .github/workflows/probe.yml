@@ -21,12 +21,12 @@ jobs:
           TOPIC=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
           PAD=0x000000000000000000000000$(echo ${DEPLOYER#0x} | tr A-F a-f)
           L=$(curl -sS -m 20 -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' $RPC | jq -r .result); echo "latest $L = $((L))"
-          for SPAN in 9500000 2000000 500000 100000; do
+          for SPAN in 9500000 2000000; do
             F=$(printf '0x%x' $(( L - SPAN )))
             START=$(date +%s.%N)
-            R=$(curl -sS -m 60 -H 'content-type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_getLogs\",\"params\":[{\"address\":$T,\"topics\":[\"$TOPIC\",\"$PAD\"],\"fromBlock\":\"$F\",\"toBlock\":\"$L\"}]}" $RPC)
+            R=$(curl -sS -m 60 -H 'content-type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_getLogs\",\"params\":[{\"address\":\"0x48fdc557DE6Fe7efD3341e6c28A626Be021d117a\",\"topics\":[\"$TOPIC\",\"$PAD\"],\"fromBlock\":\"$F\",\"toBlock\":\"$L\"}]}" $RPC)
             END=$(date +%s.%N)
-            echo "span $SPAN: $(echo "$END - $START" | bc)s  logs=$(echo "$R" | jq '.result | length' 2>/dev/null)  error=$(echo "$R" | jq -c '.error' 2>/dev/null | head -c 300)"
+            echo "single address, span $SPAN: $(echo "$END - $START" | bc)s  logs=$(echo "$R" | jq '.result | length' 2>/dev/null)  error=$(echo "$R" | jq -c '.error' 2>/dev/null | head -c 300)"
           done
           echo "== deploy block of the vault, for scale: 154069900"
           echo "== blockscout token transfers, with an Origin header to see CORS"
