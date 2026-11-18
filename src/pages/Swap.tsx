@@ -3,7 +3,7 @@ import { asInput, STOCKS, TOKENS, fmt, fromUnits, toUnits, token } from '../data
 import * as engine from '../engine'
 import { hashParam } from '../nav'
 import { useStore } from '../store'
-import { AmountField, Card, Icon, TokenIcon, TokenPicker, Visibility, type Run } from '../ui'
+import { AmountField, Card, Icon, NeedAccount, TokenIcon, TokenPicker, Visibility, type Run } from '../ui'
 
 export function Swap({ run }: { run: Run }) {
   const { s, api } = useStore()
@@ -30,13 +30,13 @@ export function Swap({ run }: { run: Run }) {
           <div className="kv"><span>Route</span><b>Hagi test pools</b></div>
           <div className="kv"><span>Slippage limit</span><b>0.5%</b></div>
         </div>
-        <button className="btn" disabled={n <= 0 || n > have} onClick={() => run('Swapping', async step => {
+        {!(s.wallet && s.hagiAddress) ? <NeedAccount /> : <button className="btn" disabled={n <= 0 || n > have} onClick={() => run('Swapping', async step => {
           const got = await engine.swap(from, to, n, step)
           api.log({ kind: 'swap', title: `Swapped ${from} for ${to}`, detail: fmt(got, to === 'USDG' ? 2 : 4) + ' ' + to })
           setAmt(''); await api.refresh()
         }, 'Done. Swapped inside the vault.')}>
           {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + from : 'Swap'}
-        </button>
+        </button>}
       </Card>
       <div className="col n">
         <Card title="What others can see">
