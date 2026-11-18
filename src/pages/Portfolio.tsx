@@ -4,7 +4,7 @@ import * as engine from '../engine'
 import { TOKENS, asInput, fmt, token, usd } from '../data'
 import { go } from '../nav'
 import { total, useStore } from '../store'
-import { Amount, AmountField, Card, Icon, Mark, TokenIcon, TokenPicker, Visibility, useCountUp, type Run } from '../ui'
+import { Amount, AmountField, Card, Icon, Mark, NeedAccount, TokenIcon, TokenPicker, Visibility, useCountUp, type Run } from '../ui'
 import { ActivityList } from './Activity'
 
 const MIX = ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#3a4a8a', '#c9d1ee', '#7f86ad', '#d9def0']
@@ -26,6 +26,7 @@ export function Portfolio({ run }: { run: Run }) {
   const holdings = Object.entries(s.shielded).sort((a, b) => b[1] * token(b[0]).price - a[1] * token(a[0]).price)
   const unshielded = total(s.walletBal)
   const addr = s.hagiAddress ?? ''
+  const ready = !!s.wallet && !!s.hagiAddress
   const amt4 = (k: string, v: number) => fmt(v, k === 'USDG' ? 2 : 4) + ' ' + k
   // Gas comes first: without testnet ETH nothing else can be sent.
   const needsEth = s.eth < 0.00002
@@ -46,7 +47,7 @@ export function Portfolio({ run }: { run: Run }) {
           <div className="lab">
             <span>Your private balance</span>
             <span className="heroR">
-              <button className="addr" onClick={copy} title="Copy your Hagi address">{copied ? 'Copied' : addr.slice(0, 9) + '…' + addr.slice(-4)}<Icon name="copy" size={13} /></button>
+              {addr && <button className="addr" onClick={copy} title="Copy your Hagi address">{copied ? 'Copied' : addr.slice(0, 9) + '…' + addr.slice(-4)}<Icon name="copy" size={13} /></button>}
             </span>
           </div>
           <div className="big">${whole}<small>.{cents}</small></div>
@@ -56,7 +57,7 @@ export function Portfolio({ run }: { run: Run }) {
           </div>
         </Card>
 
-        {unshielded > 0 && holdings.length === 0 && (
+        {ready && unshielded > 0 && holdings.length === 0 && (
           <div className="nudge">
             <span><i><Icon name="alert" /></i><span><b>{usd(unshielded)} in your wallet isn’t private yet.</b><em>Shield it to add it to your private balance.</em></span></span>
             <button className="btn sm" onClick={shieldAll}>Shield all</button>
@@ -64,7 +65,13 @@ export function Portfolio({ run }: { run: Run }) {
         )}
 
         <Card title="Your stocks and cash">
-          {holdings.length === 0 ? (
+          {!ready ? (
+            <div className="empty">
+              <b>Your private balance lives here</b>
+              <p>Connect your wallet to see it. Setting up takes under a minute, and everything here is free test money.</p>
+              <NeedAccount className="btn sm" />
+            </div>
+          ) : holdings.length === 0 ? (
             <div className="empty">
               <b>Nothing here yet</b>
               <p>{needsEth ? 'First get free testnet ETH for gas from the Robinhood faucet. Then come back and claim test USDG.' : Object.keys(s.walletBal).length ? 'You have test funds in your wallet. Shield them to start.' : 'Claim free test USDG, then shield it to start. Nothing here is real money.'}</p>
@@ -94,19 +101,20 @@ export function Portfolio({ run }: { run: Run }) {
       </div>
 
       <div className="col">
-        <Card>
+        <Card className="shieldcard">
+          <div data-tour="shield" className="tour-area" />
           <div className="tabs"><button className={tab === 'shield' ? 'on' : ''} onClick={() => setTab('shield')}>Shield</button><button className={tab === 'unshield' ? 'on' : ''} onClick={() => setTab('unshield')}>Unshield</button></div>
           <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
             hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))}
             right={<TokenPicker value={cur} onChange={setSym} options={options} balances={src} />} />
-          <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
+          {!ready ? <NeedAccount /> : <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
             await engine[tab](cur, n, step)
             api.log({ kind: tab, title: (tab === 'shield' ? 'Shielded ' : 'Unshielded ') + cur, detail: amt4(cur, n) })
             setAmt(''); await api.refresh()
           }, tab === 'shield' ? 'Shielded. Off the record now.' : 'Unshielded. Back on the record.')}>
             {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
-          </button>
-          {tab === 'shield' && <button className="link center" onClick={faucet}>{needsEth ? 'Need gas? Open the ETH faucet' : 'Get 5,000 test USDG (once a day)'}</button>}
+          </button>}
+          {tab === 'shield' && <button className="link center" data-tour="faucet" onClick={faucet}>{needsEth ? 'Need gas? Open the ETH faucet' : 'Get 5,000 test USDG (once a day)'}</button>}
           <Visibility pub={tab === 'shield' ? 'this deposit: your wallet and the amount.' : 'this withdrawal: the receiving wallet and the amount.'} priv="your balance and what you hold." />
         </Card>
         <Card title="Recent activity" action={<button className="tag" onClick={() => go('activity')}>See all</button>}>

@@ -11,6 +11,8 @@ import { Send } from './pages/Send'
 import { Activity } from './pages/Activity'
 import { Landing } from './pages/Landing'
 import { Docs } from './pages/Docs'
+import { CONNECT_EVENT, TOUR_EVENT, askConnect, startTour } from './gate'
+import { TOUR_KEY, Tour } from './Tour'
 
 const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
 const ROUTES = ['home', 'docs', ...PAGES] as const
@@ -50,35 +52,35 @@ function WalletMenu() {
   )
 }
 
-function Welcome() {
+/** Connecting is a window over the page, opened by any action that needs an account. */
+function ConnectModal({ onClose }: { onClose: () => void }) {
   const { s, api } = useStore()
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
-  const step = !s.wallet ? 0 : 1
+  const step = !s.wallet ? 0 : !s.hagiAddress ? 1 : 2
   const act = async () => {
     setBusy(true); setErr('')
-    try {
-      if (!s.wallet) { await api.connect(); if (engine.hasCachedKey()) await api.unlock() }
-      else await api.unlock()
-    } catch (e) { setErr(engine.friendly(e)) }
+    // One click does both: connect, then ask for the free signature straight away.
+    try { if (!s.wallet) await api.connect(); await api.unlock() } catch (e) { setErr(engine.friendly(e)) }
     setBusy(false)
   }
+  useEffect(() => { const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !busy) onClose() }; addEventListener('keydown', esc); return () => removeEventListener('keydown', esc) }, [busy, onClose])
   const steps = [
     ['Connect your wallet', engine.hasWallet() ? 'Use the wallet you already have. Hagi never holds your keys.' : 'No wallet found. Install MetaMask, or on a phone open this page inside your wallet app’s browser.'],
-    ['Create your Hagi account', 'Sign one free message. The same wallet always recovers the same account, so there is nothing new to back up.'],
-    ['Add test funds', 'Claim free test USDG in the app, then shield it to start.'],
+    ['Create your Hagi account', 'Sign one free message. The same wallet always recovers the same account, so there’s nothing new to back up.'],
+    ['Add test funds', 'Claim free test USDG on the Portfolio page, then shield it.'],
   ]
   return (
-    <div className="wrap welcome">
-      <Card>
-        <Mark size={44} />
-        <h1><span>Stocks,</span> off the record.</h1>
-        <p className="muted">Keep your stock balance private on Robinhood Chain. Setting up takes under a minute.</p>
+    <div className="overlay" onClick={() => !busy && onClose()}>
+      <div className="modal wide connect" onClick={e => e.stopPropagation()}>
+        <div className="ch"><Mark size={34} /><button className="x" onClick={onClose} aria-label="Close" disabled={busy}><Icon name="close" size={15} /></button></div>
+        <h3><span>Stocks,</span> off the record.</h3>
+        <p className="muted">Setting up takes under a minute.</p>
         <ol className="setup">{steps.map(([t, p], i) => <li key={t} className={i < step ? 'd' : i === step ? 'a' : ''}><i>{i < step ? <Icon name="check" size={15} /> : i + 1}</i><div><b>{t}</b><span>{p}</span></div></li>)}</ol>
         <button className="btn" onClick={act} disabled={busy || !engine.hasWallet()}>{busy ? 'Check your wallet…' : step === 0 ? 'Connect wallet' : 'Create my Hagi account'}</button>
         {err && <p className="err">{err}</p>}
         <a className="link center" href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Need testnet ETH for gas? Open the faucet</a>
-      </Card>
+      </div>
     </div>
   )
 }
@@ -93,6 +95,21 @@ export default function App() {
   const run = useCallback((title: string, task: (step: Step) => Promise<void>, done?: string) => setJob({ title, task, done }), [])
   const closeJob = useCallback(() => setJob(null), [])
   const ready = !!s.wallet && !!s.hagiAddress
+  const app = page !== 'home' && page !== 'docs'
+  // The connect window opens from anywhere and closes itself once the account is ready.
+  const [connecting, setConnecting] = useState(false)
+  useEffect(() => { const f = () => setConnecting(true); addEventListener(CONNECT_EVENT, f); return () => removeEventListener(CONNECT_EVENT, f) }, [])
+  useEffect(() => { if (ready) setConnecting(false) }, [ready])
+  // The tour runs once on a first visit to the Portfolio page, and again from the help button.
+  const [touring, setTouring] = useState(false)
+  useEffect(() => {
+    const f = () => { if (read() !== 'portfolio') location.hash = '#/portfolio'; setTimeout(() => setTouring(true), 350) }
+    addEventListener(TOUR_EVENT, f); return () => removeEventListener(TOUR_EVENT, f)
+  }, [])
+  useEffect(() => {
+    let seen = true; try { seen = !!localStorage.getItem(TOUR_KEY) } catch { /* show it */ }
+    if (page === 'portfolio' && !seen) { const t = setTimeout(() => setTouring(true), 700); return () => clearTimeout(t) }
+  }, [page])
 
   return (
     <>
@@ -100,17 +117,21 @@ export default function App() {
         <a className="lg" href="#/home"><Mark leaf={dark ? '#ffffff' : undefined} secret />hagi</a>
         <nav className="links">{page === 'home'
           ? <>{[['check', 'Check your wallet'], ['how', 'How it works'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)}<a href="#/docs">Docs</a></>
-          : <>{ready && PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}<a href="#/docs" className={page === 'docs' ? 'on' : ''}>Docs</a></>}</nav>
+          : <>{PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}<a href="#/docs" className={page === 'docs' ? 'on' : ''}>Docs</a></>}</nav>
         <div className="rt">
-          {page !== 'home' && page !== 'docs' && <span className="net"><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>}
-          {page === 'home' || (page === 'docs' && !ready) ? <a className="wal" href="#/portfolio">Open the app</a> : null}
-          {s.wallet && page !== 'home' && !(page === 'docs' && !ready) ? <WalletMenu /> : null}
+          {app && <button className="help" onClick={startTour} aria-label="Take the tour" title="Take the tour">?</button>}
+          {app && <span className="net"><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>}
+          {page === 'home' ? <a className="wal" href="#/portfolio">Open the app</a>
+            : ready ? <WalletMenu />
+            : <button className="wal" onClick={askConnect}><i /><span className="t-long">{s.wallet ? 'Create your Hagi account' : 'Connect wallet'}</span><span className="t-short">{s.wallet ? 'Set up' : 'Connect'}</span></button>}
         </div>
       </header>
       <main key={page} className="pg">
-        {page === 'home' ? <Landing /> : page === 'docs' ? <Docs /> : !ready ? <Welcome /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
+        {page === 'home' ? <Landing /> : page === 'docs' ? <Docs /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
       </main>
       {page !== 'home' && <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href="#/docs">Docs</a><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>}
+      {connecting && <ConnectModal onClose={() => setConnecting(false)} />}
+      {touring && <Tour onClose={() => setTouring(false)} />}
       {job && <Progress title={job.title} task={job.task} doneText={job.done} onClose={closeJob} />}
     </>
   )

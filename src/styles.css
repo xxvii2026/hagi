@@ -531,3 +531,26 @@ body.navy-page{background:radial-gradient(1100px 620px at 50% -10%,#34407f 0,rgb
 
 /* Phones keep the simpler landing page: no wallet check, swap story or basket painter */
 @media (max-width:700px){.wcheck,.story,.bb{display:none}}
+
+/* Connect window */
+.modal.connect .ch{align-items:flex-start}.modal.connect h3{font-weight:400;font-size:40px;letter-spacing:-.045em;margin:14px 0 6px;font-variation-settings:"opsz" 32}.modal.connect h3 span{color:var(--lav)}
+.modal.connect .setup{margin:18px 0 6px}
+/* Help button in the top bar */
+.help{width:36px;height:36px;border-radius:50%;background:var(--page);color:var(--mute);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;flex:none}.help:hover{color:var(--ink);background:#eceff8}
+button.wal{border:0;cursor:pointer;font:inherit}
+.shieldcard{position:relative}.tour-area{position:absolute;inset:0;pointer-events:none}
+/* Tour */
+.tour{position:fixed;inset:0;z-index:40}
+.tour-back{position:absolute;inset:0}
+.tour-dim{position:absolute;inset:0;background:rgba(12,16,38,.55);animation:fd .25s ease both}
+.tour-hole{position:absolute;border-radius:28px;box-shadow:0 0 0 9999px rgba(12,16,38,.55),0 0 0 3px rgba(255,255,255,.9),0 0 0 9px rgba(86,110,186,.35);pointer-events:none;transition:left .35s cubic-bezier(.2,.7,.2,1),top .35s cubic-bezier(.2,.7,.2,1),width .35s cubic-bezier(.2,.7,.2,1),height .35s cubic-bezier(.2,.7,.2,1)}
+.tour-card{position:absolute;background:#fff;color:var(--ink);border-radius:26px;padding:22px 22px 18px;box-shadow:0 30px 70px -20px rgba(5,8,26,.6);animation:tourin .28s cubic-bezier(.2,.7,.2,1) both}
+@keyframes tourin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tour-card>svg{display:block;margin-bottom:12px}
+.tour-top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--soft)}
+.tour-top button{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--mute);background:var(--page)}
+.tour-card h4{font-size:21px;font-weight:600;letter-spacing:-.02em;margin:10px 0 6px}.tour-card p{font-size:15px;line-height:1.5;color:#4a5072}
+.tour-dots{display:flex;gap:5px;margin:16px 0 14px}.tour-dots i{width:6px;height:6px;border-radius:3px;background:#dfe2ee;transition:width .2s ease,background .2s ease}.tour-dots i.on{width:18px;background:var(--peri)}
+.tour-act{display:flex;justify-content:space-between;gap:10px}.tour-act .btn{width:auto;margin:0;padding:11px 20px}
+@media (prefers-reduced-motion:reduce){.tour-hole{transition:none}.tour-card,.tour-dim{animation:none}}
+.wal .t-short{display:none}@media (max-width:700px){.wal .t-long{display:none}.wal .t-short{display:inline}}

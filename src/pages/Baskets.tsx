@@ -3,7 +3,7 @@ import { asInput, MAX_BASKET, STOCKS, fmt, token, type Basket } from '../data'
 import * as engine from '../engine'
 import { hashParam } from '../nav'
 import { useStore } from '../store'
-import { AmountField, Card, Icon, TokenIcon, Visibility, type Run } from '../ui'
+import { AmountField, Card, Icon, NeedAccount, TokenIcon, Visibility, type Run } from '../ui'
 
 /** Draws a branded 1200x675 image of a basket and downloads it, ready to post. */
 function shareBasket(b: Basket) {
@@ -38,11 +38,11 @@ function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: Run })
       <p className="muted">Created by {b.creator} · {b.buyers} buyers</p>
       <div className="weights">{b.items.map(it => <div className="wb" key={it.symbol}><TokenIcon symbol={it.symbol} size={28} /><span>{it.symbol}</span><div className="bar"><i style={{ width: it.weight + '%' }} /></div><b>{it.weight}%{n > 0 && <em>{fmt((n * it.weight) / 100 / token(it.symbol).price, 3)}</em>}</b></div>)}</div>
       <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have)} USDG</>} onMax={() => setAmt(asInput(have))} right={<span className="unit">USDG</span>} />
-      <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, async step => {
+      {!(s.wallet && s.hagiAddress) ? <NeedAccount /> : <button className="btn" disabled={n <= 0 || n > have} onClick={() => { close(); run('Buying ' + b.name, async step => {
         await engine.buyBasket(b, n, step)
         api.log({ kind: 'basket', title: 'Bought basket: ' + b.name, detail: fmt(n) + ' USDG' })
         await api.refresh()
-      }, 'Bought. Straight into the vault.') }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>
+      }, 'Bought. Straight into the vault.') }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>}
       <Visibility pub="that someone bought this basket, and for how much." priv="who bought it and your balance." />
     </div></div>
   )
@@ -57,7 +57,7 @@ function handedOver() {
 }
 
 function CreateModal({ close, run, start }: { close: () => void; run: Run; start?: { name: string; w: Record<string, number> } | null }) {
-  const { api } = useStore()
+  const { s, api } = useStore()
   const [name, setName] = useState(start?.name ?? '')
   const [w, setW] = useState<Record<string, number>>(start?.w ?? {})
   const picked = Object.keys(w)
@@ -75,7 +75,7 @@ function CreateModal({ close, run, start }: { close: () => void; run: Run; start
         <div className="lab pad"><span>Weights · total {sum}%</span><button className="tag" onClick={even}>Split evenly</button></div>
         <div className="weights">{picked.map(k => <div className="wb" key={k}><TokenIcon symbol={k} size={28} /><span>{k}</span><div className="bar"><i style={{ width: Math.min(100, w[k] || 0) + '%' }} /></div><input className="pct" inputMode="numeric" value={w[k] || ''} onChange={e => setW({ ...w, [k]: Math.min(100, parseInt(e.target.value.replace(/\D/g, '')) || 0) })} aria-label={k + ' weight'} /></div>)}</div>
       </>}
-      <button className="btn" disabled={!ok} onClick={() => { close(); run('Creating your basket', async step => { await engine.createBasket(name.trim(), picked.map(k => ({ symbol: k, weight: w[k] })), step); await api.refresh() }, 'Basket created. It’s permanent now.') }}>{picked.length >= 2 && sum !== 100 ? `Weights must total 100% (now ${sum}%)` : 'Create basket'}</button>
+{!s.wallet ? <NeedAccount /> : <button className="btn" disabled={!ok} onClick={() => { close(); run('Creating your basket', async step => { await engine.createBasket(name.trim(), picked.map(k => ({ symbol: k, weight: w[k] })), step); await api.refresh() }, 'Basket created. It’s permanent now.') }}>{picked.length >= 2 && sum !== 100 ? `Weights must total 100% (now ${sum}%)` : 'Create basket'}</button>}
       <p className="muted small">A basket can’t be changed after it’s created. To change the mix, make a new one.</p>
     </div></div>
   )

@@ -5,7 +5,7 @@ import { hashParam } from '../nav'
 import * as engine from '../engine'
 import { useStore } from '../store'
 import { parseAddress } from '../zk/core'
-import { AmountField, Card, TokenPicker, Visibility, type Run } from '../ui'
+import { AmountField, Card, NeedAccount, TokenPicker, Visibility, type Run } from '../ui'
 
 export function Send({ run }: { run: Run }) {
   const { s, api } = useStore()
@@ -32,12 +32,15 @@ export function Send({ run }: { run: Run }) {
           <div className="fld"><span className="fl">To</span><input className="txt" placeholder="hagi1…" value={to} onChange={e => setTo(e.target.value)} aria-label="Recipient Hagi address" />
             <div className="hint"><span>{to && !validTo ? 'That doesn’t look like a Hagi address.' : 'Paste the other person’s Hagi address.'}</span></div></div>
           <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))} right={<TokenPicker value={cur} onChange={setSym} options={options} balances={s.shielded} />} />
-          <button className="btn" disabled={!validTo || n <= 0 || n > have} onClick={() => run('Sending privately', async step => {
+          {!(s.wallet && s.hagiAddress) ? <NeedAccount /> : <button className="btn" disabled={!validTo || n <= 0 || n > have} onClick={() => run('Sending privately', async step => {
             await engine.send(cur, n, to, step)
             api.log({ kind: 'send', title: 'Sent ' + cur, detail: fmt(n, cur === 'USDG' ? 2 : 4) + ' ' + cur, isPrivate: true })
             setAmt(''); setTo(''); await api.refresh()
-          }, 'Sent. Nobody saw.')}>{!validTo ? 'Enter a Hagi address' : n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : 'Send privately'}</button>
-        </> : <div className="recv">
+          }, 'Sent. Nobody saw.')}>{!validTo ? 'Enter a Hagi address' : n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : 'Send privately'}</button>}
+        </> : !s.hagiAddress ? <div className="recv">
+          <span className="fl">Your Hagi address appears here once your account is made. It receives USDG and every stock.</span>
+          <NeedAccount />
+        </div> : <div className="recv">
           {qr && <img src={qr} alt="QR code of your Hagi address" width={220} height={220} />}
           <span className="fl">Your Hagi address. It receives USDG and every stock</span>
           <code>{s.hagiAddress}</code>
