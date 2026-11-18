@@ -127,7 +127,7 @@ const PAGES: Page[] = [
       <Steps items={[
         <><b>Have a wallet ready.</b> Any browser wallet such as MetaMask works. On a phone, open Hagi inside your wallet app’s browser.</>,
         <><b>Connect it.</b> Open the app and choose Connect wallet. Hagi adds Robinhood Chain Testnet to your wallet if it isn’t there yet.</>,
-        <><b>Create your Hagi account.</b> You sign one message. It is free and moves no funds. Your private Hagi account is worked out from that signature.</>,
+        <><b>Sign in.</b> You sign one message. It is free and moves no funds. The first time, this creates your Hagi account. Your private Hagi account is worked out from that signature.</>,
         <><b>Get gas.</b> Claim free testnet ETH from the <Out href={FAUCET_URL}>Robinhood Chain faucet</Out>.</>,
         <><b>Get test USDG.</b> On the Portfolio page, choose “Get 5,000 test USDG”. You can claim once a day.</>,
         <><b>Shield it.</b> Type an amount in the Shield box and confirm. Your private balance appears a few seconds later.</>,

@@ -67,7 +67,7 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
   useEffect(() => { const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !busy) onClose() }; addEventListener('keydown', esc); return () => removeEventListener('keydown', esc) }, [busy, onClose])
   const steps = [
     ['Connect your wallet', engine.hasWallet() ? 'Use the wallet you already have. Hagi never holds your keys.' : 'No wallet found. Install MetaMask, or on a phone open this page inside your wallet app’s browser.'],
-    ['Create your Hagi account', 'Sign one free message. The same wallet always recovers the same account, so there’s nothing new to back up.'],
+    ['Sign in', 'Sign one free message. The first time, this creates your Hagi account. After that it signs you back in. There’s nothing new to back up.'],
     ['Add test funds', 'Claim free test USDG on the Portfolio page, then shield it.'],
   ]
   return (
@@ -77,7 +77,7 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
         <h3><span>Stocks,</span> off the record.</h3>
         <p className="muted">Setting up takes under a minute.</p>
         <ol className="setup">{steps.map(([t, p], i) => <li key={t} className={i < step ? 'd' : i === step ? 'a' : ''}><i>{i < step ? <Icon name="check" size={15} /> : i + 1}</i><div><b>{t}</b><span>{p}</span></div></li>)}</ol>
-        <button className="btn" onClick={act} disabled={busy || !engine.hasWallet()}>{busy ? 'Check your wallet…' : step === 0 ? 'Connect wallet' : 'Create my Hagi account'}</button>
+        <button className="btn" onClick={act} disabled={busy || !engine.hasWallet()}>{busy ? 'Check your wallet…' : step === 0 ? 'Connect wallet' : 'Sign in'}</button>
         {err && <p className="err">{err}</p>}
         <a className="link center" href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Need testnet ETH for gas? Open the faucet</a>
       </div>
@@ -123,7 +123,7 @@ export default function App() {
           {app && <span className="net"><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>}
           {page === 'home' ? <a className="wal" href="#/portfolio">Open the app</a>
             : ready ? <WalletMenu />
-            : <button className="wal" onClick={askConnect}><i /><span className="t-long">{s.wallet ? 'Create your Hagi account' : 'Connect wallet'}</span><span className="t-short">{s.wallet ? 'Set up' : 'Connect'}</span></button>}
+            : <button className="wal" onClick={askConnect}><i /><span className="t-long">{s.wallet ? 'Sign in' : 'Connect wallet'}</span><span className="t-short">{s.wallet ? 'Sign in' : 'Connect'}</span></button>}
         </div>
       </header>
       <main key={page} className="pg">

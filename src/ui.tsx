@@ -57,7 +57,7 @@ export function Amount({ value, prefix = '', digits = 2 }: { value: number; seed
 /** Stands in for an action button until a wallet is connected and the Hagi account is made. */
 export function NeedAccount({ className = 'btn' }: { className?: string }) {
   const { s } = useStore()
-  return <button className={className} onClick={() => dispatchEvent(new Event('hagi-connect'))}>{s.wallet ? 'Create your Hagi account' : 'Connect wallet'}</button>
+  return <button className={className} onClick={() => dispatchEvent(new Event('hagi-connect'))}>{s.wallet ? 'Sign in' : 'Connect wallet'}</button>
 }
 
 export function Card({ title, action, children, className = '' }: { title?: string; action?: ReactNode; children: ReactNode; className?: string }) {
