@@ -48,10 +48,18 @@ function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: Run })
   )
 }
 
-function CreateModal({ close, run }: { close: () => void; run: Run }) {
+/** Reads a mix handed over from the landing page, e.g. #/baskets?name=Chips&mix=AMD:60,PLTR:40 */
+function handedOver() {
+  const mix = hashParam('mix'); if (!mix) return null
+  const w: Record<string, number> = {}
+  for (const part of mix.split(',')) { const [k, v] = part.split(':'); if (STOCKS.some(s => s.symbol === k) && Number(v) > 0) w[k] = Math.round(Number(v)) }
+  return Object.keys(w).length >= 2 ? { name: (hashParam('name') ?? '').slice(0, 32), w } : null
+}
+
+function CreateModal({ close, run, start }: { close: () => void; run: Run; start?: { name: string; w: Record<string, number> } | null }) {
   const { api } = useStore()
-  const [name, setName] = useState('')
-  const [w, setW] = useState<Record<string, number>>({})
+  const [name, setName] = useState(start?.name ?? '')
+  const [w, setW] = useState<Record<string, number>>(start?.w ?? {})
   const picked = Object.keys(w)
   const sum = picked.reduce((t, k) => t + (w[k] || 0), 0)
   const toggle = (sym: string) => { const n = { ...w }; if (sym in n) delete n[sym]; else if (picked.length < MAX_BASKET) n[sym] = 0; setW(n) }
@@ -77,7 +85,8 @@ export function Baskets({ run }: { run: Run }) {
   const { s } = useStore()
   const [sort, setSort] = useState<'top' | 'new' | 'mine'>('top')
   const [buy, setBuy] = useState<Basket | null>(() => s.baskets.find(b => String(b.id) === hashParam('buy')) ?? null)
-  const [creating, setCreating] = useState(false)
+  const [start, setStart] = useState(handedOver)
+  const [creating, setCreating] = useState(!!start)
   const me = s.wallet ? s.wallet.slice(0, 6) + '…' + s.wallet.slice(-4) : ''
   const list = [...s.baskets].filter(b => sort !== 'mine' || b.creator.toLowerCase() === me.toLowerCase()).sort((a, b) => (sort === 'new' ? b.created - a.created : b.buyers - a.buyers))
   return (
@@ -95,7 +104,7 @@ export function Baskets({ run }: { run: Run }) {
         ))}</div>
       )}
       {buy && <BuyModal b={buy} close={() => setBuy(null)} run={run} />}
-      {creating && <CreateModal close={() => setCreating(false)} run={run} />}
+      {creating && <CreateModal close={() => { setCreating(false); if (start) { setStart(null); history.replaceState(null, '', '#/baskets') } }} run={run} start={start} />}
     </div>
   )
 }
