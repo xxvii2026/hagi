@@ -134,13 +134,20 @@ type CachedLog = [index: number, commitment: string, token: string, amount: stri
 const CACHE = 'hagi-logs-' + CFG.contracts.vault.toLowerCase()
 const CHUNK = 5_000_000n
 
-async function loadLogs(minBlock = 0n): Promise<CachedLog[]> {
+// The public RPC sits behind several nodes that can be a few blocks apart. One node can report a new
+// block before another has its logs, so each scan reaches back over recent blocks again. Repeated logs
+// are dropped by their index, so going over the same blocks twice is harmless.
+const OVERLAP = 2_000n
+
+async function loadLogs(minBlock = 0n, fresh = false): Promise<CachedLog[]> {
   let cache: { last: number; logs: CachedLog[] } = { last: CFG.deployBlock - 1, logs: [] }
-  try { const raw = localStorage.getItem(CACHE); if (raw) cache = JSON.parse(raw) } catch { /* start over */ }
+  if (!fresh) try { const raw = localStorage.getItem(CACHE); if (raw) cache = JSON.parse(raw) } catch { /* start over */ }
   // After sending a transaction, wait until the node we read from has caught up to its block.
   let latest = await pub.getBlockNumber({ cacheTime: 0 })
   for (let i = 0; latest < minBlock && i < 20; i++) { await new Promise(r => setTimeout(r, 500)); latest = await pub.getBlockNumber({ cacheTime: 0 }) }
-  for (let from = BigInt(cache.last + 1); from <= latest; from += CHUNK) {
+  const floor = BigInt(CFG.deployBlock)
+  const start = BigInt(cache.last + 1) - OVERLAP
+  for (let from = start > floor ? start : floor; from <= latest; from += CHUNK) {
     const to = from + CHUNK - 1n > latest ? latest : from + CHUNK - 1n
     const logs = await pub.getLogs({ address: CFG.contracts.vault, event: NEW_COMMITMENT, fromBlock: from, toBlock: to })
     for (const l of logs) cache.logs.push([Number(l.args.index), l.args.commitment!.toString(), l.args.token!, l.args.amount!.toString(), l.args.encryptedNote!])
@@ -152,15 +159,21 @@ async function loadLogs(minBlock = 0n): Promise<CachedLog[]> {
   return cache.logs
 }
 
+/** True when the receipts run 0, 1, 2… with nothing missing. */
+const complete = (logs: CachedLog[]) => logs.every((l, i) => l[0] === i)
+
 /** Rebuilds the Merkle tree from chain events and finds this account's unspent notes. */
 export async function sync(minBlock = 0n): Promise<Record<string, number>> {
   if (!keys) return {}
-  const logs = await loadLogs(minBlock)
+  let logs = await loadLogs(minBlock)
+  // A hole in the saved history (left by an older version, or a node that was behind) is fixed by
+  // scanning the vault again from the start, once, instead of failing on every refresh.
+  if (!complete(logs)) logs = await loadLogs(minBlock, true)
   const t = new MerkleTree()
   const mine: Note[] = []
   const privateOnes = new Set<Note>()
   for (const [index, c, , amount, enc] of logs) {
-    if (index !== t.size) throw new Error('The vault history has a gap. Reload the page to scan again.')
+    if (index !== t.size) throw new Error('The vault history has a gap. Try again in a minute.')
     t.insert(BigInt(c))
     const d = decryptNote(enc, keys)
     if (!d) continue
