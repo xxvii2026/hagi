@@ -47,7 +47,7 @@ const FAQ: [string, string][] = [
 
 export function Landing() {
   const { s } = useStore()
-  const [me, setMe] = useState(false) // false = viewing as anyone else, so amounts are pixelated
+  const [me, setMe] = useState(true) // true = viewing as you, so amounts are readable
   // On a phone the preview flips between the two views by itself until the visitor takes over.
   const [touched, setTouched] = useState(false)
   useEffect(() => {
@@ -87,7 +87,7 @@ export function Landing() {
         <div className="lcta2"><button className={primary} onClick={open}>Open the app</button><button className={secondary} onClick={() => jump('private')}>See what stays private</button></div>
 
         <div className={'mock ' + (me ? 'peek' : '')}>
-          <div className="mockbar"><span className="dots"><i /><i /><i /></span><span className="murl">hagi · portfolio</span><Toggle /></div>
+          <div className="mockbar"><Toggle /></div>
           <div className="mockbody">
             <div className="col">
               <div className="card hero">
