@@ -15,24 +15,29 @@ jobs:
       RELAYER: '0x56077D89f3179f061C9F436d2dF7623625898891'
       DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
     steps:
-      - name: Why the wallet history fails
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Wallet history the way the site reads it
         run: |
-          T='["0x48fdc557DE6Fe7efD3341e6c28A626Be021d117a","0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E","0x71178BAc73cBeb415514eB542a8995b82669778d","0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02","0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93","0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0"]'
-          TOPIC=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef
-          PAD=0x000000000000000000000000$(echo ${DEPLOYER#0x} | tr A-F a-f)
-          L=$(curl -sS -m 20 -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' $RPC | jq -r .result); echo "latest $L = $((L))"
-          for SPAN in 9500000 2000000; do
-            F=$(printf '0x%x' $(( L - SPAN )))
-            START=$(date +%s.%N)
-            R=$(curl -sS -m 60 -H 'content-type: application/json' -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"eth_getLogs\",\"params\":[{\"address\":\"0x48fdc557DE6Fe7efD3341e6c28A626Be021d117a\",\"topics\":[\"$TOPIC\",\"$PAD\"],\"fromBlock\":\"$F\",\"toBlock\":\"$L\"}]}" $RPC)
-            END=$(date +%s.%N)
-            echo "single address, span $SPAN: $(echo "$END - $START" | bc)s  logs=$(echo "$R" | jq '.result | length' 2>/dev/null)  error=$(echo "$R" | jq -c '.error' 2>/dev/null | head -c 300)"
-          done
-          echo "== deploy block of the vault, for scale: 154069900"
-          echo "== blockscout token transfers, with an Origin header to see CORS"
-          curl -sS -m 30 -D /tmp/h -o /tmp/b -H 'Origin: https://hagi-git-landing-demo-xxvii1.vercel.app' "$EXP/addresses/$DEPLOYER/token-transfers?type=ERC-20"
-          grep -i 'access-control\|^HTTP' /tmp/h
-          jq -r '.items[:6][]? | "\(.timestamp) \(.token.symbol) \(.from.hash[0:8])->\(.to.hash[0:8]) \(.total.value)"' /tmp/b
-          echo "next page: $(jq -c '.next_page_params' /tmp/b)"
-          echo "== token balances endpoint"
-          curl -sS -m 30 "$EXP/addresses/$DEPLOYER/token-balances" | jq -r '.[:8][]? | "\(.token.symbol) \(.value)"'
+          npm i --no-save --silent viem@2
+          cat > /tmp/history.mjs <<'JS'
+          import { createPublicClient, http, parseAbiItem, defineChain, getAddress } from 'viem'
+          const chain = defineChain({ id: 46630, name: 'rh', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: ['https://rpc.testnet.chain.robinhood.com'] } } })
+          const client = createPublicClient({ chain, transport: http(undefined, { batch: { wait: 16 } }) })
+          const T = ['0x48fdc557DE6Fe7efD3341e6c28A626Be021d117a','0xC9f9c86933092BbbfFF3CCb4b105A4A94bf3Bd4E','0x71178BAc73cBeb415514eB542a8995b82669778d','0x5884aD2f920c162CFBbACc88C9C51AA75eC09E02','0x3b8262A63d25f0477c4DDE23F83cfe22Cb768C93','0x1FBE1a0e43594b3455993B5dE5Fd0A7A266298d0']
+          const ev = parseAbiItem('event Transfer(address indexed from, address indexed to, uint256 value)')
+          const a = getAddress('0xd16863014B75dfA19149E8db6078B17525021594')
+          const latest = await client.getBlockNumber(); const fromBlock = latest - 9_500_000n
+          const t0 = Date.now()
+          const per = await Promise.all(T.flatMap(t => [client.getLogs({ address: t, event: ev, args: { from: a }, fromBlock, toBlock: latest }), client.getLogs({ address: t, event: ev, args: { to: a }, fromBlock, toBlock: latest })]))
+          console.log('history ok:', per.flat().length, 'transfers in', Date.now() - t0, 'ms')
+          const b = await client.getBlock({ blockNumber: per.flat()[0].blockNumber }); console.log('first block time', new Date(Number(b.timestamp) * 1000).toISOString())
+          JS
+          cp /tmp/history.mjs ./history.mjs && node history.mjs
+      - name: Who has been sending vault transactions
+        run: |
+          echo "== relayer wallet transactions"
+          curl -sS -m 20 "$EXP/addresses/$RELAYER/transactions" | jq -r '.items[]? | "rel \(.timestamp) \(.method // "-") to=\(.to.hash // "-") status=\(.status) result=\(.result)"' | head -12
+          echo "== vault transactions"
+          curl -sS -m 20 "$EXP/addresses/0x0C3C8c6929851818d6a15A4c57D68F9342B81798/transactions" | jq -r '.items[]? | "vault \(.timestamp) \(.method // "-") from=\(.from.hash) status=\(.status) result=\(.result)"' | head -30
