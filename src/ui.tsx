@@ -4,12 +4,14 @@ import { friendly, onRelayerDown } from './engine'
 import { useStore } from './store'
 import { shownBalance } from './roll'
 
-export function Mark({ size = 24, leaf = '#1b2140', block = '#566eba' }: { size?: number; leaf?: string; block?: string }) {
+/** The Hagi mark. With `secret`, hovering it lets the hidden fourth leaf show for a moment. */
+export function Mark({ size = 24, leaf = '#1b2140', block = '#566eba', secret = false }: { size?: number; leaf?: string; block?: string; secret?: boolean }) {
   const p = 'M0 23A23 23 0 0 1 23 0A23 23 0 0 1 46 23V46H23A23 23 0 0 1 0 23Z'
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden>
+    <svg width={size} height={size} viewBox="0 0 100 100" aria-hidden className={secret ? 'mk-secret' : undefined}>
       <path d={p} fill={leaf} /><path d={p} fill={leaf} transform="translate(100,0) scale(-1,1)" /><path d={p} fill={leaf} transform="translate(0,100) scale(1,-1)" />
-      <rect x="54" y="54" width="42" height="42" fill={block} />
+      <rect className="mk-b" x="54" y="54" width="42" height="42" fill={block} />
+      {secret && <path className="mk-4" d={p} fill={block} transform="translate(100,100) scale(-1,-1)" />}
     </svg>
   )
 }

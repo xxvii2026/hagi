@@ -5,6 +5,7 @@ import { TOKENS, fmt, token, type Basket } from '../data'
 import { go } from '../nav'
 import { useStore } from '../store'
 import { Censor, Icon, Mark, TokenIcon, type IconName } from '../ui'
+import { BasketBuilder, Lens, SwapStory, WalletCheck } from './LandingParts'
 
 /** A value that shows plainly to its owner and as a pixel censor to everyone else. */
 function Peek({ text, seed, cols = 7, cell = 9, onDark = false }: { text: string; seed: string; cols?: number; cell?: number; onDark?: boolean }) {
@@ -59,7 +60,13 @@ export function Landing() {
   // A floating button on phones, shown between the hero and the closing block.
   const [cta, setCta] = useState(false)
   useEffect(() => {
-    const f = () => { const end = document.querySelector('.lend')?.getBoundingClientRect().top ?? Infinity; setCta(scrollY > 620 && end > innerHeight * 0.85) }
+    const f = () => {
+      const end = document.querySelector('.lend')?.getBoundingClientRect().top ?? Infinity
+      // Step aside while the basket painter is on screen, so it doesn't cover the painter's own button.
+      const bb = document.querySelector('.bb')?.getBoundingClientRect()
+      const painting = !!bb && bb.top < innerHeight && bb.bottom > 0
+      setCta(scrollY > 620 && end > innerHeight * 0.85 && !painting)
+    }
     f(); addEventListener('scroll', f, { passive: true }); return () => removeEventListener('scroll', f)
   }, [])
   const open = () => go('portfolio')
@@ -79,15 +86,8 @@ export function Landing() {
       <button className={!me ? 'on' : ''} onClick={() => pick(false)}>Anyone else</button>
     </div>
   )
-  return (
-    <div className={'land2' + (navy ? ' navy' : '')}>
-      <section className="h2hero">
-        <h1><span>Stocks,</span> off the record.</h1>
-        <p>Hold, swap and send stock tokens without putting your portfolio on display. Your balance sits in a shared vault that only you can read.</p>
-        <div className="lcta2"><button className={primary} onClick={open}>Open the app</button><button className={secondary} onClick={() => jump('private')}>See what stays private</button></div>
-
-        <div className={'mock ' + (me ? 'peek' : '')}>
-          <div className="mockbar"><Toggle /></div>
+  // The preview's contents. Rendered twice: once as is, and once inside the lens, always readable.
+  const body = (
           <div className="mockbody">
             <div className="col">
               <div className="card hero">
@@ -115,14 +115,28 @@ export function Landing() {
               <div className="card note2"><span className="tagl"><i className={me ? 'b' : 'a'} />{me ? 'Your view' : 'The public view'}</span><p>{me ? 'This is what you see when you open Hagi. Every number is readable, because your key decrypts it.' : 'This is what the same account looks like to anyone else. Balances, holdings and sends are unreadable.'}</p></div>
             </div>
           </div>
+  )
+  return (
+    <div className={'land2' + (navy ? ' navy' : '')}>
+      <section className="h2hero">
+        <h1><span>Stocks,</span> off the record.</h1>
+        <p>Hold, swap and send stock tokens without putting your portfolio on display. Your balance sits in a shared vault that only you can read.</p>
+        <div className="lcta2"><button className={primary} onClick={open}>Open the app</button><button className={secondary} onClick={() => jump('private')}>See what stays private</button></div>
+
+        <div className={'mock ' + (me ? 'peek' : '')}>
+          <div className="mockbar"><Toggle /></div>
+          <Lens active={!me} reveal={body}>{body}</Lens>
         </div>
-        <span className="demo2">Demo with example data</span>
       </section>
 
       <section className="strip">
         <span>Stock tokens and USDG on testnet</span>
         <div>{TOKENS.map(t => <span className="chip" key={t.symbol}><TokenIcon symbol={t.symbol} size={26} />{t.symbol}</span>)}</div>
       </section>
+
+      <WalletCheck />
+
+      <SwapStory />
 
       <section className="lsec" id="private">
         <h2><span>One account,</span> two views.</h2>
@@ -136,6 +150,7 @@ export function Landing() {
 
       <section className="lsec" id="baskets">
         <div className="bhd"><div><h2><span>Baskets,</span> in one go.</h2><p>Buy a ready-made mix of stocks in a single transaction. Anyone can make one, and nobody can change it afterwards.</p></div><button className={secondary} onClick={() => go('baskets')}>See all baskets</button></div>
+        <BasketBuilder />
         <div className="grid four">{popular.map(b => (
           <div className="card bk" key={b.id}>
             <div className="st">{b.items.slice(0, 4).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={34} />)}{b.items.length > 4 && <span className="ti more">+{b.items.length - 4}</span>}</div>

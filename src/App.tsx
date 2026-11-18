@@ -96,11 +96,10 @@ export default function App() {
 
   return (
     <>
-      <div className="demo">Testnet preview. <span>These tokens have no value, and nothing here has been audited.</span><em>Free test tokens. Not audited.</em></div>
       <header className="nav">
-        <a className="lg" href="#/home"><Mark leaf={dark ? '#ffffff' : undefined} />hagi</a>
+        <a className="lg" href="#/home"><Mark leaf={dark ? '#ffffff' : undefined} secret />hagi</a>
         <nav className="links">{page === 'home'
-          ? <>{[['private', 'What’s private'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)}<a href="#/docs">Docs</a></>
+          ? <>{[['check', 'Check your wallet'], ['how', 'How it works'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)}<a href="#/docs">Docs</a></>
           : <>{ready && PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}<a href="#/docs" className={page === 'docs' ? 'on' : ''}>Docs</a></>}</nav>
         <div className="rt">
           {page !== 'home' && page !== 'docs' && <span className="net"><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>}
