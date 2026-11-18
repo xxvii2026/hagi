@@ -52,6 +52,19 @@ function WalletMenu() {
   )
 }
 
+/** A short note in the corner, used when funds arrive. */
+function Toasts() {
+  const [list, setList] = useState<{ id: number; title: string; sub?: string }[]>([])
+  useEffect(() => {
+    const f = (e: Event) => {
+      const t = { id: Date.now() + Math.random(), ...(e as CustomEvent<{ title: string; sub?: string }>).detail }
+      setList(l => [...l, t].slice(-3)); setTimeout(() => setList(l => l.filter(x => x.id !== t.id)), 5000)
+    }
+    addEventListener('hagi-toast', f); return () => removeEventListener('hagi-toast', f)
+  }, [])
+  return <div className="toasts" aria-live="polite">{list.map(t => <div className="toast" key={t.id}><span className="ti2"><Icon name="down" size={16} /></span><span><b>{t.title}</b>{t.sub && <em>{t.sub}</em>}</span></div>)}</div>
+}
+
 /** Connecting is a window over the page, opened by any action that needs an account. */
 function ConnectModal({ onClose }: { onClose: () => void }) {
   const { s, api } = useStore()
@@ -130,6 +143,7 @@ export default function App() {
         {page === 'home' ? <Landing /> : page === 'docs' ? <Docs /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
       </main>
       {page !== 'home' && <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href="#/docs">Docs</a><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>}
+      <Toasts />
       {connecting && <ConnectModal onClose={() => setConnecting(false)} />}
       {touring && <Tour onClose={() => setTouring(false)} />}
       {job && <Progress title={job.title} task={job.task} doneText={job.done} onClose={closeJob} />}

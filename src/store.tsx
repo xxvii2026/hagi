@@ -21,7 +21,7 @@ type Api = {
   connect: () => Promise<void>
   unlock: () => Promise<void>
   disconnect: () => void
-  refresh: () => Promise<void>
+  refresh: (quiet?: boolean) => Promise<void>
   log: (a: Omit<Activity, 'id' | 'time'>) => void
 }
 const Ctx = createContext<{ s: State; api: Api }>({ s: initial, api: {} as Api })
@@ -36,22 +36,27 @@ export function Store({ children }: { children: ReactNode }) {
   const busy = useRef(false)
   const logRef = useRef<Api['log']>(() => {})
 
-  const refresh = useCallback(async () => {
+  // A quiet refresh is the background check for new funds: it doesn't flash "Syncing" in the top bar.
+  const refresh = useCallback(async (quiet = false) => {
     if (busy.current) return
     busy.current = true
-    patch({ syncing: true })
+    if (!quiet) patch({ syncing: true })
     try {
       const [baskets] = await Promise.all([engine.readBaskets(), engine.readPools()])
       const w = await engine.readWallet()
       const shielded = await engine.sync()
       patch({ baskets, walletBal: w.balances, eth: w.eth, shielded, offline: false })
-      for (const r of engine.takeReceived()) logRef.current({ kind: 'receive', title: 'Received ' + r.symbol, detail: r.amount.toLocaleString('en-US', { maximumFractionDigits: r.symbol === 'USDG' ? 2 : 4 }) + ' ' + r.symbol, isPrivate: true })
+      for (const r of engine.takeReceived()) {
+        const detail = r.amount.toLocaleString('en-US', { maximumFractionDigits: r.symbol === 'USDG' ? 2 : 4 }) + ' ' + r.symbol
+        logRef.current({ kind: 'receive', title: 'Received ' + r.symbol, detail, isPrivate: true })
+        dispatchEvent(new CustomEvent('hagi-toast', { detail: { title: 'You received ' + detail, sub: 'It’s in your private balance.' } }))
+      }
     } catch (e) {
       console.warn('Hagi could not read the chain', e)
       patch({ offline: true })
     } finally {
       busy.current = false
-      patch({ syncing: false })
+      if (!quiet) patch({ syncing: false })
     }
   }, [patch])
 
@@ -64,6 +69,18 @@ export function Store({ children }: { children: ReactNode }) {
       return refresh()
     })
   }, [patch, refresh])
+
+  // While signed in, check for new funds every 12 seconds, and straight away when the tab comes back into view.
+  // Skipped while a transaction is in progress, since that refreshes by itself when it finishes.
+  const signedIn = !!s.hagiAddress
+  useEffect(() => {
+    if (!signedIn) return
+    const tick = () => { if (document.visibilityState === 'visible' && !document.body.classList.contains('busy')) void refresh(true) }
+    const t = setInterval(tick, 12000)
+    const back = () => { if (document.visibilityState === 'visible') tick() }
+    document.addEventListener('visibilitychange', back); addEventListener('focus', back)
+    return () => { clearInterval(t); document.removeEventListener('visibilitychange', back); removeEventListener('focus', back) }
+  }, [signedIn, refresh])
 
   const api = useMemo<Api>(() => ({
     connect: async () => {
