@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security issue
+    url: https://github.com/xxvii2026/hagi/security/advisories/new
+    about: Please report vulnerabilities privately.
+  - name: Read the docs
+    url: https://hagitrade.xyz/#/docs/overview
+    about: How Hagi works, what's private and what isn't.
