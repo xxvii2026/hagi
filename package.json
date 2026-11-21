@@ -2,6 +2,12 @@
   "name": "hagi",
   "private": true,
   "version": "0.1.0",
+  "description": "Private swaps, sends and baskets for stock tokens on Robinhood Chain",
+  "homepage": "https://hagitrade.xyz",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xxvii2026/hagi.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
