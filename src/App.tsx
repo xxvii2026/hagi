@@ -49,9 +49,10 @@ function WalletMenu() {
   }
   return (
     <div className="tpw" ref={box}>
-      <button className="wal" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)}><i />{short(s.wallet!)}<Icon name="chevron" size={13} /></button>
+      <button className="wal" aria-haspopup="menu" aria-expanded={open} aria-label="Account menu" onClick={() => setOpen(o => !o)}><span className="wl-pill"><i />{short(s.wallet!)}<Icon name="chevron" size={13} /></span><span className="wl-burger"><Icon name={open ? 'close' : 'menu'} size={20} /></span></button>
       {open && (
         <ul className="tpl menu" role="menu">
+          <li className="m-only who"><i /><span className="g"><b>{engine.isPasskey() ? 'Passkey account' : 'Wallet account'}</b><span>{short(s.wallet!)}</span></span></li>
           {s.hagiAddress && <li><button onClick={copy}><span className="g"><b>{copied ? 'Copied' : 'Copy my Hagi address'}</b><span>{s.hagiAddress.slice(0, 12)}…{s.hagiAddress.slice(-6)}</span></span><Icon name="copy" size={15} /></button></li>}
           {engine.isPasskey() && <li><button onClick={copyWallet}><span className="g"><b>{walletCopied ? 'Copied' : 'Copy wallet address'}</b><span>Your built-in wallet, for test ETH and tokens</span></span><Icon name="copy" size={15} /></button></li>}
           <li><button onClick={exportHistory} disabled={!s.activity.length}><span className="g"><b>Export my history</b><span>{s.activity.length ? 'Downloads your activity as a file' : 'Nothing to export yet'}</span></span></button></li>
