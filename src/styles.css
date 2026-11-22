@@ -670,3 +670,8 @@ html{-webkit-tap-highlight-color:transparent}
   body:has(.overlay) .tabbar{visibility:hidden}
 }
 @media (prefers-reduced-motion:reduce){.bgjob{animation:none}.bgjob-dot i{animation-duration:2s}}
+/* passkey sign-in */
+.modal.connect .btn.pk{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:22px}
+.modal.connect .btn.pk2{display:block;width:100%;margin-top:10px;padding:16px}
+.modal.connect .or{display:flex;align-items:center;gap:12px;margin:18px 0 6px;color:var(--soft);font-size:13px}.modal.connect .or::before,.modal.connect .or::after{content:"";flex:1;height:1px;background:#e9ebf3}
+.modal.connect .small{margin-top:16px}

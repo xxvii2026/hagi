@@ -1,5 +1,6 @@
 // Talks to the chain: balances, pools, baskets, vault notes, and every action the app can take.
-import { createPublicClient, createWalletClient, custom, getAddress, http, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
+import { concat, createPublicClient, createWalletClient, custom, getAddress, http, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
+import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
 import { erc20Abi, registryAbi, swapAbi, vaultAbi } from './abi'
 import { CFG, chain } from './chain'
 import { STOCKS, TOKENS, fromUnits, token, tokenByAddress, type Basket } from './data'
@@ -15,7 +16,11 @@ export const hasWallet = () => !!provider()
 // The public RPC rate-limits, and answers an oversized batch with a 429 that browsers then block
 // (its error replies carry a broken CORS header). Keep batches small and retry briefly.
 const pub = createPublicClient({ chain, transport: http(CFG.rpc, { batch: { wait: 20, batchSize: 20 }, retryCount: 3, retryDelay: 500 }) })
-const wal = () => createWalletClient({ chain, transport: custom(provider()!) })
+// A passkey account has no browser wallet: it signs with a key derived from the passkey, and sends through the RPC.
+let local: PrivateKeyAccount | null = null
+const wal = () => local ? createWalletClient({ chain, account: local, transport: http(CFG.rpc) }) : createWalletClient({ chain, transport: custom(provider()!) })
+const acct = () => local ?? account!
+export const isPasskey = () => !!local
 const V = { address: CFG.contracts.vault, abi: vaultAbi } as const
 const ART = { wasm: `${import.meta.env.BASE_URL}zk/transaction.wasm`, zkey: `${import.meta.env.BASE_URL}zk/transaction.zkey` }
 const NEW_COMMITMENT = parseAbiItem('event NewCommitment(uint256 indexed commitment, uint256 index, address token, uint256 amount, bytes encryptedNote)')
@@ -43,6 +48,7 @@ export const session = { get account() { return account }, get address() { retur
 
 /** Makes sure the wallet is on Robinhood Chain Testnet before it is asked to send anything. */
 async function ensureChain() {
+  if (local) return
   const w = wal()
   if ((await w.getChainId()) === chain.id) return
   try { await w.switchChain({ id: chain.id }) } catch { await w.addChain({ chain }); await w.switchChain({ id: chain.id }) }
@@ -63,8 +69,19 @@ function adopt(sig: Hex) {
   return toAddress(keys)
 }
 
+const PK_SLOT = 'hagi-passkey'
+/** Signs in with a passkey secret: the vault keys and a built-in wallet address both come from it. */
+export function passkeyIn(secret: Hex): { wallet: Hex; address: string } {
+  local = privateKeyToAccount(keccak256(concat([secret, toHex('hagi.wallet')])))
+  account = local.address
+  try { sessionStorage.setItem(PK_SLOT, secret) } catch { /* storage unavailable */ }
+  return { wallet: account, address: adopt(secret) }
+}
+
 /** After a reload, picks the wallet back up without a prompt if it is still connected to this site. */
 export async function resume(): Promise<{ wallet: Hex; address: string | null } | null> {
+  // A passkey session lasts as long as the tab, like a wallet signature.
+  try { const pk = sessionStorage.getItem(PK_SLOT) as Hex | null; if (pk) return passkeyIn(pk) } catch { /* storage unavailable */ }
   const p = provider()
   if (!p) return null
   try {
@@ -78,7 +95,7 @@ export async function resume(): Promise<{ wallet: Hex; address: string | null } 
 
 /** Reload when the user switches account in their wallet, so one account's notes never show under another. */
 export function watchWallet() {
-  provider()?.on?.('accountsChanged', () => location.reload())
+  provider()?.on?.('accountsChanged', () => { if (!local) location.reload() })
 }
 
 /** Derives the vault keys from one signature. The signature is kept for this tab only. */
@@ -96,6 +113,8 @@ export const hasCachedKey = () => { try { return !!account && !!sessionStorage.g
 
 export function lock() {
   if (account) try { sessionStorage.removeItem('hagi-sig-' + account.toLowerCase()) } catch { /* storage unavailable */ }
+  try { sessionStorage.removeItem(PK_SLOT) } catch { /* storage unavailable */ }
+  local = null
   account = null; keys = null; notes = []; tree = new MerkleTree(); known = null; received = []; spentSeen = new Set()
 }
 
@@ -262,7 +281,7 @@ async function privately(req: Omit<TxRequest, 'keys' | 'tree'>, step: Step) {
     if (!(await confirmWalletSend(why))) throw new Error('Stopped. Nothing was sent and your funds have not moved.')
     step('Confirm in your wallet. Your address will show on this one')
     await ensureChain()
-    hash = await wal().writeContract({ ...V, functionName: 'transact', args: [tx.proof, tx.ext], account })
+    hash = await wal().writeContract({ ...V, functionName: 'transact', args: [tx.proof, tx.ext], account: acct() })
   }
   await sync(await waitFor(hash, step))
 }
@@ -289,7 +308,7 @@ const change = (inputs: Note[], spent: bigint) => {
 export async function faucet(step: Step) {
   await ensureChain()
   step('Confirm in your wallet')
-  await waitFor(await wal().writeContract({ address: CFG.contracts.usdg, abi: erc20Abi, functionName: 'faucet', account: account! }), step)
+  await waitFor(await wal().writeContract({ address: CFG.contracts.usdg, abi: erc20Abi, functionName: 'faucet', account: acct() }), step)
 }
 
 export async function shield(sym: string, n: number, step: Step) {
@@ -302,11 +321,11 @@ export async function shield(sym: string, n: number, step: Step) {
   const allowance = await pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'allowance', args: [account, CFG.contracts.vault] })
   if (allowance < amount) {
     step(`Approve ${sym} in your wallet`)
-    await waitFor(await wal().writeContract({ address: t.address, abi: erc20Abi, functionName: 'approve', args: [CFG.contracts.vault, maxUint256], account }), () => {})
+    await waitFor(await wal().writeContract({ address: t.address, abi: erc20Abi, functionName: 'approve', args: [CFG.contracts.vault, maxUint256], account: acct() }), () => {})
   }
   const blinding = randomField()
   step('Confirm the deposit in your wallet')
-  const hash = await wal().writeContract({ ...V, functionName: 'shield', args: [t.address, amount, partialCommitment(keys.publicKey, blinding), encryptNote({ amount, token: BigInt(t.address), blinding }, keys.encPublic)], account })
+  const hash = await wal().writeContract({ ...V, functionName: 'shield', args: [t.address, amount, partialCommitment(keys.publicKey, blinding), encryptNote({ amount, token: BigInt(t.address), blinding }, keys.encPublic)], account: acct() })
   await sync(await waitFor(hash, step))
 }
 
@@ -361,7 +380,7 @@ export async function buyBasket(b: Basket, n: number, step: Step) {
 export async function createBasket(name: string, items: { symbol: string; weight: number }[], step: Step) {
   await ensureChain()
   step('Confirm in your wallet')
-  const hash = await wal().writeContract({ address: CFG.contracts.basketRegistry, abi: registryAbi, functionName: 'createBasket', args: [name, items.map(i => token(i.symbol).address), items.map(i => Math.round(i.weight * 100))], account: account! })
+  const hash = await wal().writeContract({ address: CFG.contracts.basketRegistry, abi: registryAbi, functionName: 'createBasket', args: [name, items.map(i => token(i.symbol).address), items.map(i => Math.round(i.weight * 100))], account: acct() })
   await waitFor(hash, step)
 }
 

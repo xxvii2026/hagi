@@ -20,7 +20,7 @@ const stops = (ready: boolean): Stop[] => [
   { sel: '[data-tour="faucet"]', title: 'Free test money', text: 'Everything here is testnet. Get a little testnet ETH for gas, then claim 5,000 test USDG here once a day.' },
   ready
     ? { sel: '.rt .wal', title: 'You’re all set', text: 'Your wallet menu is here: copy your Hagi address, export your history, or disconnect.' }
-    : { sel: '.rt .wal', title: 'Start here', text: 'Connect your wallet and sign in with one free message. The first time, that creates your Hagi account. There’s nothing new to back up.' },
+    : { sel: '.rt .wal', title: 'Start here', text: 'Sign in with a passkey: Face ID, fingerprint or your screen lock. The first time, that creates your Hagi account. No wallet or email needed.' },
 ]
 
 // The desktop page is drawn at 80% zoom. Measuring a known element tells us how to turn screen
