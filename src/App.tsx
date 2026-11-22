@@ -108,7 +108,7 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
           <button className="btn pk" onClick={() => go('new')} disabled={!!busy || !passkeysSupported()}><Icon name="lock" size={17} />{busy === 'new' ? 'Creating your passkey…' : 'Create my Hagi account'}</button>
           <button className="btn o pk2" onClick={() => go('have')} disabled={!!busy || !passkeysSupported()}>{busy === 'have' ? 'Checking your passkey…' : 'Sign in with passkey'}</button>
         </>}
-        {!walletHalfway && <>
+        {!walletHalfway && engine.hasWallet() && <>
           <div className="or"><span>or</span></div>
           <button className="link center" onClick={() => go('wallet')} disabled={!!busy || !engine.hasWallet()}>{busy === 'wallet' ? 'Check your wallet…' : engine.hasWallet() ? 'Connect a wallet instead' : 'No browser wallet found'}</button>
         </>}

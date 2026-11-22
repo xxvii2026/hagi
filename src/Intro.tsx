@@ -2,9 +2,6 @@
 // Every scene is drawn in code, so it opens instantly and stays sharp on any screen.
 import { useEffect, useState } from 'react'
 import { askConnect } from './gate'
-import { PasskeyError } from './passkey'
-import { useStore } from './store'
-import * as engine from './engine'
 import { Icon, Mark, TokenIcon } from './ui'
 
 const SLIDES = [
@@ -56,15 +53,8 @@ export function Intro({ leaving }: { leaving: boolean }) {
   const [i, setI] = useState(0)
   const [returning] = useState(() => { try { return !!localStorage.getItem(PASSKEY_SEEN) } catch { return false } })
   useEffect(() => { const t = setInterval(() => setI(n => (n + 1) % SLIDES.length), MS); return () => clearInterval(t) }, [])
+  useEffect(() => { document.documentElement.classList.add('intro-on'); return () => document.documentElement.classList.remove('intro-on') }, [])
   const slide = SLIDES[i]
-  const { api } = useStore()
-  const [busy, setBusy] = useState(false)
-  const [err, setErr] = useState('')
-  const unlock = async () => {
-    setBusy(true); setErr('')
-    try { await api.passkey(false) } catch (e) { setErr(e instanceof PasskeyError ? e.message : engine.friendly(e)) }
-    setBusy(false)
-  }
   return (
     <div className={'intro' + (leaving ? ' out' : '')} role="dialog" aria-label="Welcome to Hagi">
       <div className="in-dust">{DUST.map((d, k) => <i key={k} style={{ left: d.x + '%', top: d.y + '%', width: d.s, height: d.s, opacity: d.o, animationDuration: d.d + 's', animationDelay: d.dl + 's' }} />)}</div>
@@ -77,13 +67,7 @@ export function Intro({ leaving }: { leaving: boolean }) {
           <h1>{slide.title}</h1>
           <p>{slide.text}</p>
         </div>
-        {returning ? <>
-          <button className="in-btn main" onClick={unlock} disabled={busy}><Icon name="lock" size={18} />{busy ? 'Checking…' : 'Sign in'}</button>
-          {err && <span className="in-err">{err}</span>}
-          <button className="in-link" onClick={askConnect}>Use another account</button>
-        </> : (
-          <button className="in-btn main" onClick={askConnect}>Sign in</button>
-        )}
+        <button className="in-btn main" onClick={askConnect}>{returning && <Icon name="lock" size={18} />}Sign in</button>
       </div>
     </div>
   )
