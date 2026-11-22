@@ -15,6 +15,7 @@ import { CONNECT_EVENT, TOUR_EVENT, askConnect, startTour } from './gate'
 import { TOUR_KEY, Tour } from './Tour'
 import { InstallCard, isStandalone } from './install'
 import { PasskeyError, passkeysSupported } from './passkey'
+import { Intro } from './Intro'
 import type { IconName } from './ui'
 
 const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
@@ -122,9 +123,19 @@ export default function App() {
   const run = useCallback((title: string, task: (step: Step) => Promise<void>, done?: string) => setJob({ title, task, done }), [])
   const closeJob = useCallback(() => setJob(null), [])
   const ready = !!s.wallet && !!s.hagiAddress
+  const app = page !== 'home' && page !== 'docs'
+  // Phones open on the intro while signed out. Once signed in it plays its hand-off and steps aside.
+  const [phone, setPhone] = useState(() => matchMedia('(max-width: 700px)').matches)
+  useEffect(() => { const m = matchMedia('(max-width: 700px)'), f = () => setPhone(m.matches); m.addEventListener('change', f); return () => m.removeEventListener('change', f) }, [])
+  const wantIntro = app && phone && !ready
+  const [intro, setIntro] = useState<'off' | 'on' | 'leaving'>(wantIntro ? 'on' : 'off')
+  useEffect(() => {
+    if (wantIntro) { setIntro('on'); return }
+    setIntro(v => (v === 'on' ? 'leaving' : v))
+    const t = setTimeout(() => setIntro('off'), 750); return () => clearTimeout(t)
+  }, [wantIntro])
   // Opened from the home screen, Hagi goes straight into the app instead of the landing page.
   useEffect(() => { if (page === 'home' && isStandalone()) location.replace('#/portfolio') }, [page])
-  const app = page !== 'home' && page !== 'docs'
   // The connect window opens from anywhere and closes itself once the account is ready.
   const [connecting, setConnecting] = useState(false)
   useEffect(() => { const f = () => setConnecting(true); addEventListener(CONNECT_EVENT, f); return () => removeEventListener(CONNECT_EVENT, f) }, [])
@@ -166,6 +177,7 @@ export default function App() {
         </nav>
       )}
       <Toasts />
+      {intro !== 'off' && <Intro leaving={intro === 'leaving'} />}
       {connecting && <ConnectModal onClose={() => setConnecting(false)} />}
       {touring && <Tour onClose={() => setTouring(false)} />}
       {job && <Progress title={job.title} task={job.task} doneText={job.done} onClose={closeJob} />}
