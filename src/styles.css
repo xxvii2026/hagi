@@ -676,7 +676,7 @@ html{-webkit-tap-highlight-color:transparent}
 .modal.connect .or{display:flex;align-items:center;gap:12px;margin:18px 0 6px;color:var(--soft);font-size:13px}.modal.connect .or::before,.modal.connect .or::after{content:"";flex:1;height:1px;background:#e9ebf3}
 .modal.connect .small{margin-top:16px}
 /* ---------- phone intro / sign-in screen ---------- */
-.intro{position:fixed;inset:-4px;z-index:18;overflow:hidden;color:#fff;background:radial-gradient(120% 70% at 72% 22%,#2f3b80 0,#151a42 55%,#0d1130 100%);animation:inIn .5s ease both}
+.intro{position:fixed;inset:-4px;z-index:18;overflow:hidden;color:#fff;background:linear-gradient(180deg,#0d1130 0,rgba(13,17,48,0) 160px),radial-gradient(120% 70% at 72% 22%,#2f3b80 0,#151a42 55%,#0d1130 100%);animation:inIn .5s ease both}
 .intro::after{content:"";position:absolute;inset:auto 0 0 0;height:62%;background:linear-gradient(180deg,rgba(13,17,48,0) 0,rgba(13,17,48,.82) 38%,#0d1130 72%);pointer-events:none}
 .intro.out{animation:inOut .7s cubic-bezier(.6,0,.4,1) both;pointer-events:none}
 @keyframes inIn{from{opacity:0}}@keyframes inOut{to{opacity:0;transform:scale(1.08)}}
