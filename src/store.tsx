@@ -4,7 +4,7 @@ import * as engine from './engine'
 import { createPasskey, usePasskey } from './passkey'
 import { shownBalance } from './roll'
 
-export type Activity = { id: number; kind: 'shield' | 'unshield' | 'swap' | 'send' | 'basket' | 'receive'; title: string; detail: string; time: number; isPrivate?: boolean }
+export type Activity = { id: number; kind: 'shield' | 'unshield' | 'swap' | 'send' | 'basket' | 'receive'; title: string; detail: string; time: number; isPrivate?: boolean; hash?: string }
 export type State = {
   wallet: string | null
   hagiAddress: string | null   // set once the vault keys are unlocked
@@ -15,8 +15,9 @@ export type State = {
   baskets: Basket[]
   syncing: boolean
   offline: boolean             // the chain could not be read
+  loaded: boolean              // the signed-in account's balances have been read at least once
 }
-const initial: State = { wallet: null, hagiAddress: null, walletBal: {}, eth: 0, shielded: {}, activity: [], baskets: [], syncing: false, offline: false }
+const initial: State = { wallet: null, hagiAddress: null, walletBal: {}, eth: 0, shielded: {}, activity: [], baskets: [], syncing: false, offline: false, loaded: false }
 
 type Api = {
   connect: () => Promise<void>
@@ -51,7 +52,7 @@ export function Store({ children }: { children: ReactNode }) {
       const baskets = full ? (await Promise.all([engine.readBaskets(), engine.readPools()]))[0] : null
       const w = await engine.readWallet()
       const shielded = await engine.sync()
-      patch({ ...(baskets ? { baskets } : {}), walletBal: w.balances, eth: w.eth, shielded, offline: false })
+      patch({ ...(baskets ? { baskets } : {}), walletBal: w.balances, eth: w.eth, shielded, offline: false, ...(engine.session.address ? { loaded: true } : {}) })
       misses.current = 0
       for (const r of engine.takeReceived()) {
         const detail = r.amount.toLocaleString('en-US', { maximumFractionDigits: r.symbol === 'USDG' ? 2 : 4 }) + ' ' + r.symbol
@@ -111,11 +112,15 @@ export function Store({ children }: { children: ReactNode }) {
     },
     disconnect: () => { engine.lock(); shownBalance.last = 0; setS(x => ({ ...initial, baskets: x.baskets })) },
     refresh,
-    log: a => setS(x => {
-      const activity = [{ ...a, id: Date.now(), time: Date.now() }, ...x.activity].slice(0, 200)
-      if (x.wallet) save(activityKey(x.wallet), activity)
-      return { ...x, activity }
-    }),
+    log: a => {
+      // Read the hash once, outside the state update, so it is never consumed twice.
+      const hash = a.kind === 'receive' ? undefined : engine.takeHash() ?? undefined
+      setS(x => {
+        const activity = [{ hash, ...a, id: Date.now(), time: Date.now() }, ...x.activity].slice(0, 200)
+        if (x.wallet) save(activityKey(x.wallet), activity)
+        return { ...x, activity }
+      })
+    },
   }), [patch, refresh])
 
   logRef.current = api.log
