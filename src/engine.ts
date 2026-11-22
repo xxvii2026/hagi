@@ -122,12 +122,13 @@ export function lock() {
 
 // ---------- reads ----------
 
-export async function readWallet(): Promise<{ balances: Record<string, number>; eth: number }> {
-  if (!account) return { balances: {}, eth: 0 }
-  const [eth, ...raw] = await Promise.all([pub.getBalance({ address: account }), ...TOKENS.map(t => pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'balanceOf', args: [account!] }))])
+export async function readWallet(): Promise<{ balances: Record<string, number>; eth: number; claimed: boolean }> {
+  if (!account) return { balances: {}, eth: 0, claimed: false }
+  const [eth, last, ...raw] = await Promise.all([pub.getBalance({ address: account }), pub.readContract({ address: CFG.contracts.usdg, abi: erc20Abi, functionName: 'lastClaim', args: [account] }).catch(() => 0n), ...TOKENS.map(t => pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'balanceOf', args: [account!] }))])
   const balances: Record<string, number> = {}
   TOKENS.forEach((t, i) => { if (raw[i] > 0n) balances[t.symbol] = fromUnits(raw[i], t.decimals) })
-  return { balances, eth: fromUnits(eth, 18) }
+  // The test USDG claim is once per account: the token records when this wallet last claimed.
+  return { balances, eth: fromUnits(eth, 18), claimed: last > 0n }
 }
 
 /** Reads every pool's reserves and updates each stock's price. */
@@ -322,6 +323,7 @@ export async function faucet(step: Step) {
     const j = await r.json().catch(() => ({}))
     if (!r.ok) throw new Error(j.error ?? 'Couldn’t get gas. Try the Robinhood faucet.')
   }
+  if (account && await pub.readContract({ address: CFG.contracts.usdg, abi: erc20Abi, functionName: 'lastClaim', args: [account] }) > 0n) throw new Error('You’ve already claimed your test USDG.')
   step(local ? 'Claiming test USDG' : 'Confirm in your wallet')
   await waitFor(await wal().writeContract({ address: CFG.contracts.usdg, abi: erc20Abi, functionName: 'faucet', account: acct() }), step)
 }
@@ -403,7 +405,7 @@ export async function createBasket(name: string, items: { symbol: string; weight
 export function friendly(e: unknown): string {
   const m = String((e as { shortMessage?: string })?.shortMessage ?? (e as Error)?.message ?? e)
   if (/user rejected|denied|rejected the request/i.test(m)) return 'Cancelled in your wallet.'
-  if (/FaucetCooldown/.test(m)) return 'You can claim test USDG once a day. Try again tomorrow.'
+  if (/FaucetCooldown/.test(m)) return 'You’ve already claimed your test USDG.'
   if (/insufficient funds|gas required exceeds/i.test(m)) return 'Your wallet needs testnet ETH to pay for gas. Get some from the faucet.'
   if (/SwapOutputTooLow/.test(m)) return 'The price moved too far while this was sending. Try again.'
   if (/UnknownRoot|NullifierSpent/.test(m)) return 'Your balance changed while this was sending. Reload and try again.'

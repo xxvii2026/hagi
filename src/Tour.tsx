@@ -17,7 +17,7 @@ const stops = (ready: boolean): Stop[] => [
   { sel: '.links a[href="#/swap"], .tabbar a[href="#/swap"]', title: 'Swap privately', text: 'Trade one stock for another straight from your private balance. Nobody can tell the swap was yours.' },
   { sel: '.links a[href="#/send"], .tabbar a[href="#/send"]', title: 'Send privately', text: 'Pay another Hagi user. The amount and the person you paid stay hidden.' },
   { sel: '.links a[href="#/baskets"], .tabbar a[href="#/baskets"]', title: 'Baskets', text: 'Buy a ready-made mix of stocks in one go, or make your own.' },
-  { sel: '[data-tour="faucet"]', title: 'Free test money', text: 'Everything here is testnet. Get a little testnet ETH for gas, then claim 5,000 test USDG here once a day.' },
+  { sel: '[data-tour="faucet"]', title: 'Free test money', text: 'Everything here is testnet. Get a little testnet ETH for gas, then claim 5,000 test USDG here, one time.' },
   ready
     ? { sel: '.rt .wal', title: 'You’re all set', text: 'Your wallet menu is here: copy your Hagi address, export your history, or disconnect.' }
     : { sel: '.rt .wal', title: 'Start here', text: 'Sign in with a passkey: Face ID, fingerprint or your screen lock. The first time, that creates your Hagi account. No wallet or email needed.' },

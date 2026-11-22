@@ -9,6 +9,7 @@ export type State = {
   wallet: string | null
   hagiAddress: string | null   // set once the vault keys are unlocked
   walletBal: Record<string, number>
+  claimed: boolean
   eth: number
   shielded: Record<string, number>
   activity: Activity[]
@@ -17,7 +18,7 @@ export type State = {
   offline: boolean             // the chain could not be read
   loaded: boolean              // the signed-in account's balances have been read at least once
 }
-const initial: State = { wallet: null, hagiAddress: null, walletBal: {}, eth: 0, shielded: {}, activity: [], baskets: [], syncing: false, offline: false, loaded: false }
+const initial: State = { wallet: null, hagiAddress: null, walletBal: {}, claimed: false, eth: 0, shielded: {}, activity: [], baskets: [], syncing: false, offline: false, loaded: false }
 
 type Api = {
   connect: () => Promise<void>
@@ -52,7 +53,7 @@ export function Store({ children }: { children: ReactNode }) {
       const baskets = full ? (await Promise.all([engine.readBaskets(), engine.readPools()]))[0] : null
       const w = await engine.readWallet()
       const shielded = await engine.sync()
-      patch({ ...(baskets ? { baskets } : {}), walletBal: w.balances, eth: w.eth, shielded, offline: false, ...(engine.session.address ? { loaded: true } : {}) })
+      patch({ ...(baskets ? { baskets } : {}), walletBal: w.balances, claimed: w.claimed, eth: w.eth, shielded, offline: false, ...(engine.session.address ? { loaded: true } : {}) })
       misses.current = 0
       for (const r of engine.takeReceived()) {
         const detail = r.amount.toLocaleString('en-US', { maximumFractionDigits: r.symbol === 'USDG' ? 2 : 4 }) + ' ' + r.symbol
