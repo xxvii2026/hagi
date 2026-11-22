@@ -70,6 +70,8 @@ function adopt(sig: Hex) {
 }
 
 const PK_SLOT = 'hagi-passkey'
+/** For a passkey account: true if this passkey secret is the one the account was opened with. */
+export const matchesPasskey = (secret: Hex) => !!local && privateKeyToAccount(keccak256(concat([secret, toHex('hagi.wallet')]))).address === local.address
 /** Signs in with a passkey secret: the vault keys and a built-in wallet address both come from it. */
 export function passkeyIn(secret: Hex): { wallet: Hex; address: string } {
   local = privateKeyToAccount(keccak256(concat([secret, toHex('hagi.wallet')])))
@@ -252,7 +254,12 @@ export const onRelayerDown = (ask: typeof confirmWalletSend | null) => { confirm
 
 const jsonBig = (_: string, v: unknown) => (typeof v === 'bigint' ? v.toString() : v)
 
+// The last transaction this session waited for, so the activity entry can link to it.
+let lastHash: Hex | null = null
+export const takeHash = () => { const h = lastHash; lastHash = null; return h }
+
 async function waitFor(hash: Hex, step: Step): Promise<bigint> {
+  lastHash = hash
   step('Waiting for the network')
   const rc = await pub.waitForTransactionReceipt({ hash })
   if (rc.status !== 'success') throw new Error('The transaction failed on chain.')

@@ -3,6 +3,7 @@ import QRCode from 'qrcode'
 import { TOKENS, asInput, fmt } from '../data'
 import { hashParam } from '../nav'
 import * as engine from '../engine'
+import { confirmSpend } from '../confirm'
 import { useStore } from '../store'
 import { parseAddress } from '../zk/core'
 import { AmountField, Card, NeedAccount, TokenPicker, Visibility, type Run } from '../ui'
@@ -33,6 +34,7 @@ export function Send({ run }: { run: Run }) {
             <div className="hint"><span>{to && !validTo ? 'That doesn’t look like a Hagi address.' : 'Paste the other person’s Hagi address.'}</span></div></div>
           <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))} right={<TokenPicker value={cur} onChange={setSym} options={options} balances={s.shielded} />} />
           {!(s.wallet && s.hagiAddress) ? <NeedAccount /> : <button className="btn" disabled={!validTo || n <= 0 || n > have} onClick={() => run('Sending privately', async step => {
+            await confirmSpend(step)
             await engine.send(cur, n, to, step)
             api.log({ kind: 'send', title: 'Sent ' + cur, detail: fmt(n, cur === 'USDG' ? 2 : 4) + ' ' + cur, isPrivate: true })
             setAmt(''); setTo(''); await api.refresh()

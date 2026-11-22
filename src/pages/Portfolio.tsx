@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import * as engine from '../engine'
+import { confirmSpend } from '../confirm'
 import { TOKENS, asInput, fmt, token, usd } from '../data'
 import { go } from '../nav'
 import { total, useStore } from '../store'
@@ -46,11 +47,12 @@ export function Portfolio({ run }: { run: Run }) {
           <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
             hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))}
             right={<TokenPicker value={cur} onChange={setSym} options={options} balances={src} />} />
-          {!ready ? <NeedAccount /> : <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
+          {!ready ? <NeedAccount /> : <button className="btn" disabled={n <= 0 || n > have} onClick={() => { setAddOpen(false); setDetail(null); run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
+            if (tab === 'unshield') await confirmSpend(step)
             await engine[tab](cur, n, step)
             api.log({ kind: tab, title: (tab === 'shield' ? 'Shielded ' : 'Unshielded ') + cur, detail: amt4(cur, n) })
             setAmt(''); await api.refresh()
-          }, tab === 'shield' ? 'Shielded. Off the record now.' : 'Unshielded. Back on the record.')}>
+          }, tab === 'shield' ? 'Shielded. Off the record now.' : 'Unshielded. Back on the record.') }}>
             {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
           </button>}
           {tab === 'shield' && <button className="link center" data-tour="faucet" onClick={faucet}>Claim 5,000 test USDG (once a day)</button>}
@@ -65,7 +67,7 @@ export function Portfolio({ run }: { run: Run }) {
           <div className="lab">
             <span className="hl"><Icon name="lock" size={15} />Your private balance</span>
           </div>
-          <div className="big">${whole}<small>.{cents}</small></div>
+          {ready && !s.loaded ? <div className="big"><span className="skel skel-big" /></div> : <div className="big">${whole}<small>.{cents}</small></div>}
           <div className="qas">
             <button className="qa qm" onClick={() => openAdd('shield')}><i><Icon name="plus" /></i>Add</button>
             <button className="qa" onClick={() => go('swap')}><i><Icon name="swap" /></i>Swap</button>
@@ -84,6 +86,8 @@ export function Portfolio({ run }: { run: Run }) {
           </div>
         )}
 
+        {ready && s.loaded && <Checklist onClaim={faucet} onPrivate={() => (Object.keys(s.walletBal).length ? shieldAll() : openAdd('shield'))} />}
+
         <Card title="Your stocks and cash">
           {!ready ? (
             <div className="empty">
@@ -91,6 +95,8 @@ export function Portfolio({ run }: { run: Run }) {
               <p>Sign in to see it. It takes a few seconds.</p>
               <NeedAccount className="btn sm" />
             </div>
+          ) : !s.loaded ? (
+            <div className="skel-list">{[0, 1, 2].map(i => <div className="row hold" key={i}><span className="skel skel-ic" /><div className="g"><span className="skel skel-t" /><span className="skel skel-s" /></div><div className="r"><span className="skel skel-t" /><span className="skel skel-s" /></div></div>)}</div>
           ) : holdings.length === 0 ? (
             <div className="empty">
               <b>Nothing here yet</b>
@@ -162,5 +168,36 @@ function TokenSheet({ k, amount, total: all, onClose, onUnshield }: { k: string;
         </div>
       </div>
     </div>, document.body,
+  )
+}
+
+const CHECK_KEY = 'hagi-checklist-hidden'
+/** First-run steps: claim, make it private, do something private. Hides itself once all three are done. */
+function Checklist({ onClaim, onPrivate }: { onClaim: () => void; onPrivate: () => void }) {
+  const { s } = useStore()
+  const [hidden, setHidden] = useState(() => { try { return !!localStorage.getItem(CHECK_KEY) } catch { return false } })
+  const did = (...k: string[]) => s.activity.some(a => k.includes(a.kind))
+  const privateBal = Object.values(s.shielded).some(v => v > 0)
+  const steps = [
+    { t: 'Claim test USDG', d: 'Free test money, once a day.', done: Object.keys(s.walletBal).length > 0 || privateBal || did('shield'), act: onClaim, cta: 'Claim' },
+    { t: 'Make it private', d: 'Move it into your private balance.', done: privateBal || did('shield'), act: onPrivate, cta: 'Make private' },
+    { t: 'Do something private', d: 'Swap, send or buy a basket.', done: did('swap', 'send', 'basket'), act: () => go('swap'), cta: 'Swap' },
+  ]
+  const count = steps.filter(x => x.done).length
+  if (hidden || count === steps.length) return null
+  const next = steps.findIndex(x => !x.done)
+  const hide = () => { setHidden(true); try { localStorage.setItem(CHECK_KEY, '1') } catch { /* fine */ } }
+  return (
+    <div className="card check">
+      <div className="ck-hd"><div><b>Get started</b><span>{count} of {steps.length} done</span></div><button className="x" onClick={hide} aria-label="Hide"><Icon name="close" size={14} /></button></div>
+      <div className="ck-bar"><i style={{ width: (count / steps.length) * 100 + '%' }} /></div>
+      {steps.map((x, i) => (
+        <div className={'ck-row' + (x.done ? ' done' : i === next ? ' next' : '')} key={x.t}>
+          <span className="ck-dot">{x.done ? <Icon name="check" size={13} /> : i + 1}</span>
+          <div className="g"><b>{x.t}</b><span>{x.d}</span></div>
+          {i === next && <button className="chip strong" onClick={x.act}>{x.cta}</button>}
+        </div>
+      ))}
+    </div>
   )
 }

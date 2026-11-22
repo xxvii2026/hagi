@@ -16,6 +16,7 @@ import { TOUR_KEY, Tour } from './Tour'
 import { InstallCard, isStandalone } from './install'
 import { PasskeyError, passkeysSupported } from './passkey'
 import { Intro } from './Intro'
+import { PullToRefresh } from './pull'
 import type { IconName } from './ui'
 
 const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
@@ -171,6 +172,7 @@ export default function App() {
             : <button className="wal" onClick={askConnect}><i /><span className="t-long">Sign in</span><span className="t-short">Sign in</span></button>}
         </div>
       </header>
+      <PullToRefresh enabled={phone && ready && (page === 'portfolio' || page === 'activity')} onRefresh={api.refresh} />
       {page === 'portfolio' && <InstallCard />}
       <main key={page} className="pg">
         {page === 'home' ? <Landing /> : page === 'docs' ? <Docs /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
