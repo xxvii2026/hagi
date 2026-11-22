@@ -14,6 +14,7 @@ import { Docs } from './pages/Docs'
 import { CONNECT_EVENT, TOUR_EVENT, askConnect, startTour } from './gate'
 import { TOUR_KEY, Tour } from './Tour'
 import { InstallCard, isStandalone } from './install'
+import { PasskeyError, passkeysSupported } from './passkey'
 import type { IconName } from './ui'
 
 const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
@@ -37,6 +38,8 @@ function WalletMenu() {
     return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc) }
   }, [open])
   const copy = async () => { try { await navigator.clipboard.writeText(s.hagiAddress ?? ''); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch { /* clipboard blocked */ } }
+  const [walletCopied, setWalletCopied] = useState(false)
+  const copyWallet = async () => { try { await navigator.clipboard.writeText(s.wallet ?? ''); setWalletCopied(true); setTimeout(() => setWalletCopied(false), 1500) } catch { /* clipboard blocked */ } }
   const exportHistory = () => {
     const blob = new Blob([JSON.stringify({ account: s.hagiAddress, exportedAt: new Date().toISOString(), activity: s.activity }, null, 2)], { type: 'application/json' })
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'hagi-history.json'; a.click(); URL.revokeObjectURL(a.href)
@@ -48,6 +51,7 @@ function WalletMenu() {
       {open && (
         <ul className="tpl menu" role="menu">
           {s.hagiAddress && <li><button onClick={copy}><span className="g"><b>{copied ? 'Copied' : 'Copy my Hagi address'}</b><span>{s.hagiAddress.slice(0, 12)}…{s.hagiAddress.slice(-6)}</span></span><Icon name="copy" size={15} /></button></li>}
+          {engine.isPasskey() && <li><button onClick={copyWallet}><span className="g"><b>{walletCopied ? 'Copied' : 'Copy wallet address'}</b><span>Your built-in wallet, for test ETH and tokens</span></span><Icon name="copy" size={15} /></button></li>}
           <li><button onClick={exportHistory} disabled={!s.activity.length}><span className="g"><b>Export my history</b><span>{s.activity.length ? 'Downloads your activity as a file' : 'Nothing to export yet'}</span></span></button></li>
           <li className="m-only"><button onClick={() => { setOpen(false); startTour() }}><span className="g"><b>Take the tour</b><span>A quick walk through Hagi</span></span></button></li>
           <li className="m-only"><a href="#/docs" onClick={() => setOpen(false)}><span className="g"><b>Docs</b><span>How Hagi works, in plain words</span></span></a></li>
@@ -71,34 +75,38 @@ function Toasts() {
   return <div className="toasts" aria-live="polite">{list.map(t => <div className="toast" key={t.id}><span className="ti2"><Icon name="down" size={16} /></span><span><b>{t.title}</b>{t.sub && <em>{t.sub}</em>}</span></div>)}</div>
 }
 
-/** Connecting is a window over the page, opened by any action that needs an account. */
+/** Signing in is a window over the page, opened by any action that needs an account.
+ *  A passkey is the main way in. A browser wallet is the alternative. */
 function ConnectModal({ onClose }: { onClose: () => void }) {
   const { s, api } = useStore()
-  const [busy, setBusy] = useState(false)
+  const [busy, setBusy] = useState<'' | 'new' | 'have' | 'wallet'>('')
   const [err, setErr] = useState('')
-  const step = !s.wallet ? 0 : !s.hagiAddress ? 1 : 2
-  const act = async () => {
-    setBusy(true); setErr('')
-    // One click does both: connect, then ask for the free signature straight away.
-    try { if (!s.wallet) await api.connect(); await api.unlock() } catch (e) { setErr(engine.friendly(e)) }
-    setBusy(false)
+  const go = async (which: 'new' | 'have' | 'wallet') => {
+    setBusy(which); setErr('')
+    try {
+      if (which === 'wallet') { if (!s.wallet) await api.connect(); await api.unlock() }
+      else await api.passkey(which === 'new')
+    } catch (e) { setErr(e instanceof PasskeyError ? e.message : engine.friendly(e)) }
+    setBusy('')
   }
   useEffect(() => { const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !busy) onClose() }; addEventListener('keydown', esc); return () => removeEventListener('keydown', esc) }, [busy, onClose])
-  const steps = [
-    ['Connect your wallet', engine.hasWallet() ? 'Use the wallet you already have. Hagi never holds your keys.' : 'No wallet found. Install MetaMask, or on a phone open this page inside your wallet app’s browser.'],
-    ['Sign in', 'Sign one free message. The first time, this creates your Hagi account. After that it signs you back in. There’s nothing new to back up.'],
-    ['Add test funds', 'Claim free test USDG on the Portfolio page, then shield it.'],
-  ]
+  const walletHalfway = !!s.wallet && !s.hagiAddress && !engine.isPasskey()
   return (
     <div className="overlay" onClick={() => !busy && onClose()}>
       <div className="modal wide connect" onClick={e => e.stopPropagation()}>
-        <div className="ch"><Mark size={34} /><button className="x" onClick={onClose} aria-label="Close" disabled={busy}><Icon name="close" size={15} /></button></div>
+        <div className="ch"><Mark size={34} /><button className="x" onClick={onClose} aria-label="Close" disabled={!!busy}><Icon name="close" size={15} /></button></div>
         <h3><span>Stocks,</span> off the record.</h3>
-        <p className="muted">Setting up takes under a minute.</p>
-        <ol className="setup">{steps.map(([t, p], i) => <li key={t} className={i < step ? 'd' : i === step ? 'a' : ''}><i>{i < step ? <Icon name="check" size={15} /> : i + 1}</i><div><b>{t}</b><span>{p}</span></div></li>)}</ol>
-        <button className="btn" onClick={act} disabled={busy || !engine.hasWallet()}>{busy ? 'Check your wallet…' : step === 0 ? 'Connect wallet' : 'Sign in'}</button>
+        <p className="muted">No wallet, no email. Your Face ID, fingerprint or screen lock is your key, and it never leaves this device.</p>
+        {walletHalfway ? (
+          <button className="btn" onClick={() => go('wallet')} disabled={!!busy}>{busy ? 'Check your wallet…' : 'Sign in with your wallet'}</button>
+        ) : <>
+          <button className="btn pk" onClick={() => go('new')} disabled={!!busy || !passkeysSupported()}><Icon name="lock" size={17} />{busy === 'new' ? 'Creating your passkey…' : 'Create my Hagi account'}</button>
+          <button className="btn o pk2" onClick={() => go('have')} disabled={!!busy || !passkeysSupported()}>{busy === 'have' ? 'Checking your passkey…' : 'I already have a passkey'}</button>
+          <div className="or"><span>or</span></div>
+          <button className="link center" onClick={() => go('wallet')} disabled={!!busy || !engine.hasWallet()}>{busy === 'wallet' ? 'Check your wallet…' : engine.hasWallet() ? 'Connect a wallet instead' : 'No browser wallet found'}</button>
+        </>}
         {err && <p className="err">{err}</p>}
-        <a className="link center" href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Need testnet ETH for gas? Open the faucet</a>
+        <p className="small muted">Testnet only. Your passkey syncs with iCloud Keychain or Google Password Manager, so it works on your other devices too.</p>
       </div>
     </div>
   )
@@ -144,7 +152,7 @@ export default function App() {
           {app && <span className="net"><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>}
           {page === 'home' ? <a className="wal" href="#/portfolio">Open the app</a>
             : ready ? <WalletMenu />
-            : <button className="wal" onClick={askConnect}><i /><span className="t-long">{s.wallet ? 'Sign in' : 'Connect wallet'}</span><span className="t-short">{s.wallet ? 'Sign in' : 'Connect'}</span></button>}
+            : <button className="wal" onClick={askConnect}><i /><span className="t-long">Sign in</span><span className="t-short">Sign in</span></button>}
         </div>
       </header>
       {page === 'portfolio' && <InstallCard />}

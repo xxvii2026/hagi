@@ -94,7 +94,7 @@ export function Portfolio({ run }: { run: Run }) {
           {!ready ? (
             <div className="empty">
               <b>Your private balance lives here</b>
-              <p>Connect your wallet to see it. It takes under a minute.</p>
+              <p>Sign in to see it. It takes a few seconds.</p>
               <NeedAccount className="btn sm" />
             </div>
           ) : holdings.length === 0 ? (

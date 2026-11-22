@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { token, type Basket } from './data'
 import * as engine from './engine'
+import { createPasskey, usePasskey } from './passkey'
 import { shownBalance } from './roll'
 
 export type Activity = { id: number; kind: 'shield' | 'unshield' | 'swap' | 'send' | 'basket' | 'receive'; title: string; detail: string; time: number; isPrivate?: boolean }
@@ -20,6 +21,7 @@ const initial: State = { wallet: null, hagiAddress: null, walletBal: {}, eth: 0,
 type Api = {
   connect: () => Promise<void>
   unlock: () => Promise<void>
+  passkey: (create: boolean) => Promise<void>
   disconnect: () => void
   refresh: (quiet?: boolean) => Promise<void>
   log: (a: Omit<Activity, 'id' | 'time'>) => void
@@ -98,6 +100,12 @@ export function Store({ children }: { children: ReactNode }) {
     unlock: async () => {
       const hagiAddress = await engine.unlock()
       patch({ hagiAddress })
+      await refresh()
+    },
+    passkey: async create => {
+      const secret = create ? await createPasskey() : await usePasskey()
+      const r = engine.passkeyIn(secret)
+      patch({ wallet: r.wallet, hagiAddress: r.address, activity: load(activityKey(r.wallet), []) })
       await refresh()
     },
     disconnect: () => { engine.lock(); shownBalance.last = 0; setS(x => ({ ...initial, baskets: x.baskets })) },
