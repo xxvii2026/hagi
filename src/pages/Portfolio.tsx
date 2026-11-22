@@ -63,10 +63,7 @@ export function Portfolio({ run }: { run: Run }) {
         <Card className="hero">
           <div className="ghost"><Mark size={320} leaf="#252d5a" block="#313c74" /></div>
           <div className="lab">
-            <span>Your private balance</span>
-            <span className="heroR">
-              {addr && <button className="addr" onClick={copy} title="Copy your Hagi address">{copied ? 'Copied' : addr.slice(0, 9) + '…' + addr.slice(-4)}<Icon name="copy" size={13} /></button>}
-            </span>
+            <span className="hl"><Icon name="lock" size={15} />Your private balance</span>
           </div>
           <div className="big">${whole}<small>.{cents}</small></div>
           <div className="qas">

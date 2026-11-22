@@ -70,7 +70,6 @@ export function Intro({ leaving }: { leaving: boolean }) {
       <div className="in-dust">{DUST.map((d, k) => <i key={k} style={{ left: d.x + '%', top: d.y + '%', width: d.s, height: d.s, opacity: d.o, animationDuration: d.d + 's', animationDelay: d.dl + 's' }} />)}</div>
       {SLIDES.map((s, k) => <Scene key={s.scene} kind={s.scene} on={k === i} />)}
       <div className="in-top">
-        <div className="in-bars">{SLIDES.map((_, k) => <i key={k} className={k < i ? 'done' : k === i ? 'run' : ''} style={k === i ? { animationDuration: MS + 'ms' } : undefined} />)}</div>
         <div className="in-logo"><Mark size={30} leaf="#ffffff" block="#566eba" /><b>hagi</b></div>
       </div>
       <div className="in-bottom">
@@ -79,16 +78,12 @@ export function Intro({ leaving }: { leaving: boolean }) {
           <p>{slide.text}</p>
         </div>
         {returning ? <>
-          <button className="in-btn main" onClick={unlock} disabled={busy}><Icon name="lock" size={18} />{busy ? 'Checking…' : 'Unlock with Face ID'}</button>
+          <button className="in-btn main" onClick={unlock} disabled={busy}><Icon name="lock" size={18} />{busy ? 'Checking…' : 'Sign in'}</button>
           {err && <span className="in-err">{err}</span>}
           <button className="in-link" onClick={askConnect}>Use another account</button>
         </> : (
-          <div className="in-row">
-            <a className="in-btn light" href="#/docs">Learn more</a>
-            <button className="in-btn main" onClick={askConnect}>Get started</button>
-          </div>
+          <button className="in-btn main" onClick={askConnect}>Sign in</button>
         )}
-        <span className="in-note">Robinhood Chain Testnet</span>
       </div>
     </div>
   )
