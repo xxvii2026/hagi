@@ -122,23 +122,29 @@ const PAGES: Page[] = [
   },
   {
     slug: 'setup', group: 'Start here', title: 'Get set up',
-    lede: 'You need a wallet, a little testnet ETH for gas, and some test USDG. It takes a few minutes.',
+    lede: 'Sign in with a passkey or a wallet, claim some test USDG, and make it private. It takes about a minute.',
     body: <>
+      <H>With a passkey (the easy way)</H>
       <Steps items={[
-        <><b>Have a wallet ready.</b> Any browser wallet such as MetaMask works. On a phone, open Hagi inside your wallet app’s browser.</>,
-        <><b>Connect it.</b> Open the app and choose Connect wallet. Hagi adds Robinhood Chain Testnet to your wallet if it isn’t there yet.</>,
-        <><b>Sign in.</b> You sign one message. It is free and moves no funds. The first time, this creates your Hagi account. Your private Hagi account is worked out from that signature.</>,
-        <><b>Get gas.</b> Claim free testnet ETH from the <Out href={FAUCET_URL}>Robinhood Chain faucet</Out>.</>,
-        <><b>Get test USDG.</b> On the Portfolio page, choose “Claim test USDG” to get 5,000. Each account can claim once.</>,
-        <><b>Shield it.</b> Type an amount in the Shield box and confirm. Your private balance appears a few seconds later.</>,
+        <><b>Open Hagi.</b> On a phone, add it to your home screen when Hagi offers, so it opens full screen like an app.</>,
+        <><b>Create your account.</b> Tap Sign in, then Create my Hagi account, and confirm with Face ID, your fingerprint or your screen lock. No wallet, email or seed phrase.</>,
+        <><b>Get test USDG.</b> Choose “Claim test USDG” to get 5,000. Each account can claim once, and Hagi sends a little testnet ETH for the gas.</>,
+        <><b>Make it private.</b> Tap Make private. Your private balance appears a few seconds later.</>,
+      ]} />
+      <H>With a wallet</H>
+      <Steps items={[
+        <><b>Connect it.</b> Any browser wallet such as MetaMask works. Choose Connect a wallet instead in the sign-in window. Hagi adds Robinhood Chain Testnet to your wallet if it isn’t there yet.</>,
+        <><b>Sign in.</b> You sign one message. It is free and moves no funds, and your private Hagi account is worked out from that signature.</>,
+        <><b>Get gas and test USDG.</b> Claim testnet ETH from the <Out href={FAUCET_URL}>Robinhood Chain faucet</Out>, then claim test USDG on the Portfolio page.</>,
       ]} />
       <H>About your Hagi account</H>
       <List items={[
-        <>There is no new seed phrase. The same wallet always recovers the same Hagi account, on any device.</>,
-        <>Your Hagi address starts with <code>hagi1</code>. It is what you share to get paid privately, and it is not your wallet address. Copy it from the menu on your wallet button.</>,
-        <>The account stays unlocked for the browser tab you are in. Close the tab and you sign again next time.</>,
+        <>There is no new seed phrase. The same passkey, or the same wallet, always opens the same Hagi account.</>,
+        <>Passkeys sync through your phone’s password manager (iCloud Keychain or Google Password Manager), so a new phone with the same account gets you back in.</>,
+        <>Your Hagi address starts with <code>hagi1</code>. It is what you share to get paid privately, and it is not your wallet address. Find it on the Receive tab.</>,
+        <>The account stays unlocked for the browser tab or app session you are in. Sends and withdrawals ask for your passkey again.</>,
       ]} />
-      <Note kind="warn" title="Only sign the account message on the Hagi site">That signature is the key to your private balance. A fake site that gets you to sign the same message could read and move your shielded funds. Check the address bar before you sign.</Note>
+      <Note kind="warn" title="Only sign in on the Hagi site">If you use a wallet, the sign-in signature is the key to your private balance. A fake site that gets you to sign the same message could read and move your shielded funds. Check the address bar before you sign.</Note>
     </>,
   },
   {
@@ -204,7 +210,7 @@ const PAGES: Page[] = [
       <P>USDG and every listed stock can be sent. The recipient does not need to be online. The funds are waiting for them the next time they open Hagi.</P>
       <H>Receive</H>
       <Steps items={[
-        <>Open the menu on your wallet button and choose <b>Copy my Hagi address</b>.</>,
+        <>Tap <b>Receive</b> (or open Send and pick the Receive tab) and choose <b>Copy address</b>.</>,
         <>Share that address with whoever is paying you.</>,
         <>Open Hagi. Incoming funds show up in your balance and in Activity as “Received”.</>,
       ]} />
@@ -387,7 +393,6 @@ export function Docs() {
         ))}
       </aside>
       <article className="dmain" key={slug}>
-        <span className="dcrumb">{page.group}</span>
         <h1>{page.title}</h1>
         <p className="dlede">{page.lede}</p>
         {page.body}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { STOCKS, fmt, short, token } from '../data'
 import { lookup, validAddress, type Seen } from '../lookup'
 import { go } from '../nav'

@@ -15,7 +15,6 @@ export function Portfolio({ run }: { run: Run }) {
   const [tab, setTab] = useState<'shield' | 'unshield'>('shield')
   const [sym, setSym] = useState('USDG')
   const [amt, setAmt] = useState('')
-  const [copied, setCopied] = useState(false)
   // Phones: the shield form and token details open as sheets instead of sitting on the page.
   const [addOpen, setAddOpen] = useState(false)
   const [detail, setDetail] = useState<string | null>(null)
@@ -30,12 +29,10 @@ export function Portfolio({ run }: { run: Run }) {
   const [whole, cents] = fmt(useCountUp(bal)).split('.')
   const holdings = Object.entries(s.shielded).sort((a, b) => b[1] * token(b[0]).price - a[1] * token(a[0]).price)
   const unshielded = total(s.walletBal)
-  const addr = s.hagiAddress ?? ''
   const ready = !!s.wallet && !!s.hagiAddress
   const amt4 = (k: string, v: number) => fmt(v, k === 'USDG' ? 2 : 4) + ' ' + k
   // No gas is fine: the claim tops the wallet up with a little testnet ETH first.
   const faucet = () => run('Getting test USDG', async step => { await engine.faucet(step); await api.refresh() }, '5,000 test USDG is in your wallet.')
-  const copy = async () => { try { await navigator.clipboard.writeText(addr); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch { /* clipboard blocked */ } }
   // Live version: one transaction per token. The demo applies them together.
   const shieldAll = () => run('Shielding', async step => {
     for (const [k, v] of Object.entries(s.walletBal)) { await engine.shield(k, v, step); api.log({ kind: 'shield', title: 'Shielded ' + k, detail: amt4(k, v) }) }

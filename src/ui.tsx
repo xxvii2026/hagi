@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
 import { token, fmt, withCommas } from './data'
 import { friendly, onRelayerDown } from './engine'
-import { useStore } from './store'
 import { shownBalance } from './roll'
 
 /** The Hagi mark. With `secret`, hovering it lets the hidden fourth leaf show for a moment. */
@@ -57,7 +56,6 @@ export function Amount({ value, prefix = '', digits = 2 }: { value: number; seed
 
 /** Stands in for an action button until a wallet is connected and the Hagi account is made. */
 export function NeedAccount({ className = 'btn' }: { className?: string }) {
-  const { s } = useStore()
   return <button className={className} onClick={() => dispatchEvent(new Event('hagi-connect'))}>Sign in</button>
 }
 
