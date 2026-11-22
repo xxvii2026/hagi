@@ -68,7 +68,7 @@ export function Portfolio({ run }: { run: Run }) {
           </div>
           {ready && !s.loaded ? <div className="big"><span className="skel skel-big" /></div> : <div className="big">${whole}<small>.{cents}</small></div>}
           <div className="qas">
-            <button className="qa qm" onClick={() => openAdd('shield')}><i><Icon name="plus" /></i>Add</button>
+            <button className="qa qm qadd" onClick={() => openAdd('shield')}><i><Icon name="plus" /></i>Add</button>
             <button className="qa" onClick={() => go('swap')}><i><Icon name="swap" /></i>Swap</button>
             <button className="qa" onClick={() => go('send')}><i><Icon name="right" /></i>Send</button>
             <button className="qa qm" onClick={() => go('send?tab=receive')}><i><Icon name="down" /></i>Receive</button>
