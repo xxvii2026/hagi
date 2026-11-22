@@ -48,7 +48,6 @@ function Receipt({ a, onClose }: { a: A; onClose: () => void }) {
 }
 
 export function Activity() {
-  const { s, api } = useStore()
   return (
     <div className="wrap one">
       <div className="bhd">

@@ -13,11 +13,11 @@ export const TOUR_KEY = 'hagi-tour-v1'
 const stops = (ready: boolean): Stop[] => [
   { title: 'Welcome to Hagi', text: 'A quick look around before you start. It takes about thirty seconds.' },
   { sel: '.card.hero', title: 'Your private balance', text: 'Everything you shield adds up here. Only your key can read it. To everyone else it’s part of one shared vault.' },
-  { sel: '[data-tour="shield"]', title: 'Shield and unshield', text: 'Shield moves tokens from your wallet into the vault. Unshield takes them back out. These are the only two steps others can see.' },
-  { sel: '.links a[href="#/swap"], .tabbar a[href="#/swap"]', title: 'Swap privately', text: 'Trade one stock for another straight from your private balance. Nobody can tell the swap was yours.' },
+  { sel: '[data-tour="shield"]', title: 'Shield and unshield', text: 'Shield moves tokens from your wallet into the vault. Unshield takes them back out. These two show your wallet on chain. What you do inside the vault doesn’t.' },
+  { sel: '.links a[href="#/swap"], .tabbar a[href="#/swap"]', title: 'Swap privately', text: 'Trade one stock for another straight from your private balance. The swap shows on chain, but not that it was yours.' },
   { sel: '.links a[href="#/send"], .tabbar a[href="#/send"]', title: 'Send privately', text: 'Pay another Hagi user. The amount and the person you paid stay hidden.' },
   { sel: '.links a[href="#/baskets"], .tabbar a[href="#/baskets"]', title: 'Baskets', text: 'Buy a ready-made mix of stocks in one go, or make your own.' },
-  { sel: '[data-tour="faucet"]', title: 'Free test money', text: 'Everything here is testnet. Get a little testnet ETH for gas, then claim 5,000 test USDG here, one time.' },
+  { sel: '[data-tour="faucet"]', title: 'Free test money', text: 'Everything here is testnet. Claim 5,000 test USDG here, one time, and Hagi covers the gas.' },
   ready
     ? { sel: '.rt .wal', title: 'You’re all set', text: 'Your wallet menu is here: copy your Hagi address, export your history, or disconnect.' }
     : { sel: '.rt .wal', title: 'Start here', text: 'Sign in with a passkey: Face ID, fingerprint or your screen lock. The first time, that creates your Hagi account. No wallet or email needed.' },
@@ -93,7 +93,7 @@ export function Tour({ onClose }: { onClose: () => void }) {
           {i > 0 ? <button className="btn o sm" onClick={() => setI(i - 1)}>Back</button> : <button className="btn o sm" onClick={finish}>Skip</button>}
           {!last ? <button className="btn sm" onClick={() => setI(i + 1)}>{i === 0 ? 'Show me' : 'Next'}</button>
             : ready ? <button className="btn sm" onClick={finish}>Done</button>
-            : <button className="btn sm" onClick={() => { finish(); askConnect() }}>Connect wallet</button>}
+            : <button className="btn sm" onClick={() => { finish(); askConnect() }}>Sign in</button>}
         </div>
       </div>
     </div>
