@@ -742,3 +742,9 @@ html{-webkit-tap-highlight-color:transparent}
 
 /* While the intro is up, nothing behind it can show or scroll: no hairlines at the edges, no scroll bar. */
 html.intro-on,html.intro-on body{background:#0d1130;overflow:hidden;height:100%}
+
+/* Phones and the installed app: the document stays navy (iOS uses it behind the status bar),
+   and the light app background lives on the root instead. */
+@media (display-mode: standalone),(max-width:700px){
+  #root{min-height:100vh;min-height:100dvh;background:radial-gradient(1200px 520px at 18% -8%,#e4e9fb 0,rgba(228,233,251,0) 70%),radial-gradient(900px 480px at 100% 0,#efeaf3 0,rgba(239,234,243,0) 70%),var(--page)}
+}
