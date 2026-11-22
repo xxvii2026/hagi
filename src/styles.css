@@ -833,3 +833,5 @@ html.gate-on,html.gate-on body{overflow:hidden}
 }
 /* one action at a time, on every screen */
 body.busy .btn,body.busy .walpill,body.busy .chip.strong{pointer-events:none;opacity:.55}
+/* PC has the Shield card beside the balance, so Add only shows on phones */
+@media (min-width:701px){.hero .qa.qadd{display:none}}
