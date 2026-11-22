@@ -3,7 +3,7 @@ import { asInput, STOCKS, TOKENS, fmt, fromUnits, toUnits, token } from '../data
 import * as engine from '../engine'
 import { hashParam } from '../nav'
 import { useStore } from '../store'
-import { AmountField, Card, Icon, NeedAccount, TokenIcon, TokenPicker, Visibility, type Run } from '../ui'
+import { AmountField, Card, Icon, NeedAccount, TokenIcon, TokenPicker, type Run } from '../ui'
 
 export function Swap({ run }: { run: Run }) {
   const { s, api } = useStore()
@@ -39,9 +39,6 @@ export function Swap({ run }: { run: Run }) {
         </button>}
       </Card>
       <div className="col n">
-        <Card title="What others can see">
-          <Visibility pub="that someone swapped these tokens, and how much. A relayer sends it, so your wallet isn’t on it." priv="who made the swap, your balance and your other holdings." />
-        </Card>
         <Card title="Popular right now">
           <div className="pop">{STOCKS.map(x => x.symbol).map(t => <button key={t} className="chip" onClick={() => { if (t === from) setFrom(to); setTo(t) }}><TokenIcon symbol={t} size={26} />{t}</button>)}</div>
         </Card>
