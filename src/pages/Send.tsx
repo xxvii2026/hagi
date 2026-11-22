@@ -6,7 +6,7 @@ import * as engine from '../engine'
 import { confirmSpend } from '../confirm'
 import { useStore } from '../store'
 import { parseAddress } from '../zk/core'
-import { AmountField, Card, NeedAccount, TokenPicker, type Run } from '../ui'
+import { AmountField, Card, Icon, NeedAccount, TokenPicker, type Run } from '../ui'
 
 export function Send({ run }: { run: Run }) {
   const { s, api } = useStore()
@@ -45,8 +45,11 @@ export function Send({ run }: { run: Run }) {
         </div> : <div className="recv">
           {qr && <img src={qr} alt="QR code of your Hagi address" width={220} height={220} />}
           <span className="fl">Your Hagi address. It receives USDG and every stock</span>
-          <code>{s.hagiAddress}</code>
-          <button className="btn" onClick={copy}>{copied ? 'Copied' : 'Copy address'}</button>
+          <button className="rcv-addr" onClick={copy} aria-label="Copy your Hagi address"><code>{s.hagiAddress.slice(0, 10)}…{s.hagiAddress.slice(-8)}</code><span>{copied ? <><Icon name="check" size={15} />Copied</> : <><Icon name="copy" size={15} />Copy</>}</span></button>
+          <div className="rcv-acts">
+            <button className="btn" onClick={copy}>{copied ? 'Copied' : 'Copy address'}</button>
+            {'share' in navigator && <button className="btn o" onClick={() => navigator.share({ title: 'My Hagi address', text: s.hagiAddress! }).catch(() => {})}><Icon name="share" size={16} />Share</button>}
+          </div>
         </div>}
       </Card>
       <div className="col n">

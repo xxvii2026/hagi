@@ -811,3 +811,17 @@ html.gate-on,html.gate-on body{overflow:hidden}
 .gt-main{border:0;border-radius:999px;background:#fff;color:#1b2140;font:inherit;font-weight:600;font-size:17px;padding:17px;width:100%}
 .gt-skip{position:relative;align-self:center;margin-top:24px;border:0;background:none;color:#9ea6cc;font:inherit;font-size:14.5px;padding:10px 14px;text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(158,166,204,.4)}
 @media (prefers-reduced-motion:reduce){.gate,.gt-steps li,.gt-app{animation:none}}
+/* receive: a short address you can tap to copy, like an exchange */
+.rcv-addr{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;max-width:360px;margin:6px auto 14px;border:0;cursor:pointer;font:inherit;background:var(--page);border-radius:16px;padding:13px 14px 13px 18px;color:var(--ink)}
+.rcv-addr code{font-size:15px;letter-spacing:.01em;background:none;padding:0;margin:0}
+.rcv-addr span{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:600;color:var(--peri-d,#566eba);flex:none}
+.rcv-acts{display:flex;gap:10px;justify-content:center;max-width:360px;margin:0 auto}.rcv-acts .btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px}
+/* account menu: a pill on desktop, a burger on phones */
+.wal .wl-pill{display:flex;align-items:center;gap:8px}.wal .wl-burger{display:none}
+.tpl.menu .who{display:none}
+@media (max-width:700px){
+  .nav.appnav .tpw > .wal{width:42px;height:42px;padding:0;justify-content:center;border-radius:14px}
+  .nav.appnav .wal .wl-pill{display:none}.nav.appnav .wal .wl-burger{display:flex}
+  .tpl.menu .who{display:flex;align-items:center;gap:12px;padding:12px 14px 14px;border-bottom:1px solid var(--line,#e6e8f0);margin-bottom:4px}
+  .tpl.menu .who i{width:30px;height:30px;border-radius:50%;flex:none;background:linear-gradient(135deg,var(--peri),var(--lav))}
+}
