@@ -129,7 +129,7 @@ const PAGES: Page[] = [
         <><b>Connect it.</b> Open the app and choose Connect wallet. Hagi adds Robinhood Chain Testnet to your wallet if it isn’t there yet.</>,
         <><b>Sign in.</b> You sign one message. It is free and moves no funds. The first time, this creates your Hagi account. Your private Hagi account is worked out from that signature.</>,
         <><b>Get gas.</b> Claim free testnet ETH from the <Out href={FAUCET_URL}>Robinhood Chain faucet</Out>.</>,
-        <><b>Get test USDG.</b> On the Portfolio page, choose “Get 5,000 test USDG”. You can claim once a day.</>,
+        <><b>Get test USDG.</b> On the Portfolio page, choose “Claim test USDG” to get 5,000. Each account can claim once.</>,
         <><b>Shield it.</b> Type an amount in the Shield box and confirm. Your private balance appears a few seconds later.</>,
       ]} />
       <H>About your Hagi account</H>
@@ -296,7 +296,7 @@ const PAGES: Page[] = [
         ['HagiSwapAdapter', 'Lets the vault trade in the pools', <Addr value={DEPLOYED.adapter} />],
         ['HagiSwap', 'The test pools, one per stock against USDG', <Addr value={CFG.contracts.swap} />],
         ['BasketRegistry', 'Stores baskets and their recipes', <Addr value={CFG.contracts.basketRegistry} />],
-        ['TestUSDG', 'The test dollar token, with a daily faucet', <Addr value={CFG.contracts.usdg} />],
+        ['TestUSDG', 'The test dollar token, with a faucet', <Addr value={CFG.contracts.usdg} />],
       ]} />
       <H>Stock tokens</H>
       <Table head={['Token', 'Address']} rows={Object.entries(CFG.tokens).map(([k, v]) => [k, <Addr value={v} />])} />
@@ -355,7 +355,7 @@ const PAGES: Page[] = [
       <H>My wallet says I don’t have enough ETH</H>
       <P>Shielding, claiming test USDG and creating a basket are sent from your wallet and need a little gas. Get free testnet ETH from the <Out href={FAUCET_URL}>faucet</Out>.</P>
       <H>The faucet won’t give me more USDG</H>
-      <P>Test USDG can be claimed once a day per wallet.</P>
+      <P>The app lets each account claim test USDG once.</P>
       <H>“Not enough” of a token</H>
       <P>Swap, Send and Baskets spend from your private balance, not your wallet. Shield the token first.</P>
       <H>I sent funds but the other person can’t see them</H>

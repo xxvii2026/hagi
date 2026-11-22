@@ -55,7 +55,7 @@ export function Portfolio({ run }: { run: Run }) {
           }, tab === 'shield' ? 'Shielded. Off the record now.' : 'Unshielded. Back on the record.') }}>
             {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
           </button>}
-          {tab === 'shield' && <button className="link center" data-tour="faucet" onClick={faucet}>Claim 5,000 test USDG (once a day)</button>}
+          {tab === 'shield' && !s.claimed && <button className="link center" data-tour="faucet" onClick={faucet}>Claim 5,000 test USDG (one time)</button>}
   </>
 
   return (
@@ -99,8 +99,8 @@ export function Portfolio({ run }: { run: Run }) {
           ) : holdings.length === 0 ? (
             <div className="empty">
               <b>Nothing here yet</b>
-              <p>{Object.keys(s.walletBal).length ? 'You have test funds in your wallet. Make them private to start.' : 'Claim free test USDG, then make it private. Nothing here is real money.'}</p>
-              {!Object.keys(s.walletBal).length && <button className="btn sm" onClick={faucet}>Claim test USDG</button>}
+              <p>{Object.keys(s.walletBal).length ? 'You have test funds in your wallet. Make them private to start.' : (s.claimed ? 'Your wallet is empty. Add funds to get started.' : 'Claim free test USDG, then make it private. Nothing here is real money.')}</p>
+              {!Object.keys(s.walletBal).length && !s.claimed && <button className="btn sm" onClick={faucet}>Claim test USDG</button>}
             </div>
           ) : <>
             {holdings.length > 1 && (
@@ -178,7 +178,7 @@ function Checklist({ onClaim, onPrivate }: { onClaim: () => void; onPrivate: () 
   const did = (...k: string[]) => s.activity.some(a => k.includes(a.kind))
   const privateBal = Object.values(s.shielded).some(v => v > 0)
   const steps = [
-    { t: 'Claim test USDG', d: 'Free test money, once a day.', done: Object.keys(s.walletBal).length > 0 || privateBal || did('shield'), act: onClaim, cta: 'Claim' },
+    { t: 'Claim test USDG', d: '5,000 free test USDG, one time.', done: s.claimed || Object.keys(s.walletBal).length > 0 || privateBal || did('shield'), act: onClaim, cta: 'Claim' },
     { t: 'Make it private', d: 'Move it into your private balance.', done: privateBal || did('shield'), act: onPrivate, cta: 'Make private' },
     { t: 'Do something private', d: 'Swap, send or buy a basket.', done: did('swap', 'send', 'basket'), act: () => go('swap'), cta: 'Swap' },
   ]
