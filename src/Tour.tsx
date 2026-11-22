@@ -14,9 +14,9 @@ const stops = (ready: boolean): Stop[] => [
   { title: 'Welcome to Hagi', text: 'A quick look around before you start. It takes about thirty seconds.' },
   { sel: '.card.hero', title: 'Your private balance', text: 'Everything you shield adds up here. Only your key can read it. To everyone else it’s part of one shared vault.' },
   { sel: '[data-tour="shield"]', title: 'Shield and unshield', text: 'Shield moves tokens from your wallet into the vault. Unshield takes them back out. These are the only two steps others can see.' },
-  { sel: '.links a[href="#/swap"], .tabs a[href="#/swap"]', title: 'Swap privately', text: 'Trade one stock for another straight from your private balance. Nobody can tell the swap was yours.' },
-  { sel: '.links a[href="#/send"], .tabs a[href="#/send"]', title: 'Send privately', text: 'Pay another Hagi user. The amount and the person you paid stay hidden.' },
-  { sel: '.links a[href="#/baskets"], .tabs a[href="#/baskets"]', title: 'Baskets', text: 'Buy a ready-made mix of stocks in one go, or make your own.' },
+  { sel: '.links a[href="#/swap"], .tabbar a[href="#/swap"]', title: 'Swap privately', text: 'Trade one stock for another straight from your private balance. Nobody can tell the swap was yours.' },
+  { sel: '.links a[href="#/send"], .tabbar a[href="#/send"]', title: 'Send privately', text: 'Pay another Hagi user. The amount and the person you paid stay hidden.' },
+  { sel: '.links a[href="#/baskets"], .tabbar a[href="#/baskets"]', title: 'Baskets', text: 'Buy a ready-made mix of stocks in one go, or make your own.' },
   { sel: '[data-tour="faucet"]', title: 'Free test money', text: 'Everything here is testnet. Get a little testnet ETH for gas, then claim 5,000 test USDG here once a day.' },
   ready
     ? { sel: '.rt .wal', title: 'You’re all set', text: 'Your wallet menu is here: copy your Hagi address, export your history, or disconnect.' }

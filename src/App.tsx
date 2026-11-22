@@ -153,8 +153,8 @@ export default function App() {
       </main>
       {page !== 'home' && <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href="#/docs">Docs</a><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>}
       {app && (
-        <nav className="tabs" aria-label="Hagi">
-          {TABS.map(([p, label, icon]) => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''} aria-current={p === page ? 'page' : undefined}><Icon name={icon} size={21} /><span>{label}</span></a>)}
+        <nav className="tabbar" aria-label="Hagi">
+          {TABS.map(([p, label, icon]) => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''} aria-current={p === page ? 'page' : undefined}><Icon name={icon} size={24} /><span>{label}</span></a>)}
         </nav>
       )}
       <Toasts />

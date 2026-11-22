@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { FAUCET_URL } from '../chain'
 import * as engine from '../engine'
 import { TOKENS, asInput, fmt, token, usd } from '../data'
@@ -15,6 +16,10 @@ export function Portfolio({ run }: { run: Run }) {
   const [sym, setSym] = useState('USDG')
   const [amt, setAmt] = useState('')
   const [copied, setCopied] = useState(false)
+  // Phones: the shield form and token details open as sheets instead of sitting on the page.
+  const [addOpen, setAddOpen] = useState(false)
+  const [detail, setDetail] = useState<string | null>(null)
+  const openAdd = (t: 'shield' | 'unshield', k?: string) => { setTab(t); if (k) setSym(k); setAmt(''); setDetail(null); setAddOpen(true) }
   const src = tab === 'shield' ? s.walletBal : s.shielded
   // Every token can be shielded and unshielded, so the picker always lists all of them.
   const options = TOKENS.map(t => t.symbol)
@@ -39,6 +44,22 @@ export function Portfolio({ run }: { run: Run }) {
     await api.refresh()
   }, 'Shielded. Off the record now.')
 
+  const shieldForm = <>
+          <div className="tabs"><button className={tab === 'shield' ? 'on' : ''} onClick={() => setTab('shield')}>Shield</button><button className={tab === 'unshield' ? 'on' : ''} onClick={() => setTab('unshield')}>Unshield</button></div>
+          <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
+            hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))}
+            right={<TokenPicker value={cur} onChange={setSym} options={options} balances={src} />} />
+          {!ready ? <NeedAccount /> : <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
+            await engine[tab](cur, n, step)
+            api.log({ kind: tab, title: (tab === 'shield' ? 'Shielded ' : 'Unshielded ') + cur, detail: amt4(cur, n) })
+            setAmt(''); await api.refresh()
+          }, tab === 'shield' ? 'Shielded. Off the record now.' : 'Unshielded. Back on the record.')}>
+            {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
+          </button>}
+          {tab === 'shield' && <button className="link center" data-tour="faucet" onClick={faucet}>{needsEth ? 'Need gas? Open the ETH faucet' : 'Get 5,000 test USDG (once a day)'}</button>}
+          <Visibility pub={tab === 'shield' ? 'this deposit: your wallet and the amount.' : 'this withdrawal: the receiving wallet and the amount.'} priv="your balance and what you hold." />
+  </>
+
   return (
     <div className="wrap">
       <div className="col">
@@ -52,9 +73,14 @@ export function Portfolio({ run }: { run: Run }) {
           </div>
           <div className="big">${whole}<small>.{cents}</small></div>
           <div className="qas">
+            <button className="qa qm" onClick={() => openAdd('shield')}><i><Icon name="plus" /></i>Add</button>
             <button className="qa" onClick={() => go('swap')}><i><Icon name="swap" /></i>Swap</button>
             <button className="qa" onClick={() => go('send')}><i><Icon name="right" /></i>Send</button>
+            <button className="qa qm" onClick={() => go('send?tab=receive')}><i><Icon name="down" /></i>Receive</button>
           </div>
+          {ready && unshielded > 0 && (
+            <button className="walpill" onClick={shieldAll}><span>{usd(unshielded)} still in your wallet</span><b>Make private<Icon name="right" size={13} /></b></button>
+          )}
         </Card>
 
         {ready && unshielded > 0 && holdings.length === 0 && (
@@ -85,15 +111,11 @@ export function Portfolio({ run }: { run: Run }) {
               </div>
             )}
             {holdings.map(([k, v]) => (
-              <div className="row hold" key={k}>
+              <button className="row hold" key={k} onClick={() => setDetail(k)}>
                 <TokenIcon symbol={k} />
                 <div className="g"><b>{token(k).name}</b><span>{k}</span></div>
-                <div className="rowacts">
-                  <button className="chip line" onClick={() => go('swap?from=' + k)}>Swap</button>
-                  <button className="chip line" onClick={() => go('send?token=' + k)}>Send</button>
-                </div>
                 <div className="r"><b><Amount value={v * token(k).price} seed={k + 'v'} prefix="$" /></b><span><Amount value={v} seed={k + 'q'} digits={k === 'USDG' ? 2 : 4} cell={6} /> {k}</span></div>
-              </div>
+              </button>
             ))}
           </>}
         </Card>
@@ -103,24 +125,48 @@ export function Portfolio({ run }: { run: Run }) {
       <div className="col">
         <Card className="shieldcard">
           <div data-tour="shield" className="tour-area" />
-          <div className="tabs"><button className={tab === 'shield' ? 'on' : ''} onClick={() => setTab('shield')}>Shield</button><button className={tab === 'unshield' ? 'on' : ''} onClick={() => setTab('unshield')}>Unshield</button></div>
-          <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
-            hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))}
-            right={<TokenPicker value={cur} onChange={setSym} options={options} balances={src} />} />
-          {!ready ? <NeedAccount /> : <button className="btn" disabled={n <= 0 || n > have} onClick={() => run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
-            await engine[tab](cur, n, step)
-            api.log({ kind: tab, title: (tab === 'shield' ? 'Shielded ' : 'Unshielded ') + cur, detail: amt4(cur, n) })
-            setAmt(''); await api.refresh()
-          }, tab === 'shield' ? 'Shielded. Off the record now.' : 'Unshielded. Back on the record.')}>
-            {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
-          </button>}
-          {tab === 'shield' && <button className="link center" data-tour="faucet" onClick={faucet}>{needsEth ? 'Need gas? Open the ETH faucet' : 'Get 5,000 test USDG (once a day)'}</button>}
-          <Visibility pub={tab === 'shield' ? 'this deposit: your wallet and the amount.' : 'this withdrawal: the receiving wallet and the amount.'} priv="your balance and what you hold." />
+          {shieldForm}
         </Card>
         <Card title="Recent activity" action={<button className="tag" onClick={() => go('activity')}>See all</button>}>
           <ActivityList limit={4} />
         </Card>
       </div>
+
+      {addOpen && createPortal(
+        <div className="overlay" onClick={() => setAddOpen(false)}>
+          <div className="modal wide sheetform" onClick={e => e.stopPropagation()}>
+            <div className="ch"><h3>{tab === 'shield' ? 'Add to your private balance' : 'Move out of Hagi'}</h3><button className="x" onClick={() => setAddOpen(false)} aria-label="Close"><Icon name="close" /></button></div>
+            {shieldForm}
+          </div>
+        </div>, document.body,
+      )}
+      {detail && <TokenSheet k={detail} amount={s.shielded[detail] ?? 0} total={bal} onClose={() => setDetail(null)} onUnshield={() => openAdd('unshield', detail)} />}
     </div>
+  )
+}
+
+/** One holding, up close: value, amount, price and what you can do with it. */
+function TokenSheet({ k, amount, total: all, onClose, onUnshield }: { k: string; amount: number; total: number; onClose: () => void; onUnshield: () => void }) {
+  const t = token(k), value = amount * t.price
+  return createPortal(
+    <div className="overlay" onClick={onClose}>
+      <div className="modal tsheet" onClick={e => e.stopPropagation()}>
+        <button className="x" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
+        <TokenIcon symbol={k} size={64} />
+        <div className="ts-name">{t.name}</div>
+        <div className="ts-val">{usd(value)}</div>
+        <div className="ts-amt">{fmt(amount, k === 'USDG' ? 2 : 4)} {k}</div>
+        <dl className="ts-facts">
+          <div><dt>Price</dt><dd>{usd(t.price)}</dd></div>
+          <div><dt>Share of balance</dt><dd>{all ? Math.round((value / all) * 100) : 0}%</dd></div>
+          <div><dt>Visible to others</dt><dd><Icon name="lock" size={14} /> No</dd></div>
+        </dl>
+        <div className="ts-acts">
+          <button onClick={() => go('swap?from=' + k)}><i><Icon name="swap" /></i>Swap</button>
+          <button onClick={() => go('send?token=' + k)}><i><Icon name="right" /></i>Send</button>
+          <button onClick={onUnshield}><i><Icon name="up" /></i>Withdraw</button>
+        </div>
+      </div>
+    </div>, document.body,
   )
 }

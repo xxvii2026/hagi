@@ -167,6 +167,17 @@ export function Progress({ title, task, doneText, onClose }: { title: string; ta
       e => { setError(friendly(e)); setState('error') },
     )
   }, [task, onClose])
+  // On a phone the work runs quietly in a small pill at the top. The full window only appears if something needs the user.
+  const [phone] = useState(() => matchMedia('(max-width: 700px)').matches)
+  if (phone && !ask && state !== 'error') {
+    const last = steps[steps.length - 1]
+    return (
+      <div className={'bgjob' + (state === 'done' ? ' ok' : '')} role="status" aria-live="polite">
+        <span className={'bgjob-dot' + (state === 'done' ? ' ok' : '')}>{state === 'done' ? <Icon name="check" size={14} /> : <i />}</span>
+        <span className="bgjob-t"><b>{state === 'done' ? (doneText ?? 'Done.') : title}</b>{state !== 'done' && last && <em>{last}</em>}</span>
+      </div>
+    )
+  }
   return (
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="modal">

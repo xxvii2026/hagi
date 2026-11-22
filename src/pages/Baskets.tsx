@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useState } from 'react'
 import { asInput, MAX_BASKET, STOCKS, fmt, token, type Basket } from '../data'
 import * as engine from '../engine'
@@ -32,7 +33,7 @@ function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: Run })
   const [amt, setAmt] = useState('')
   const n = parseFloat(amt) || 0
   const have = s.shielded.USDG ?? 0
-  return (
+  return createPortal(
     <div className="overlay" onClick={close}><div className="modal wide" onClick={e => e.stopPropagation()}>
       <div className="ch"><span>{b.name}</span><button className="x" onClick={close} aria-label="Close"><Icon name="close" size={15} /></button></div>
       <p className="muted">Created by {b.creator} · {b.buyers} buyers</p>
@@ -44,7 +45,7 @@ function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: Run })
         await api.refresh()
       }, 'Bought. Straight into the vault.') }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>}
       <Visibility pub="that someone bought this basket, and for how much." priv="who bought it and your balance." />
-    </div></div>
+    </div></div>, document.body,
   )
 }
 
@@ -65,7 +66,7 @@ function CreateModal({ close, run, start }: { close: () => void; run: Run; start
   const toggle = (sym: string) => { const n = { ...w }; if (sym in n) delete n[sym]; else if (picked.length < MAX_BASKET) n[sym] = 0; setW(n) }
   const even = () => { const base = Math.floor(100 / picked.length); const n: Record<string, number> = {}; picked.forEach((k, i) => (n[k] = base + (i < 100 - base * picked.length ? 1 : 0))); setW(n) }
   const ok = name.trim().length >= 2 && picked.length >= 2 && sum === 100 && picked.every(k => w[k] > 0)
-  return (
+  return createPortal(
     <div className="overlay" onClick={close}><div className="modal wide" onClick={e => e.stopPropagation()}>
       <div className="ch"><span>Create a basket</span><button className="x" onClick={close} aria-label="Close"><Icon name="close" size={15} /></button></div>
       <div className="fld"><span className="fl">Name</span><input className="txt" placeholder="e.g. Chip makers" maxLength={32} value={name} onChange={e => setName(e.target.value)} aria-label="Basket name" /></div>
@@ -77,7 +78,7 @@ function CreateModal({ close, run, start }: { close: () => void; run: Run; start
       </>}
 {!s.wallet ? <NeedAccount /> : <button className="btn" disabled={!ok} onClick={() => { close(); run('Creating your basket', async step => { await engine.createBasket(name.trim(), picked.map(k => ({ symbol: k, weight: w[k] })), step); await api.refresh() }, 'Basket created. It’s permanent now.') }}>{picked.length >= 2 && sum !== 100 ? `Weights must total 100% (now ${sum}%)` : 'Create basket'}</button>}
       <p className="muted small">A basket can’t be changed after it’s created. To change the mix, make a new one.</p>
-    </div></div>
+    </div></div>, document.body,
   )
 }
 
