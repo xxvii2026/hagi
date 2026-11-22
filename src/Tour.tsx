@@ -5,6 +5,8 @@ import { Icon, Mark } from './ui'
 
 /** A short guided tour of the Portfolio page. It spotlights one thing at a time with a card next to it. */
 
+// The same stop can point at the top links on a computer and the bottom tabs on a phone: use whichever is showing.
+const visible = (sel: string) => [...document.querySelectorAll<HTMLElement>(sel)].find(e => e.offsetParent !== null || getComputedStyle(e).position === 'fixed') ?? null
 type Stop = { sel?: string; title: string; text: string }
 export const TOUR_KEY = 'hagi-tour-v1'
 
@@ -12,9 +14,9 @@ const stops = (ready: boolean): Stop[] => [
   { title: 'Welcome to Hagi', text: 'A quick look around before you start. It takes about thirty seconds.' },
   { sel: '.card.hero', title: 'Your private balance', text: 'Everything you shield adds up here. Only your key can read it. To everyone else it’s part of one shared vault.' },
   { sel: '[data-tour="shield"]', title: 'Shield and unshield', text: 'Shield moves tokens from your wallet into the vault. Unshield takes them back out. These are the only two steps others can see.' },
-  { sel: '.links a[href="#/swap"]', title: 'Swap privately', text: 'Trade one stock for another straight from your private balance. Nobody can tell the swap was yours.' },
-  { sel: '.links a[href="#/send"]', title: 'Send privately', text: 'Pay another Hagi user. The amount and the person you paid stay hidden.' },
-  { sel: '.links a[href="#/baskets"]', title: 'Baskets', text: 'Buy a ready-made mix of stocks in one go, or make your own.' },
+  { sel: '.links a[href="#/swap"], .tabs a[href="#/swap"]', title: 'Swap privately', text: 'Trade one stock for another straight from your private balance. Nobody can tell the swap was yours.' },
+  { sel: '.links a[href="#/send"], .tabs a[href="#/send"]', title: 'Send privately', text: 'Pay another Hagi user. The amount and the person you paid stay hidden.' },
+  { sel: '.links a[href="#/baskets"], .tabs a[href="#/baskets"]', title: 'Baskets', text: 'Buy a ready-made mix of stocks in one go, or make your own.' },
   { sel: '[data-tour="faucet"]', title: 'Free test money', text: 'Everything here is testnet. Get a little testnet ETH for gas, then claim 5,000 test USDG here once a day.' },
   ready
     ? { sel: '.rt .wal', title: 'You’re all set', text: 'Your wallet menu is here: copy your Hagi address, export your history, or disconnect.' }
@@ -42,14 +44,14 @@ export function Tour({ onClose }: { onClose: () => void }) {
   const measure = useCallback(() => {
     const k = scale()
     setVw({ w: innerWidth / k, h: innerHeight / k })
-    const el = stop.sel ? document.querySelector<HTMLElement>(stop.sel) : null
+    const el = stop.sel ? visible(stop.sel) : null
     if (!el || !el.offsetParent) { setBox(null); return }
     const r = el.getBoundingClientRect()
     setBox({ x: r.left / k, y: r.top / k, w: r.width / k, h: r.height / k })
   }, [stop.sel])
 
   useLayoutEffect(() => {
-    const el = stop.sel ? document.querySelector<HTMLElement>(stop.sel) : null
+    const el = stop.sel ? visible(stop.sel) : null
     // A tall target goes to the top of the screen so the card still fits under it.
     const tall = !!el && el.getBoundingClientRect().height > innerHeight * 0.45
     el?.scrollIntoView({ block: tall ? 'start' : 'center', inline: 'center', behavior: 'smooth' })
