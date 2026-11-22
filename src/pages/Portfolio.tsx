@@ -78,13 +78,6 @@ export function Portfolio({ run }: { run: Run }) {
           )}
         </Card>
 
-        {ready && unshielded > 0 && holdings.length === 0 && (
-          <div className="nudge">
-            <span><i><Icon name="alert" /></i><span><b>{usd(unshielded)} in your wallet isn’t private yet.</b><em>Shield it to add it to your private balance.</em></span></span>
-            <button className="btn sm" onClick={shieldAll}>Shield all</button>
-          </div>
-        )}
-
         {ready && s.loaded && <Checklist onClaim={faucet} onPrivate={() => (Object.keys(s.walletBal).length ? shieldAll() : openAdd('shield'))} />}
 
         <Card title="Your stocks and cash">
