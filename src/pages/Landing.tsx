@@ -6,6 +6,7 @@ import { go } from '../nav'
 import { useStore } from '../store'
 import { Censor, Icon, Mark, TokenIcon, type IconName } from '../ui'
 import { BasketBuilder, Lens, SwapStory, WalletCheck } from './LandingParts'
+import { openApp } from '../install'
 
 /** A value that shows plainly to its owner and as a pixel censor to everyone else. */
 function Peek({ text, seed, cols = 7, cell = 9, onDark = false }: { text: string; seed: string; cols?: number; cell?: number; onDark?: boolean }) {
@@ -69,7 +70,7 @@ export function Landing() {
     }
     f(); addEventListener('scroll', f, { passive: true }); return () => removeEventListener('scroll', f)
   }, [])
-  const open = () => go('portfolio')
+  const open = () => openApp()
   const navy = true // the landing page is navy; the app itself stays light
   useEffect(() => { document.body.classList.toggle('navy-page', navy); return () => document.body.classList.remove('navy-page') }, [navy])
   const primary = navy ? 'btn light' : 'btn'

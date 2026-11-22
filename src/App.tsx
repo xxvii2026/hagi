@@ -13,7 +13,7 @@ import { Landing } from './pages/Landing'
 import { Docs } from './pages/Docs'
 import { CONNECT_EVENT, TOUR_EVENT, askConnect, startTour } from './gate'
 import { TOUR_KEY, Tour } from './Tour'
-import { InstallCard, isStandalone } from './install'
+import { InstallCard, InstallGate, isStandalone, openApp } from './install'
 import { PasskeyError, passkeysSupported } from './passkey'
 import { Intro } from './Intro'
 import { PullToRefresh } from './pull'
@@ -130,10 +130,10 @@ export default function App() {
   const closeJob = useCallback(() => setJob(null), [])
   const ready = !!s.wallet && !!s.hagiAddress
   const app = page !== 'home' && page !== 'docs'
-  // Phones open on the intro while signed out. Once signed in it plays its hand-off and steps aside.
+  // The installed app opens on the intro while signed out. Once signed in it plays its hand-off and steps aside.
   const [phone, setPhone] = useState(() => matchMedia('(max-width: 700px)').matches)
   useEffect(() => { const m = matchMedia('(max-width: 700px)'), f = () => setPhone(m.matches); m.addEventListener('change', f); return () => m.removeEventListener('change', f) }, [])
-  const wantIntro = app && phone && !ready
+  const wantIntro = app && phone && isStandalone() && !ready
   const [intro, setIntro] = useState<'off' | 'on' | 'leaving'>(wantIntro ? 'on' : 'off')
   useEffect(() => {
     if (wantIntro) { setIntro('on'); return }
@@ -167,7 +167,7 @@ export default function App() {
         <div className="rt">
           {app && <button className="help" onClick={startTour} aria-label="Take the tour" title="Take the tour">?</button>}
           {app && <span className="net"><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>}
-          {page === 'home' ? <a className="wal" href="#/portfolio">Open the app</a>
+          {page === 'home' ? <a className="wal" href="#/portfolio" onClick={e => { e.preventDefault(); openApp() }}>Open the app</a>
             : ready ? <WalletMenu />
             : <button className="wal" onClick={askConnect}><i /><span className="t-long">Sign in</span><span className="t-short">Sign in</span></button>}
         </div>
@@ -185,6 +185,7 @@ export default function App() {
       )}
       <Toasts />
       {intro !== 'off' && <Intro leaving={intro === 'leaving'} />}
+      <InstallGate />
       {connecting && <ConnectModal onClose={() => setConnecting(false)} />}
       {touring && <Tour onClose={() => setTouring(false)} />}
       {job && <Progress title={job.title} task={job.task} doneText={job.done} onClose={closeJob} />}
