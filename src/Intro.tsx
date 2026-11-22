@@ -56,6 +56,7 @@ export function Intro({ leaving }: { leaving: boolean }) {
   const [i, setI] = useState(0)
   const [returning] = useState(() => { try { return !!localStorage.getItem(PASSKEY_SEEN) } catch { return false } })
   useEffect(() => { const t = setInterval(() => setI(n => (n + 1) % SLIDES.length), MS); return () => clearInterval(t) }, [])
+  useEffect(() => { document.documentElement.classList.add('intro-on'); return () => document.documentElement.classList.remove('intro-on') }, [])
   const slide = SLIDES[i]
   const { api } = useStore()
   const [busy, setBusy] = useState(false)
