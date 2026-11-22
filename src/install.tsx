@@ -1,6 +1,6 @@
 // Installing Hagi to the home screen: detection, the browser's install prompt, and a small card that explains it.
 import { useEffect, useState } from 'react'
-import { Icon } from './ui'
+import { Icon, Mark } from './ui'
 
 type Prompt = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }
 let deferred: Prompt | null = null
@@ -45,6 +45,54 @@ export function InstallCard() {
       )}
       {!steps && <button className="inst-b" onClick={install}>{deferred ? 'Install' : 'How'}</button>}
       <button className="inst-x" onClick={dismiss} aria-label="Hide this"><Icon name="close" size={14} /></button>
+    </div>
+  )
+}
+
+const GATE_EVENT = 'hagi-open-app'
+const GATE_SEEN = 'hagi-gate-seen'
+const phoneNow = () => matchMedia('(max-width: 700px)').matches
+
+/** "Open the app": on a phone browser, first suggest adding Hagi to the home screen (once per visit). */
+export function openApp() {
+  let seen = false; try { seen = !!sessionStorage.getItem(GATE_SEEN) } catch { /* show it */ }
+  if (phoneNow() && !isStandalone() && !seen) dispatchEvent(new Event(GATE_EVENT))
+  else location.hash = '#/portfolio'
+}
+
+/** Full-screen guide to adding Hagi to the home screen, with a quiet way to carry on in the browser. */
+export function InstallGate() {
+  const [on, setOn] = useState(false)
+  const [, bump] = useState(0)
+  useEffect(() => {
+    const f = () => setOn(true), g = () => bump(n => n + 1)
+    addEventListener(GATE_EVENT, f); listeners.add(g)
+    return () => { removeEventListener(GATE_EVENT, f); listeners.delete(g) }
+  }, [])
+  useEffect(() => { document.documentElement.classList.toggle('gate-on', on); return () => document.documentElement.classList.remove('gate-on') }, [on])
+  if (!on) return null
+  const carryOn = () => { try { sessionStorage.setItem(GATE_SEEN, '1') } catch { /* fine */ } setOn(false); location.hash = '#/portfolio' }
+  const install = async () => { if (!deferred) return; await deferred.prompt(); const r = await deferred.userChoice; deferred = null; bump(n => n + 1); if (r.outcome === 'accepted') carryOn() }
+  const ios = isIOS()
+  const steps: [React.ReactNode, string][] = ios
+    ? [[<>Tap <span className="gt-k"><Icon name="share" size={15} /></span> Share</>, 'In Safari, it sits in the bottom bar. On newer iPhones, tap ··· first.'],
+       [<>Tap <span className="gt-k"><Icon name="plus" size={15} /></span> Add to Home Screen</>, 'Scroll down the list if you don’t see it.'],
+       [<>Open Hagi from your home screen</>, 'Sign in with Face ID and you’re in.']]
+    : [[<>Tap <span className="gt-k">⋮</span> in your browser</>, 'The menu at the top right.'],
+       [<>Tap Install app</>, 'Some phones call it Add to Home screen.'],
+       [<>Open Hagi from your home screen</>, 'Sign in with your fingerprint and you’re in.']]
+  return (
+    <div className="gate" role="dialog" aria-modal="true" aria-label="Add Hagi to your home screen">
+      <div className="gt-glow" aria-hidden />
+      <div className="gt-body">
+        <span className="gt-app"><Mark size={46} leaf="#ffffff" block="#8696cf" /></span>
+        <h2>Hagi lives on your home screen</h2>
+        <p className="gt-sub">Add it once and it opens full screen like any other app, with no browser bars and quick sign-in.</p>
+        {deferred && !ios
+          ? <button className="gt-main" onClick={install}>Install Hagi</button>
+          : <ol className="gt-steps">{steps.map(([t, d], i) => <li key={i} style={{ animationDelay: `${0.12 + i * 0.08}s` }}><span className="gt-n">{i + 1}</span><span><b>{t}</b><em>{d}</em></span></li>)}</ol>}
+      </div>
+      <button className="gt-skip" onClick={carryOn}>Continue in browser</button>
     </div>
   )
 }
