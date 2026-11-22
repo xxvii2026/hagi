@@ -64,16 +64,18 @@ async function blockTimes(blocks: bigint[]) {
 
 async function load(): Promise<Data> {
   const latest = await client.getBlockNumber()
-  const addrs = TOKENS.map(t => t.address)
-  const [commits, nulls, outs, ins, mints, created, bought] = await Promise.all([
-    logs((fromBlock, toBlock) => client.getLogs({ address: VAULT, event: E.commit, fromBlock, toBlock }), latest),
-    logs((fromBlock, toBlock) => client.getLogs({ address: VAULT, event: E.nullifier, fromBlock, toBlock }), latest),
-    logs((fromBlock, toBlock) => client.getLogs({ address: addrs, event: E.transfer, args: { from: VAULT }, fromBlock, toBlock }), latest),
-    logs((fromBlock, toBlock) => client.getLogs({ address: addrs, event: E.transfer, args: { to: VAULT }, fromBlock, toBlock }), latest),
-    logs((fromBlock, toBlock) => client.getLogs({ address: CFG.contracts.usdg, event: E.transfer, args: { from: zeroAddress }, fromBlock, toBlock }), latest),
-    logs((fromBlock, toBlock) => client.getLogs({ address: CFG.contracts.basketRegistry, event: E.created, fromBlock, toBlock }), latest),
-    logs((fromBlock, toBlock) => client.getLogs({ address: CFG.contracts.basketRegistry, event: E.bought, fromBlock, toBlock }), latest),
-  ])
+  // One address per log query: the public RPC rejects a list of addresses as invalid parameters.
+  // Each query is labelled so a failure says exactly which read broke.
+  const q = <T,>(label: string, p: Promise<T>) => p.catch(e => { throw new Error(`${label}: ${e instanceof Error ? e.message.split('\n')[0] : e}`) })
+  const perToken = (dir: 'from' | 'to') => Promise.all(TOKENS.map(t => q(`${t.symbol} transfers`,
+    logs((fromBlock, toBlock) => client.getLogs({ address: t.address, event: E.transfer, args: dir === 'from' ? { from: VAULT } : { to: VAULT }, fromBlock, toBlock }), latest)))).then(x => x.flat())
+  const commits = await q('vault receipts', logs((fromBlock, toBlock) => client.getLogs({ address: VAULT, event: E.commit, fromBlock, toBlock }), latest))
+  const nulls = await q('vault nullifiers', logs((fromBlock, toBlock) => client.getLogs({ address: VAULT, event: E.nullifier, fromBlock, toBlock }), latest))
+  const outs = await perToken('from')
+  const ins = await perToken('to')
+  const mints = await q('faucet claims', logs((fromBlock, toBlock) => client.getLogs({ address: CFG.contracts.usdg, event: E.transfer, args: { from: zeroAddress }, fromBlock, toBlock }), latest))
+  const created = await q('baskets created', logs((fromBlock, toBlock) => client.getLogs({ address: CFG.contracts.basketRegistry, event: E.created, fromBlock, toBlock }), latest))
+  const bought = await q('baskets bought', logs((fromBlock, toBlock) => client.getLogs({ address: CFG.contracts.basketRegistry, event: E.bought, fromBlock, toBlock }), latest))
 
   // Prices and holdings
   const stocks = TOKENS.filter(t => t.symbol !== 'USDG')
@@ -83,7 +85,7 @@ async function load(): Promise<Data> {
     fetch(CFG.relayerUrl).then(r => r.json()).then((j: { relayer: string | null; keyValid: boolean; chainReachable: boolean; balanceEth: string | null }) =>
       ({ address: j.relayer, ok: j.keyValid && j.chainReachable, eth: j.balanceEth === null ? null : Number(j.balanceEth) }),
     ).catch(e => ({ address: null, ok: false, eth: null, error: String(e?.message ?? e) })),
-    client.readContract({ address: VAULT, abi: adapterAbi, functionName: 'adapter' }),
+    q('vault adapter', client.readContract({ address: VAULT, abi: adapterAbi, functionName: 'adapter' })),
   ])
   const price: Record<string, number> = { USDG: 1 }
   const pools = stocks.map((t, i) => {
