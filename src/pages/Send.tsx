@@ -9,7 +9,7 @@ import { AmountField, Card, NeedAccount, TokenPicker, Visibility, type Run } fro
 
 export function Send({ run }: { run: Run }) {
   const { s, api } = useStore()
-  const [tab, setTab] = useState<'send' | 'receive'>('send')
+  const [tab, setTab] = useState<'send' | 'receive'>(hashParam('tab') === 'receive' ? 'receive' : 'send')
   // USDG and every stock can be sent privately.
   const options = TOKENS.map(t => t.symbol)
   const [sym, setSym] = useState(hashParam('token') ?? options[0])

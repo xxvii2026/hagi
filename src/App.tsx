@@ -13,9 +13,13 @@ import { Landing } from './pages/Landing'
 import { Docs } from './pages/Docs'
 import { CONNECT_EVENT, TOUR_EVENT, askConnect, startTour } from './gate'
 import { TOUR_KEY, Tour } from './Tour'
+import { InstallCard, isStandalone } from './install'
+import type { IconName } from './ui'
 
 const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
 const ROUTES = ['home', 'docs', ...PAGES] as const
+// The phone tab bar: the same pages, with icons.
+const TABS: [typeof PAGES[number], string, IconName][] = [['portfolio', 'Portfolio', 'wallet'], ['swap', 'Swap', 'swap'], ['baskets', 'Baskets', 'basket'], ['send', 'Send', 'send'], ['activity', 'Activity', 'clock']]
 type Page = (typeof ROUTES)[number]
 const read = (): Page => { const h = location.hash.replace('#/', '').split('?')[0].split('/')[0]; return (ROUTES as readonly string[]).includes(h) ? (h as Page) : 'home' }
 
@@ -45,6 +49,8 @@ function WalletMenu() {
         <ul className="tpl menu" role="menu">
           {s.hagiAddress && <li><button onClick={copy}><span className="g"><b>{copied ? 'Copied' : 'Copy my Hagi address'}</b><span>{s.hagiAddress.slice(0, 12)}…{s.hagiAddress.slice(-6)}</span></span><Icon name="copy" size={15} /></button></li>}
           <li><button onClick={exportHistory} disabled={!s.activity.length}><span className="g"><b>Export my history</b><span>{s.activity.length ? 'Downloads your activity as a file' : 'Nothing to export yet'}</span></span></button></li>
+          <li className="m-only"><button onClick={() => { setOpen(false); startTour() }}><span className="g"><b>Take the tour</b><span>A quick walk through Hagi</span></span></button></li>
+          <li className="m-only"><a href="#/docs" onClick={() => setOpen(false)}><span className="g"><b>Docs</b><span>How Hagi works, in plain words</span></span></a></li>
           <li><button onClick={() => { setOpen(false); api.disconnect() }}><span className="g"><b>Disconnect</b><span>Locks your Hagi account on this tab</span></span></button></li>
         </ul>
       )}
@@ -108,6 +114,8 @@ export default function App() {
   const run = useCallback((title: string, task: (step: Step) => Promise<void>, done?: string) => setJob({ title, task, done }), [])
   const closeJob = useCallback(() => setJob(null), [])
   const ready = !!s.wallet && !!s.hagiAddress
+  // Opened from the home screen, Hagi goes straight into the app instead of the landing page.
+  useEffect(() => { if (page === 'home' && isStandalone()) location.replace('#/portfolio') }, [page])
   const app = page !== 'home' && page !== 'docs'
   // The connect window opens from anywhere and closes itself once the account is ready.
   const [connecting, setConnecting] = useState(false)
@@ -126,7 +134,7 @@ export default function App() {
 
   return (
     <>
-      <header className="nav">
+      <header className={'nav' + (app ? ' appnav' : '')}>
         <a className="lg" href="#/home"><Mark leaf={dark ? '#ffffff' : undefined} secret />hagi</a>
         <nav className="links">{page === 'home'
           ? <>{[['check', 'Check your wallet'], ['how', 'How it works'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)}<a href="#/docs">Docs</a></>
@@ -139,10 +147,16 @@ export default function App() {
             : <button className="wal" onClick={askConnect}><i /><span className="t-long">{s.wallet ? 'Sign in' : 'Connect wallet'}</span><span className="t-short">{s.wallet ? 'Sign in' : 'Connect'}</span></button>}
         </div>
       </header>
+      {page === 'portfolio' && <InstallCard />}
       <main key={page} className="pg">
         {page === 'home' ? <Landing /> : page === 'docs' ? <Docs /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
       </main>
       {page !== 'home' && <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href="#/docs">Docs</a><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>}
+      {app && (
+        <nav className="tabbar" aria-label="Hagi">
+          {TABS.map(([p, label, icon]) => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''} aria-current={p === page ? 'page' : undefined}><Icon name={icon} size={24} /><span>{label}</span></a>)}
+        </nav>
+      )}
       <Toasts />
       {connecting && <ConnectModal onClose={() => setConnecting(false)} />}
       {touring && <Tour onClose={() => setTouring(false)} />}

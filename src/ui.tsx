@@ -36,6 +36,7 @@ const ICONS = {
   right: 'M4 10h12M11 5l5 5-5 5', left: 'M16 10H4M9 5l-5 5 5 5', basket: 'M4 4h5v5H4zM11 4h5v5h-5zM4 11h5v5H4zM11 11h5v5h-5z',
   chevron: 'M5 8l5 5 5-5', copy: 'M7 7h9v9H7zM4 13V4h9', alert: 'M10 5v6M10 14.4v.2', close: 'M5 5l10 10M15 5L5 15', check: 'M4 10.5l4 4 8-9',
   lock: 'M5.5 9h9v7.5h-9zM7.5 9V6.5a2.5 2.5 0 0 1 5 0V9', eye: 'M2.5 10s3-5 7.5-5 7.5 5 7.5 5-3 5-7.5 5-7.5-5-7.5-5zM10 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4z', shield: 'M10 3l6 2v5c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V5z',
+  wallet: 'M3.5 6.5h13v9.5h-13zM3.5 6.5l1.8-2.8h9.4l1.8 2.8M13 11.2h1.2', clock: 'M10 3.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zM10 6.5v3.8l2.6 1.6', send: 'M3.5 10.2 16.5 4l-4.8 12.5-2.4-5.3z', share: 'M10 3.5v9M6.5 7 10 3.5 13.5 7M5 10.5v6h10v-6', plus: 'M10 4v12M4 10h12',
 } as const
 export type IconName = keyof typeof ICONS
 /** One drawn icon set with a single line weight, so icons look the same on every device. */
@@ -166,6 +167,17 @@ export function Progress({ title, task, doneText, onClose }: { title: string; ta
       e => { setError(friendly(e)); setState('error') },
     )
   }, [task, onClose])
+  // On a phone the work runs quietly in a small pill at the top. The full window only appears if something needs the user.
+  const [phone] = useState(() => matchMedia('(max-width: 700px)').matches)
+  if (phone && !ask && state !== 'error') {
+    const last = steps[steps.length - 1]
+    return (
+      <div className={'bgjob' + (state === 'done' ? ' ok' : '')} role="status" aria-live="polite">
+        <span className={'bgjob-dot' + (state === 'done' ? ' ok' : '')}>{state === 'done' ? <Icon name="check" size={14} /> : <i />}</span>
+        <span className="bgjob-t"><b>{state === 'done' ? (doneText ?? 'Done.') : title}</b>{state !== 'done' && last && <em>{last}</em>}</span>
+      </div>
+    )
+  }
   return (
     <div className="overlay" role="dialog" aria-modal="true">
       <div className="modal">
