@@ -105,6 +105,7 @@ export function Store({ children }: { children: ReactNode }) {
     passkey: async create => {
       const secret = create ? await createPasskey() : await usePasskey()
       const r = engine.passkeyIn(secret)
+      try { localStorage.setItem('hagi-has-passkey', '1') } catch { /* fine */ }
       patch({ wallet: r.wallet, hagiAddress: r.address, activity: load(activityKey(r.wallet), []) })
       await refresh()
     },
