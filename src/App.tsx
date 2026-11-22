@@ -92,22 +92,27 @@ function ConnectModal({ onClose }: { onClose: () => void }) {
   }
   useEffect(() => { const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !busy) onClose() }; addEventListener('keydown', esc); return () => removeEventListener('keydown', esc) }, [busy, onClose])
   const walletHalfway = !!s.wallet && !s.hagiAddress && !engine.isPasskey()
+  // A passkey made or used on this device before means this person already has an account: just sign in.
+  const [hasPasskey] = useState(() => { try { return !!localStorage.getItem('hagi-has-passkey') } catch { return false } })
   return (
     <div className="overlay" onClick={() => !busy && onClose()}>
       <div className="modal wide connect" onClick={e => e.stopPropagation()}>
         <div className="ch"><Mark size={34} /><button className="x" onClick={onClose} aria-label="Close" disabled={!!busy}><Icon name="close" size={15} /></button></div>
         <h3><span>Stocks,</span> off the record.</h3>
-        <p className="muted">No wallet, no email. Your Face ID, fingerprint or screen lock is your key, and it never leaves this device.</p>
+        <p className="muted">{hasPasskey ? 'Welcome back. Use your Face ID, fingerprint or screen lock to open your account.' : 'No wallet, no email. Your Face ID, fingerprint or screen lock is your key, and it never leaves this device.'}</p>
         {walletHalfway ? (
           <button className="btn" onClick={() => go('wallet')} disabled={!!busy}>{busy ? 'Check your wallet…' : 'Sign in with your wallet'}</button>
-        ) : <>
+        ) : hasPasskey ? <>
+          <button className="btn pk" onClick={() => go('have')} disabled={!!busy || !passkeysSupported()}><Icon name="lock" size={17} />{busy === 'have' ? 'Checking your passkey…' : 'Sign in with passkey'}</button>
+        </> : <>
           <button className="btn pk" onClick={() => go('new')} disabled={!!busy || !passkeysSupported()}><Icon name="lock" size={17} />{busy === 'new' ? 'Creating your passkey…' : 'Create my Hagi account'}</button>
-          <button className="btn o pk2" onClick={() => go('have')} disabled={!!busy || !passkeysSupported()}>{busy === 'have' ? 'Checking your passkey…' : 'I already have a passkey'}</button>
+          <button className="btn o pk2" onClick={() => go('have')} disabled={!!busy || !passkeysSupported()}>{busy === 'have' ? 'Checking your passkey…' : 'Sign in with passkey'}</button>
+        </>}
+        {!walletHalfway && <>
           <div className="or"><span>or</span></div>
           <button className="link center" onClick={() => go('wallet')} disabled={!!busy || !engine.hasWallet()}>{busy === 'wallet' ? 'Check your wallet…' : engine.hasWallet() ? 'Connect a wallet instead' : 'No browser wallet found'}</button>
         </>}
         {err && <p className="err">{err}</p>}
-        <p className="small muted">Testnet only. Your passkey syncs with iCloud Keychain or Google Password Manager, so it works on your other devices too.</p>
       </div>
     </div>
   )

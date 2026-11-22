@@ -1,7 +1,7 @@
 // Hagi service worker. Keeps the app shell so the installed app opens instantly, even on a bad connection.
 // It never caches chain reads, the relayer, or the proving files (those keep the browser's normal caching,
 // so a new circuit is always picked up).
-const CACHE = 'hagi-shell-v1'
+const CACHE = 'hagi-shell-v2'
 const SHELL = ['/', '/manifest.webmanifest', '/favicon.svg', '/apple-touch-icon.png', '/icons/icon-192.png', '/icons/icon-512.png']
 
 self.addEventListener('install', e => {
@@ -18,9 +18,12 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url)
   if (url.origin !== location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/zk/')) return
 
-  // Pages: always try the network first so a new release shows up straight away, fall back to the saved shell.
+  // Pages: open instantly from the saved shell and refresh it in the background, so a slow network never
+  // shows a blank screen. A new release is picked up on the next open.
   if (req.mode === 'navigate') {
-    e.respondWith(fetch(req).then(res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put('/', copy)); return res }).catch(() => caches.match('/')))
+    const fresh = fetch(req).then(res => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put('/', copy)) } return res })
+    e.respondWith(caches.match('/').then(hit => hit || fresh).catch(() => fresh))
+    e.waitUntil(fresh.catch(() => {}))
     return
   }
   // Built files have a content hash in their name, so a saved copy is always the right one.

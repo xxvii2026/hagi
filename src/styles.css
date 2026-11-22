@@ -645,13 +645,13 @@ html{-webkit-tap-highlight-color:transparent}
 .bgjob-t em{font-style:normal;font-size:12.5px;color:#aab2d6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @keyframes jobin{from{transform:translate(-50%,-16px);opacity:0}}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media (max-width:1000px){html{zoom:.8}}
 @media (max-width:700px){
   .wrap{padding:14px 14px 18px;gap:14px}
   .shieldcard,.nudge{display:none!important}
   .card.hero{border-radius:32px;padding:24px 18px 20px;text-align:center}
-  .hero .lab{flex-direction:column;gap:10px;font-size:15px}
-  .hero .big{justify-content:center;font-size:68px;margin-top:6px}.hero .big small{font-size:68px}
+  .card.hero{text-align:left}
+  .hero .lab{justify-content:flex-start}
+  .hero .big{justify-content:flex-start;font-size:66px;margin-top:12px}.hero .big small{font-size:66px}
   .hero .qas{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:22px}
   .hero .qa,.hero .qa:hover{flex-direction:column;align-items:center;gap:9px;background:none;box-shadow:none;padding:0;font-size:14px;font-weight:500;color:#dfe4f6;transform:none}
   .hero .qa i{width:60px;height:60px;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);transition:transform .12s ease}
@@ -687,7 +687,7 @@ html{-webkit-tap-highlight-color:transparent}
 .in-bars i.done{background:rgba(255,255,255,.9)}
 .in-bars i.run::after{content:"";position:absolute;inset:0;background:#fff;transform-origin:0 50%;animation:inBar linear both}
 @keyframes inBar{from{transform:scaleX(0)}}
-.in-logo{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:22px;font-size:30px;letter-spacing:-.05em}.in-logo b{font-weight:600}
+.in-logo{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:10px;font-size:30px;letter-spacing:-.05em}.in-logo b{font-weight:600}
 .in-scene{position:absolute;left:0;right:0;top:8%;height:64%;opacity:0;transition:opacity .9s ease;pointer-events:none}
 .in-scene.on{opacity:1}
 .in-glow{position:absolute;left:50%;top:52%;width:420px;height:420px;margin:-210px 0 0 -210px;border-radius:50%;background:radial-gradient(circle,rgba(86,110,186,.55) 0,rgba(86,110,186,0) 65%);animation:inPulse 4s ease-in-out infinite}
@@ -729,8 +729,13 @@ html{-webkit-tap-highlight-color:transparent}
 .in-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:62px;border-radius:20px;font-weight:600;font-size:17.5px;transition:transform .12s ease}
 .in-btn:active{transform:scale(.97)}
 .in-btn.light{background:#fff;color:var(--ink)}
-.in-btn.main{background:#566eba;color:#fff;box-shadow:0 14px 34px -12px rgba(86,110,186,.9),inset 0 1px 0 rgba(255,255,255,.2)}
+.in-btn.main{background:#fff;color:#1b2140;box-shadow:0 18px 40px -16px rgba(0,0,0,.55)}
 .in-link{display:block;margin:14px auto 0;color:#c9d1ee;font-size:15.5px}
 .in-err{display:block;margin-top:12px;text-align:center;color:#f2b8c2;font-size:14px}
 .in-note{display:block;text-align:center;margin-top:18px;font-size:13px;color:#6f77a3}
 @media (prefers-reduced-motion:reduce){.intro *{animation:none!important;transition:none!important}.in-coin{opacity:1}}
+
+/* balance card label */
+.hero .hl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:16px;letter-spacing:-.01em;color:#e6e9f7}.hero .hl .ic{color:#9aa9e6}
+/* installed app: the status bar sits on a navy strip, so the clock stays readable over the light app */
+@media (display-mode: standalone){body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:#0d1130;z-index:60;pointer-events:none}}
