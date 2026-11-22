@@ -28,7 +28,8 @@ async function main() {
 
   Object.assign(process.env, { VAULT_ADDRESS: v.vault, RPC_URL: RPC, CHAIN_ID: '31337', RELAYER_PRIVATE_KEY: K2 })
   const { default: relay } = await import('../../api/relay')
-  createServer((req, res) => { void relay(req, res) }).listen(RELAY_PORT)
+  const { default: drip } = await import('../../api/drip')
+  createServer((req, res) => { void (req.url?.startsWith('/api/drip') ? drip : relay)(req, res) }).listen(RELAY_PORT)
 
   const config = {
     chainId: 31337, name: 'Local', rpc: RPC, explorer: 'http://localhost', relayerUrl: `http://127.0.0.1:${RELAY_PORT}/api/relay`, deployBlock: 0,

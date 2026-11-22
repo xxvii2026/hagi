@@ -305,9 +305,17 @@ const change = (inputs: Note[], spent: bigint) => {
 
 // ---------- actions ----------
 
+/** Claims test USDG. A wallet with no gas first gets a tiny top-up from Hagi's gas drip. */
 export async function faucet(step: Step) {
   await ensureChain()
-  step('Confirm in your wallet')
+  const [eth, price] = account ? await Promise.all([pub.getBalance({ address: account }), pub.getGasPrice()]) : [0n, 0n]
+  if (account && eth < price * 300_000n) {
+    step('Getting you a little gas')
+    const r = await fetch(CFG.relayerUrl.replace(/relay$/, 'drip'), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ address: account }) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error ?? 'Couldn’t get gas. Try the Robinhood faucet.')
+  }
+  step(local ? 'Claiming test USDG' : 'Confirm in your wallet')
   await waitFor(await wal().writeContract({ address: CFG.contracts.usdg, abi: erc20Abi, functionName: 'faucet', account: acct() }), step)
 }
 

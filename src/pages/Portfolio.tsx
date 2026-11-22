@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { FAUCET_URL } from '../chain'
 import * as engine from '../engine'
 import { TOKENS, asInput, fmt, token, usd } from '../data'
 import { go } from '../nav'
@@ -33,10 +32,8 @@ export function Portfolio({ run }: { run: Run }) {
   const addr = s.hagiAddress ?? ''
   const ready = !!s.wallet && !!s.hagiAddress
   const amt4 = (k: string, v: number) => fmt(v, k === 'USDG' ? 2 : 4) + ' ' + k
-  // Gas comes first: without testnet ETH nothing else can be sent.
-  const needsEth = s.eth < 0.00002
-  const faucet = () => needsEth ? void window.open(FAUCET_URL, '_blank', 'noopener')
-    : run('Getting test USDG', async step => { await engine.faucet(step); await api.refresh() }, '5,000 test USDG is in your wallet.')
+  // No gas is fine: the claim tops the wallet up with a little testnet ETH first.
+  const faucet = () => run('Getting test USDG', async step => { await engine.faucet(step); await api.refresh() }, '5,000 test USDG is in your wallet.')
   const copy = async () => { try { await navigator.clipboard.writeText(addr); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch { /* clipboard blocked */ } }
   // Live version: one transaction per token. The demo applies them together.
   const shieldAll = () => run('Shielding', async step => {
@@ -56,7 +53,7 @@ export function Portfolio({ run }: { run: Run }) {
           }, tab === 'shield' ? 'Shielded. Off the record now.' : 'Unshielded. Back on the record.')}>
             {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
           </button>}
-          {tab === 'shield' && <button className="link center" data-tour="faucet" onClick={faucet}>{needsEth ? 'Need gas? Open the ETH faucet' : 'Get 5,000 test USDG (once a day)'}</button>}
+          {tab === 'shield' && <button className="link center" data-tour="faucet" onClick={faucet}>Claim 5,000 test USDG (once a day)</button>}
           <Visibility pub={tab === 'shield' ? 'this deposit: your wallet and the amount.' : 'this withdrawal: the receiving wallet and the amount.'} priv="your balance and what you hold." />
   </>
 
@@ -100,8 +97,8 @@ export function Portfolio({ run }: { run: Run }) {
           ) : holdings.length === 0 ? (
             <div className="empty">
               <b>Nothing here yet</b>
-              <p>{needsEth ? 'First get free testnet ETH for gas from the Robinhood faucet. Then come back and claim test USDG.' : Object.keys(s.walletBal).length ? 'You have test funds in your wallet. Shield them to start.' : 'Claim free test USDG, then shield it to start. Nothing here is real money.'}</p>
-              {(needsEth || !Object.keys(s.walletBal).length) && <button className="btn sm" onClick={faucet}>{needsEth ? 'Open the ETH faucet' : 'Get test USDG'}</button>}
+              <p>{Object.keys(s.walletBal).length ? 'You have test funds in your wallet. Make them private to start.' : 'Claim free test USDG, then make it private. Nothing here is real money.'}</p>
+              {!Object.keys(s.walletBal).length && <button className="btn sm" onClick={faucet}>Claim test USDG</button>}
             </div>
           ) : <>
             {holdings.length > 1 && (
