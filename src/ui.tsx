@@ -172,9 +172,10 @@ export function Progress({ title, task, doneText, onClose }: { title: string; ta
   if (phone && !ask && state !== 'error') {
     const last = steps[steps.length - 1]
     return (
-      <div className={'bgjob' + (state === 'done' ? ' ok' : '')} role="status" aria-live="polite">
-        <span className={'bgjob-dot' + (state === 'done' ? ' ok' : '')}>{state === 'done' ? <Icon name="check" size={14} /> : <i />}</span>
-        <span className="bgjob-t"><b>{state === 'done' ? (doneText ?? 'Done.') : title}</b>{state !== 'done' && last && <em>{last}</em>}</span>
+      <div className={'dock' + (state === 'done' ? ' ok' : '')} role="status" aria-live="polite">
+        <span className="dock-ic">{state === 'done' ? <Icon name="check" size={18} /> : <svg width="22" height="22" viewBox="0 0 100 100" aria-hidden><path className="l1" d={LEAF} fill="#fff" /><path className="l2" d={LEAF} fill="#fff" transform="translate(100,0) scale(-1,1)" /><path className="l3" d={LEAF} fill="#fff" transform="translate(0,100) scale(1,-1)" /><rect className="lb" x="54" y="54" width="42" height="42" fill="#9aa9e6" /></svg>}</span>
+        <span className="dock-t"><b>{state === 'done' ? (doneText ?? 'Done.') : title}</b><em>{state === 'done' ? 'Your balance is updated' : last ?? 'Starting…'}</em></span>
+        <span className="dock-bar"><i /></span>
       </div>
     )
   }

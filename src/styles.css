@@ -775,3 +775,18 @@ html.intro-on,html.intro-on body{background:#0d1130;overflow:hidden;height:100%}
 .ptr{position:fixed;left:50%;top:calc(66px + env(safe-area-inset-top));z-index:14;width:40px;height:40px;margin-top:-40px;border-radius:50%;background:#fff;box-shadow:0 8px 20px -8px rgba(27,33,64,.4);display:flex;align-items:center;justify-content:center;pointer-events:none}
 .ptr-ring{width:20px;height:20px;border-radius:50%;border:2.5px solid #e3e6f1;border-top-color:#9aa0b8}.ptr-ring.spin{border-top-color:#566eba;animation:spin .7s linear infinite}
 @media (prefers-reduced-motion:reduce){.skel,.ptr-ring.spin{animation:none}}
+/* ---------- ongoing action: a card docked above the tab bar ---------- */
+.dock{position:fixed;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:16;display:flex;align-items:center;gap:13px;padding:13px 16px 15px 13px;border-radius:22px;background:#1b2140;color:#fff;overflow:hidden;box-shadow:0 22px 44px -18px rgba(13,17,48,.75),inset 0 1px 0 rgba(255,255,255,.08);animation:dockIn .42s cubic-bezier(.2,.9,.25,1.1) both}
+@keyframes dockIn{from{transform:translateY(30px) scale(.96);opacity:0}}
+.dock-ic{width:42px;height:42px;border-radius:14px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.1);transition:background .3s ease}
+.dock-ic .l1,.dock-ic .l2,.dock-ic .l3,.dock-ic .lb{animation:dockLeaf 1.6s ease-in-out infinite}
+.dock-ic .l2{animation-delay:.2s}.dock-ic .l3{animation-delay:.4s}.dock-ic .lb{animation-delay:.6s}
+@keyframes dockLeaf{0%,100%{opacity:1}50%{opacity:.3}}
+.dock-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.dock-t b{font-size:15.5px;font-weight:600}
+.dock-t em{font-style:normal;font-size:13px;color:#aab2d6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.08);overflow:hidden}
+.dock-bar i{position:absolute;top:0;bottom:0;width:38%;border-radius:2px;background:linear-gradient(90deg,rgba(134,150,207,0),#8696cf,rgba(134,150,207,0));animation:dockRun 1.4s ease-in-out infinite}
+@keyframes dockRun{from{left:-40%}to{left:102%}}
+.dock.ok .dock-ic{background:#3fae76}
+.dock.ok .dock-bar i{left:0;width:100%;background:#3fae76;animation:none}
+@media (prefers-reduced-motion:reduce){.dock{animation:none}.dock-bar i,.dock-ic *{animation:none!important}}

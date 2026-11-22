@@ -335,11 +335,11 @@ export async function shield(sym: string, n: number, step: Step) {
   if (amount <= 0n || amount > have) throw new Error('Not enough ' + sym + ' in your wallet')
   const allowance = await pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'allowance', args: [account, CFG.contracts.vault] })
   if (allowance < amount) {
-    step(`Approve ${sym} in your wallet`)
+    step(local ? `Allowing the vault to use ${sym}` : `Approve ${sym} in your wallet`)
     await waitFor(await wal().writeContract({ address: t.address, abi: erc20Abi, functionName: 'approve', args: [CFG.contracts.vault, maxUint256], account: acct() }), () => {})
   }
   const blinding = randomField()
-  step('Confirm the deposit in your wallet')
+  step(local ? 'Moving it into your private balance' : 'Confirm the deposit in your wallet')
   const hash = await wal().writeContract({ ...V, functionName: 'shield', args: [t.address, amount, partialCommitment(keys.publicKey, blinding), encryptNote({ amount, token: BigInt(t.address), blinding }, keys.encPublic)], account: acct() })
   await sync(await waitFor(hash, step))
 }
@@ -394,7 +394,7 @@ export async function buyBasket(b: Basket, n: number, step: Step) {
 
 export async function createBasket(name: string, items: { symbol: string; weight: number }[], step: Step) {
   await ensureChain()
-  step('Confirm in your wallet')
+  step(local ? 'Creating your basket' : 'Confirm in your wallet')
   const hash = await wal().writeContract({ address: CFG.contracts.basketRegistry, abi: registryAbi, functionName: 'createBasket', args: [name, items.map(i => token(i.symbol).address), items.map(i => Math.round(i.weight * 100))], account: acct() })
   await waitFor(hash, step)
 }

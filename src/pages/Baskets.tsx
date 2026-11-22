@@ -4,7 +4,7 @@ import { asInput, MAX_BASKET, STOCKS, fmt, token, type Basket } from '../data'
 import * as engine from '../engine'
 import { hashParam } from '../nav'
 import { useStore } from '../store'
-import { AmountField, Card, Icon, NeedAccount, TokenIcon, Visibility, type Run } from '../ui'
+import { AmountField, Card, Icon, NeedAccount, TokenIcon, type Run } from '../ui'
 
 /** Draws a branded 1200x675 image of a basket and downloads it, ready to post. */
 function shareBasket(b: Basket) {
@@ -44,7 +44,6 @@ function BuyModal({ b, close, run }: { b: Basket; close: () => void; run: Run })
         api.log({ kind: 'basket', title: 'Bought basket: ' + b.name, detail: fmt(n) + ' USDG' })
         await api.refresh()
       }, 'Bought. Straight into the vault.') }}>{n <= 0 ? 'Enter an amount' : n > have ? 'Not enough USDG' : 'Buy basket'}</button>}
-      <Visibility pub="that someone bought this basket, and for how much." priv="who bought it and your balance." />
     </div></div>, document.body,
   )
 }

@@ -6,7 +6,7 @@ import * as engine from '../engine'
 import { confirmSpend } from '../confirm'
 import { useStore } from '../store'
 import { parseAddress } from '../zk/core'
-import { AmountField, Card, NeedAccount, TokenPicker, Visibility, type Run } from '../ui'
+import { AmountField, Card, NeedAccount, TokenPicker, type Run } from '../ui'
 
 export function Send({ run }: { run: Run }) {
   const { s, api } = useStore()
@@ -50,11 +50,6 @@ export function Send({ run }: { run: Run }) {
         </div>}
       </Card>
       <div className="col n">
-        <Card title="What others can see">
-          {tab === 'send'
-            ? <Visibility pub="that a private transfer happened in the vault." priv="the amount, the token, who sent it and who received it." />
-            : <Visibility pub="nothing about you when someone sends to this address." priv="the sender, the amount and your balance." />}
-        </Card>
         <Card title="Good to know"><p className="muted">A Hagi address starts with hagi1 and only works inside Hagi. One address receives USDG and all five stocks. To move funds to a normal wallet, use Unshield on the Portfolio page.</p></Card>
       </div>
     </div>

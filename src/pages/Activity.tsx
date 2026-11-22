@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CFG } from '../chain'
 import { useStore, type Activity as A } from '../store'
-import { Card, Censor, Icon, Visibility, type IconName } from '../ui'
+import { Card, Censor, Icon, type IconName } from '../ui'
 
 const GLYPH: Record<A['kind'], IconName> = { shield: 'down', unshield: 'up', swap: 'swap', send: 'right', basket: 'basket', receive: 'left' }
 const ago = (t: number) => { const m = Math.floor((Date.now() - t) / 60000); return m < 1 ? 'Just now' : m < 60 ? `${m} min ago` : m < 1440 ? `${Math.floor(m / 60)} h ago` : `${Math.floor(m / 1440)} d ago` }
@@ -24,16 +24,6 @@ export function ActivityList({ limit }: { limit?: number }) {
   ))}{receipt && <Receipt a={receipt} onClose={() => setReceipt(null)} />}</>
 }
 
-// What anyone can see on the chain for each kind of action, and what stays private.
-const SEEN: Record<A['kind'], [string, string]> = {
-  shield: ['your wallet, the token and the amount going into the vault.', 'everything you do with it from here.'],
-  unshield: ['the token, the amount and the wallet it went to.', 'which private balance it came from.'],
-  swap: ['that a swap happened in the vault, and the tokens and amounts.', 'that it was you, and the rest of your balance.'],
-  send: ['that a private transfer happened in the vault.', 'the amount, the token, who sent it and who got it.'],
-  basket: ['which basket was bought and the total.', 'who bought it.'],
-  receive: ['that a private transfer happened in the vault.', 'who sent it, the amount and the token.'],
-}
-
 /** One activity entry, up close: amount, time, what was public, and a link to the transaction. */
 function Receipt({ a, onClose }: { a: A; onClose: () => void }) {
   const [copied, setCopied] = useState(false)
@@ -51,7 +41,6 @@ function Receipt({ a, onClose }: { a: A; onClose: () => void }) {
           {a.hash && <div><dt>Transaction</dt><dd><button className="rc-copy" onClick={copy}>{copied ? 'Copied' : a.hash.slice(0, 8) + '…' + a.hash.slice(-6)}<Icon name="copy" size={13} /></button></dd></div>}
           <div><dt>Network</dt><dd>{CFG.name}</dd></div>
         </dl>
-        <Visibility pub={SEEN[a.kind][0]} priv={SEEN[a.kind][1]} />
         {a.hash && <a className="btn o rc-link" href={`${CFG.explorer}/tx/${a.hash}`} target="_blank" rel="noopener noreferrer">View on the explorer</a>}
       </div>
     </div>, document.body,

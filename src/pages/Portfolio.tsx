@@ -5,7 +5,7 @@ import { confirmSpend } from '../confirm'
 import { TOKENS, asInput, fmt, token, usd } from '../data'
 import { go } from '../nav'
 import { total, useStore } from '../store'
-import { Amount, AmountField, Card, Icon, Mark, NeedAccount, TokenIcon, TokenPicker, Visibility, useCountUp, type Run } from '../ui'
+import { Amount, AmountField, Card, Icon, Mark, NeedAccount, TokenIcon, TokenPicker, useCountUp, type Run } from '../ui'
 import { ActivityList } from './Activity'
 
 const MIX = ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#3a4a8a', '#c9d1ee', '#7f86ad', '#d9def0']
@@ -56,7 +56,6 @@ export function Portfolio({ run }: { run: Run }) {
             {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
           </button>}
           {tab === 'shield' && <button className="link center" data-tour="faucet" onClick={faucet}>Claim 5,000 test USDG (once a day)</button>}
-          <Visibility pub={tab === 'shield' ? 'this deposit: your wallet and the amount.' : 'this withdrawal: the receiving wallet and the amount.'} priv="your balance and what you hold." />
   </>
 
   return (
