@@ -167,9 +167,8 @@ export function Progress({ title, task, doneText, onClose }: { title: string; ta
       e => { setError(friendly(e)); setState('error') },
     )
   }, [task, onClose])
-  // On a phone the work runs quietly in a small pill at the top. The full window only appears if something needs the user.
-  const [phone] = useState(() => matchMedia('(max-width: 700px)').matches)
-  if (phone && !ask && state !== 'error') {
+  // The work runs quietly in a small card (above the tab bar on phones, bottom right on PC). The full window only appears if something needs the user.
+  if (!ask && state !== 'error') {
     const last = steps[steps.length - 1]
     return (
       <div className={'dock' + (state === 'done' ? ' ok' : '')} role="status" aria-live="polite">
