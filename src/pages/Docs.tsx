@@ -276,16 +276,6 @@ const PAGES: Page[] = [
       <P>For a swap, the vault takes the tokens you are paying with, trades them in the pool, and writes you a new receipt for what came back. All of that happens in one transaction. The pool sees the vault as the trader, never you.</P>
       <H>Your key</H>
       <P>Your Hagi key is worked out from one signature by your wallet. Proofs are built in your browser, and the key never leaves your device.</P>
-      <H>For the technical reader</H>
-      <Table head={['Part', 'Detail']} rows={[
-        ['Design', 'A shielded pool with two-in, two-out transactions, adapted from the open-source Tornado Nova design'],
-        ['Proofs', 'Groth16, built in the browser with snarkjs'],
-        ['Hashing', 'Poseidon, in the circuit and on chain'],
-        ['Tree', 'Merkle tree of depth 20. The vault remembers its last 100 roots'],
-        ['Receipt', 'Commitment to an amount, a token and an owner key with a random blinding value'],
-        ['Notes to recipients', 'Encrypted to the recipient’s key and posted with the transaction'],
-        ['Swaps', 'Up to 8 legs per transaction through a swap adapter, which is how a basket is bought in one go'],
-      ]} />
     </>,
   },
   {
@@ -311,11 +301,6 @@ const PAGES: Page[] = [
       ]} />
       <H>Stock tokens</H>
       <Table head={['Token', 'Address']} rows={Object.entries(CFG.tokens).map(([k, v]) => [k, <Addr value={v} />])} />
-      <H>Wallets we run</H>
-      <Table head={['Wallet', 'What it does', 'Address']} rows={[
-        ['Deployer', 'Deployed the contracts and owns them', <Addr value={DEPLOYED.deployer} />],
-        ['Relayer', 'Sends private transactions and pays their gas', <Addr value={DEPLOYED.relayer} />],
-      ]} />
       <H>What the owner can and can’t do</H>
       <P>The deployer wallet owns the contracts. It is worth knowing exactly what that allows.</P>
       <List items={[
@@ -324,7 +309,6 @@ const PAGES: Page[] = [
         <><b>Can</b> change the swap adapter the vault trades through. A bad adapter could mishandle the funds in a swap while it is happening, so this is a real point of trust.</>,
         <><b>Can</b> add and remove liquidity in the test pools, and mint test USDG.</>,
       ]} />
-      <Note title="The contracts are not verified on the explorer yet">You can compare the deployed code with the source in the <Out href="https://github.com/xxvii2026/hagi">GitHub repository</Out>.</Note>
     </>,
   },
   {
@@ -348,7 +332,7 @@ const PAGES: Page[] = [
         <>Nothing on this site is financial advice.</>,
       ]} />
       <H>If something goes wrong</H>
-      <P>Funds in the vault can only be moved by a proof made with your key. If the Hagi site went away, your funds would still be in the contract, and the open-source code is what you would use to get them out. Your activity list is only kept on your device, so export it from the wallet menu if you want a copy.</P>
+      <P>Funds in the vault can only be moved by a proof made with your key. If the Hagi site went away, your funds would still be in the contract, and only your key could move them. Your activity list is only kept on your device, so export it from the wallet menu if you want a copy.</P>
     </>,
   },
   {

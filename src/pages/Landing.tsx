@@ -182,7 +182,7 @@ export function Landing() {
         <div className="bf1"><span className="fm"><Mark size={22} leaf={navy ? '#ffffff' : undefined} /><b>hagi</b></span><p>Stocks, off the record.</p></div>
         <div><b>Product</b><a href="#/portfolio">Portfolio</a><a href="#/swap">Swap</a><a href="#/baskets">Baskets</a><a href="#/send">Send</a></div>
         <div><b>Learn</b><a href="#/docs">Docs</a><button onClick={() => jump('private')}>What’s private</button><button onClick={() => jump('faq')}>Questions</button></div>
-        <div><b>More</b><a href="https://github.com/xxvii2026/hagi" target="_blank" rel="noopener noreferrer">GitHub</a><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a></div>
+        <div><b>More</b><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a></div>
       </footer>
     </div>
   )
