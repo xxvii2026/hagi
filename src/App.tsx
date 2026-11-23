@@ -56,7 +56,6 @@ function WalletMenu() {
           {s.hagiAddress && <li><button onClick={copy}><span className="g"><b>{copied ? 'Copied' : 'Copy my Hagi address'}</b><span>{s.hagiAddress.slice(0, 12)}…{s.hagiAddress.slice(-6)}</span></span><Icon name="copy" size={15} /></button></li>}
           {engine.isPasskey() && <li><button onClick={copyWallet}><span className="g"><b>{walletCopied ? 'Copied' : 'Copy wallet address'}</b><span>Your built-in wallet, for test ETH and tokens</span></span><Icon name="copy" size={15} /></button></li>}
           <li><button onClick={exportHistory} disabled={!s.activity.length}><span className="g"><b>Export my history</b><span>{s.activity.length ? 'Downloads your activity as a file' : 'Nothing to export yet'}</span></span></button></li>
-          <li className="m-only"><button onClick={() => { setOpen(false); startTour() }}><span className="g"><b>Take the tour</b><span>A quick walk through Hagi</span></span></button></li>
           <li className="m-only"><a href="#/docs" onClick={() => setOpen(false)}><span className="g"><b>Docs</b><span>How Hagi works, in plain words</span></span></a></li>
           <li><button onClick={() => { setOpen(false); api.disconnect() }}><span className="g"><b>Disconnect</b><span>Locks your Hagi account on this tab</span></span></button></li>
         </ul>
@@ -154,8 +153,9 @@ export default function App() {
   }, [])
   useEffect(() => {
     let seen = true; try { seen = !!localStorage.getItem(TOUR_KEY) } catch { /* show it */ }
-    if (page === 'portfolio' && !seen) { const t = setTimeout(() => setTouring(true), 700); return () => clearTimeout(t) }
-  }, [page])
+    // The tour is for PC only. On phones it popped up over the sign-in screen and got in the way.
+    if (page === 'portfolio' && !seen && !phone) { const t = setTimeout(() => setTouring(true), 700); return () => clearTimeout(t) }
+  }, [page, phone])
 
   return (
     <>
