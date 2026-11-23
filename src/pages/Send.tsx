@@ -27,6 +27,8 @@ export function Send({ run }: { run: Run }) {
   const total = rows.reduce((a, r) => a + (r.ok ? r.n : 0), 0)
   const bad = rows.filter(r => !r.ok).length
   const anyWallet = rows.some(r => r.ok && r.kind === 'wallet')
+  const missing = rows.filter(r => !r.ok && r.why === 'No amount').length
+  const [each, setEach] = useState('')
   const n = parseFloat(amt) || 0
   const have = s.shielded[cur] ?? 0
   const toHagi = !!parseAddress(to.trim())
@@ -44,8 +46,13 @@ export function Send({ run }: { run: Run }) {
           <div className="seg" role="tablist" aria-label="Send mode"><button className={!many ? 'on' : ''} onClick={() => setMany(false)}>Single</button><button className={many ? 'on' : ''} onClick={() => setMany(true)}>Burst</button></div>
           {many ? <>
             <div className="fld"><span className="fl">People and amounts</span>
-              <textarea className="txt burst-in" rows={6} placeholder={'One per line: address, amount\nhagi1… , 25\n0x… , 10'} value={list} onChange={e => { setList(e.target.value); setPaid(-1) }} aria-label="Recipients and amounts" />
-              <div className="hint"><span>{rows.length > engine.BURST_MAX ? `Up to ${engine.BURST_MAX} people at a time.` : bad ? `${bad} line${bad > 1 ? 's' : ''} need fixing.` : 'Paste a list, one person per line. Mix hagi1 addresses and 0x wallets.'}</span></div></div>
+              <textarea className="txt burst-in" rows={6} placeholder={'Paste addresses, or address and amount pairs.\nHagi lines them up for you.'} value={list} onChange={e => { setList(e.target.value); setPaid(-1) }}
+                onPaste={e => { const t = e.clipboardData.getData('text'); if (!/(hagi1|0x)/i.test(t)) return; e.preventDefault(); const el = e.currentTarget; setList(tidyList(el.value.slice(0, el.selectionStart) + '\n' + t + '\n' + el.value.slice(el.selectionEnd))); setPaid(-1) }} aria-label="Recipients and amounts" />
+              <div className="burst-tools">
+                <label className="chip">Import CSV<input type="file" accept=".csv,.txt,text/csv,text/plain" hidden onChange={async e => { const f = e.target.files?.[0]; e.target.value = ''; if (!f) return; setList(tidyList((list ? list + '\n' : '') + await f.text())); setPaid(-1) }} /></label>
+                {missing > 0 && <span className="fillall"><input className="txt" inputMode="decimal" placeholder="Amount each" value={each} onChange={e => setEach(e.target.value)} aria-label="Amount for everyone without one" /><button className="chip" disabled={!(parseFloat(each) > 0)} onClick={() => { setList(fillAmounts(list, each)); setEach('') }}>Fill {missing}</button></span>}
+              </div>
+              <div className="hint"><span>{rows.length > engine.BURST_MAX ? `Up to ${engine.BURST_MAX} people at a time.` : bad ? `${bad} line${bad > 1 ? 's' : ''} need fixing.` : 'Paste or import a list. hagi1 addresses and 0x wallets can be mixed.'}</span></div></div>
             {rows.length > 0 && <div className="burst-list">{rows.map((r, i) => <div key={i} className={'brow' + (r.ok ? '' : ' bad') + (i <= paid ? ' done' : '')}>
               <span className="bnum">{i <= paid ? '✓' : i + 1}</span><code>{r.to ? (r.to.length > 18 ? r.to.slice(0, 8) + '…' + r.to.slice(-6) : r.to) : '—'}</code>
               <span className="bkind">{r.ok ? (r.kind === 'hagi' ? 'Hagi' : 'Wallet') : r.why}</span><b>{r.ok ? fmt(r.n, cur === 'USDG' ? 2 : 4) : ''}</b></div>)}</div>}
@@ -99,4 +106,28 @@ function parseBurst(text: string): BurstRow[] {
     if (!(n > 0)) return { to, n: 0, ok: false, kind, why: 'No amount' }
     return { to, n, ok: true, kind }
   })
+}
+
+const ADDR = /^(hagi1[0-9a-f]{128}|0x[0-9a-f]{40})$/i
+const NUM = /^\$?\d[\d,]*(\.\d+)?$|^\$?\.\d+$/
+/** Lines up any messy list into one "address, amount" per line: commas, spaces, tabs, CSV rows,
+ *  quotes and header rows all work, and addresses without an amount get an empty slot to fill. */
+function tidyList(text: string): string {
+  const tokens = text.replace(/"([^"]*)"/g, (_, x: string) => ' ' + (/^[\s$\d,.]+$/.test(x) ? x.replace(/[,$\s]/g, '') : x) + ' ').replace(/["']/g, ' ').split(/[\s,;|\t]+/).map(t => t.trim()).filter(Boolean)
+  const out: { a: string; n: string }[] = []
+  let pending: number | null = null // a number seen before its address, as in "amount, address" rows
+  for (const t of tokens) {
+    if (ADDR.test(t)) { out.push({ a: t.startsWith('0x') || t.startsWith('0X') ? t : t.toLowerCase(), n: pending != null ? String(pending) : '' }); pending = null; continue }
+    if (/^(hagi|0x)/i.test(t) && t.length > 6) { out.push({ a: t, n: '' }); pending = null; continue } // keep typos so they show as bad lines
+    if (NUM.test(t)) {
+      const v = parseFloat(t.replace(/[$,]/g, ''))
+      const last = out[out.length - 1]
+      if (last && !last.n) last.n = String(v)
+      else pending = v
+    }
+  }
+  return out.map(r => r.a + ', ' + r.n).join('\n')
+}
+function fillAmounts(text: string, each: string): string {
+  return tidyList(text).split('\n').map(l => /,\s*$/.test(l) ? l + ' ' + parseFloat(each) : l).join('\n').replace(/,\s+(\d)/g, ', $1')
 }
