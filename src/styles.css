@@ -855,3 +855,5 @@ body.busy .btn,body.busy .walpill,body.busy .chip.strong{pointer-events:none;opa
   .wtoks span{display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 6px;border-radius:999px;background:rgba(255,255,255,.08);color:#dfe4f6;font-size:13px}
   .wnote{margin-top:18px;font-size:13.5px;line-height:1.45;color:#aab2d6}
 }
+/* the progress window's own buttons (Close, Try again) must keep working while an action is marked busy */
+body.busy .overlay .btn{pointer-events:auto;opacity:1}
