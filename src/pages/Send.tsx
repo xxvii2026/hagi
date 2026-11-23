@@ -20,7 +20,7 @@ export function Send({ run }: { run: Run }) {
   const [amt, setAmt] = useState('')
   const [qr, setQr] = useState('')
   const [copied, setCopied] = useState(false)
-  const [many, setMany] = useState(hashParam('mode') === 'many')
+  const [many, setMany] = useState(hashParam('mode') === 'burst')
   const [list, setList] = useState('')
   const [paid, setPaid] = useState(-1)
   const rows = parseBurst(list)
@@ -41,7 +41,7 @@ export function Send({ run }: { run: Run }) {
       <Card>
         <div className="tabs"><button className={tab === 'send' ? 'on' : ''} onClick={() => setTab('send')}>Send</button><button className={tab === 'receive' ? 'on' : ''} onClick={() => setTab('receive')}>Receive</button></div>
         {tab === 'send' ? <>
-          <div className="seg" role="tablist" aria-label="How many people"><button className={!many ? 'on' : ''} onClick={() => setMany(false)}>One person</button><button className={many ? 'on' : ''} onClick={() => setMany(true)}>Many people</button></div>
+          <div className="seg" role="tablist" aria-label="Send mode"><button className={!many ? 'on' : ''} onClick={() => setMany(false)}>Single</button><button className={many ? 'on' : ''} onClick={() => setMany(true)}>Burst</button></div>
           {many ? <>
             <div className="fld"><span className="fl">People and amounts</span>
               <textarea className="txt burst-in" rows={6} placeholder={'One per line: address, amount\nhagi1… , 25\n0x… , 10'} value={list} onChange={e => { setList(e.target.value); setPaid(-1) }} aria-label="Recipients and amounts" />
