@@ -88,7 +88,6 @@ export function Portfolio({ run }: { run: Run }) {
                 <button className="waddr" onClick={copyWallet}><code>{s.wallet!.slice(0, 6)}…{s.wallet!.slice(-4)}</code><Icon name={wCopied ? 'check' : 'copy'} size={14} />{wCopied ? 'Copied' : 'Copy'}</button>
                 <div className="wtoks">
                   {Object.entries(s.walletBal).map(([k, v]) => <span key={k}><TokenIcon symbol={k} size={20} />{amt4(k, v)}</span>)}
-                  <span className="gas">{fmt(s.eth, 5)} ETH for gas</span>
                 </div>
                 {unshielded > 0
                   ? <button className="walpill" onClick={shieldAll}><span>Anyone can see this balance</span><b>Make private<Icon name="right" size={13} /></b></button>

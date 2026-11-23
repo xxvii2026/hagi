@@ -853,6 +853,5 @@ body.busy .btn,body.busy .walpill,body.busy .chip.strong{pointer-events:none;opa
   .waddr code{font-size:13.5px;color:#fff}
   .wtoks{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
   .wtoks span{display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 6px;border-radius:999px;background:rgba(255,255,255,.08);color:#dfe4f6;font-size:13px}
-  .wtoks .gas{padding-left:11px;color:#aab2d6}
   .wnote{margin-top:18px;font-size:13.5px;line-height:1.45;color:#aab2d6}
 }
