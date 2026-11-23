@@ -857,3 +857,20 @@ body.busy .btn,body.busy .walpill,body.busy .chip.strong{pointer-events:none;opa
 }
 /* the progress window's own buttons (Close, Try again) must keep working while an action is marked busy */
 body.busy .overlay .btn{pointer-events:auto;opacity:1}
+/* ---------- balance card: private balance, swipe for the public wallet (phones) ---------- */
+.hpages{position:relative}
+.hpg.hw,.hdots{display:none}
+@media (max-width:700px){
+  .hpages{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -18px;overscroll-behavior-x:contain}
+  .hpages::-webkit-scrollbar{display:none}
+  .hpg{flex:0 0 100%;scroll-snap-align:start;padding:0 18px;min-width:0}
+  .hpg.hw{display:block}
+  .hdots{display:flex;justify-content:center;gap:6px;margin-top:16px;position:relative}
+  .hdots i{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.28);transition:width .25s ease,background .25s ease}
+  .hdots i.on{width:18px;background:#fff}
+  .waddr{display:inline-flex;align-items:center;gap:7px;margin-top:10px;padding:7px 12px;border-radius:999px;background:rgba(255,255,255,.1);color:#dfe4f6;font-size:13px;font-weight:600}
+  .waddr code{font-size:13.5px;color:#fff}
+  .wtoks{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .wtoks span{display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 6px;border-radius:999px;background:rgba(255,255,255,.08);color:#dfe4f6;font-size:13px}
+  .wnote{margin-top:18px;font-size:13.5px;line-height:1.45;color:#aab2d6}
+}
