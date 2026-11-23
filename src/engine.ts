@@ -416,22 +416,71 @@ export async function swap(from: string, to: string, n: number, step: Step): Pro
   return fromUnits(q, token(to).decimals)
 }
 
-export async function buyBasket(b: Basket, n: number, step: Step) {
-  const total = amountOf('USDG', n, rawShielded('USDG'))
+/** Buys several stocks from USDG in one private transaction. Returns how much of each stock arrived. */
+async function buyLegs(items: { symbol: string; usdg: bigint }[], step: Step, basketId?: number): Promise<Record<string, number>> {
+  const total = items.reduce((s, x) => s + x.usdg, 0n)
   const inputs = await inputsFor('USDG', total, step)
   const usdg = token('USDG').address
-  let used = 0n
+  const before = shielded()
   const legs = [], legNotes = []
-  for (let i = 0; i < b.items.length; i++) {
-    const amountIn = i + 1 < b.items.length ? (total * BigInt(b.items[i].bps)) / 10_000n : total - used
-    used += amountIn
-    const out = token(b.items[i].symbol).address
+  for (const it of items) {
+    const out = token(it.symbol).address
     const blinding = randomField()
-    legs.push({ tokenOut: out, amountIn, minOut: ((await quote(usdg, out, amountIn)) * SLIPPAGE) / 1000n, partialCommitment: partialCommitment(keys!.publicKey, blinding) })
+    legs.push({ tokenOut: out, amountIn: it.usdg, minOut: ((await quote(usdg, out, it.usdg)) * SLIPPAGE) / 1000n, partialCommitment: partialCommitment(keys!.publicKey, blinding) })
     legNotes.push({ blinding })
   }
-  await privately({ token: usdg, inputs, outputs: change(inputs, total), swap: { legs, legNotes, basketId: BigInt(b.id) } }, step)
+  await privately({ token: usdg, inputs, outputs: change(inputs, total), swap: { legs, legNotes, ...(basketId != null ? { basketId: BigInt(basketId) } : {}) } }, step)
   await readPools()
+  const after = shielded(), got: Record<string, number> = {}
+  for (const it of items) got[it.symbol] = Math.max(0, (after[it.symbol] ?? 0) - (before[it.symbol] ?? 0))
+  return got
+}
+
+export async function buyBasket(b: Basket, n: number, step: Step): Promise<Record<string, number>> {
+  const total = amountOf('USDG', n, rawShielded('USDG'))
+  let used = 0n
+  const items = b.items.map((it, i) => { const usdg = i + 1 < b.items.length ? (total * BigInt(it.bps)) / 10_000n : total - used; used += usdg; return { symbol: it.symbol, usdg } })
+  return buyLegs(items, step, b.id)
+}
+
+/** Sells a set of stocks back to USDG. Each stock is its own private swap, run one after another.
+ *  Returns the USDG received for each stock that sold, so a stop part way through still reports what happened. */
+export async function sellStocks(units: Record<string, number>, step: Step): Promise<Record<string, number>> {
+  const todo = Object.entries(units).filter(([, v]) => v > 1e-9)
+  const got: Record<string, number> = {}
+  for (const [i, [sym, n]] of todo.entries()) {
+    const sub: Step = m => step(`Selling ${sym} · ${i + 1} of ${todo.length} · ${m}`)
+    try { got[sym] = await swap(sym, 'USDG', Math.min(n, shielded()[sym] ?? 0), sub) }
+    catch (e) {
+      if (i === 0) throw e
+      throw Object.assign(new Error(`Sold ${i} of ${todo.length}, then stopped: ${friendly(e)} The rest are still in your private balance.`), { partial: got })
+    }
+  }
+  return got
+}
+
+/** Brings a basket back to its weights: sells what has grown past its share, then buys what fell behind in one go. Returns the new amounts. */
+export async function rebalance(items: Basket['items'], units: Record<string, number>, step: Step): Promise<Record<string, number>> {
+  const price = (k: string) => token(k).price
+  const V = items.reduce((t, it) => t + (units[it.symbol] ?? 0) * price(it.symbol), 0)
+  if (V <= 0) throw new Error('Nothing in this basket to rebalance')
+  const gap = items.map(it => ({ sym: it.symbol, d: V * it.weight / 100 - (units[it.symbol] ?? 0) * price(it.symbol) }))
+  const min = Math.max(0.5, V * 0.005)
+  const sells: Record<string, number> = {}
+  for (const g of gap) if (-g.d > min && price(g.sym) > 0) sells[g.sym] = -g.d / price(g.sym)
+  if (!Object.keys(sells).length) throw new Error('This basket is already on target')
+  const out = { ...units }
+  const sold = await sellStocks(sells, step)
+  for (const k of Object.keys(sold)) out[k] = (out[k] ?? 0) - sells[k]
+  const cash = Object.values(sold).reduce((t, v) => t + v, 0)
+  const need = gap.filter(g => g.d > min)
+  const want = need.reduce((t, g) => t + g.d, 0)
+  if (cash > 0 && want > 0) {
+    const scale = Math.min(1, cash / want)
+    const buys = need.map(g => ({ symbol: g.sym, usdg: amountOf('USDG', Math.floor(g.d * scale * 1e6) / 1e6, 0n) })).filter(x => x.usdg > 0n)
+    if (buys.length) { const got = await buyLegs(buys, m => step('Buying back in · ' + m)); for (const [k, v] of Object.entries(got)) out[k] = (out[k] ?? 0) + v }
+  }
+  return out
 }
 
 export async function createBasket(name: string, items: { symbol: string; weight: number }[], step: Step) {
