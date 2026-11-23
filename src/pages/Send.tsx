@@ -6,6 +6,7 @@ import * as engine from '../engine'
 import { confirmSpend } from '../confirm'
 import { useStore } from '../store'
 import { parseAddress } from '../zk/core'
+import { getAddress, isAddress } from 'viem'
 import { AmountField, Card, NeedAccount, TokenPicker, type Run } from '../ui'
 
 export function Send({ run }: { run: Run }) {
@@ -21,24 +22,29 @@ export function Send({ run }: { run: Run }) {
   const [copied, setCopied] = useState(false)
   const n = parseFloat(amt) || 0
   const have = s.shielded[cur] ?? 0
-  const validTo = !!parseAddress(to)
+  const toHagi = !!parseAddress(to.trim())
+  // A normal 0x wallet works too: the money leaves the vault straight to it, and your own wallet stays off the transaction.
+  const toWallet = !toHagi && isAddress(to.trim())
+  const validTo = toHagi || toWallet
   useEffect(() => { if (s.hagiAddress) QRCode.toDataURL(s.hagiAddress, { margin: 1, width: 440, color: { dark: '#1b2140', light: '#ffffff' } }).then(setQr) }, [s.hagiAddress])
   const copy = async () => { try { await navigator.clipboard.writeText(s.hagiAddress ?? ''); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch { /* clipboard blocked */ } }
   return (
     <div className="wrap c">
-      <div className="ptitle"><h2><span>Send,</span> off the record.</h2><p>The amount and the recipient stay private.</p></div>
+      <div className="ptitle"><h2><span>Send,</span> off the record.</h2><p>Pay a Hagi address privately, or any wallet without revealing yours.</p></div>
       <Card>
         <div className="tabs"><button className={tab === 'send' ? 'on' : ''} onClick={() => setTab('send')}>Send</button><button className={tab === 'receive' ? 'on' : ''} onClick={() => setTab('receive')}>Receive</button></div>
         {tab === 'send' ? <>
-          <div className="fld"><span className="fl">To</span><input className="txt" placeholder="hagi1…" value={to} onChange={e => setTo(e.target.value)} aria-label="Recipient Hagi address" />
-            <div className="hint"><span>{to && !validTo ? 'That doesn’t look like a Hagi address.' : 'Paste the other person’s Hagi address.'}</span></div></div>
+          <div className="fld"><span className="fl">To</span><input className="txt" placeholder="hagi1… or 0x…" value={to} onChange={e => setTo(e.target.value)} aria-label="Recipient address" />
+            <div className="hint"><span>{to && !validTo ? 'That doesn’t look like a Hagi or 0x address.' : toWallet ? 'They get it from the Hagi vault. Your wallet stays out of it.' : 'Paste a Hagi address, or any 0x wallet.'}</span></div></div>
           <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))} right={<TokenPicker value={cur} onChange={setSym} options={options} balances={s.shielded} />} />
           {!(s.wallet && s.hagiAddress) ? <NeedAccount /> : <button className="btn" disabled={!validTo || n <= 0 || n > have} onClick={() => run('Sending privately', async step => {
             await confirmSpend(step)
-            await engine.send(cur, n, to, step)
-            api.log({ kind: 'send', title: 'Sent ' + cur, detail: fmt(n, cur === 'USDG' ? 2 : 4) + ' ' + cur, isPrivate: true })
+            const dest = to.trim()
+            if (toWallet) await engine.unshield(cur, n, step, getAddress(dest))
+            else await engine.send(cur, n, dest, step)
+            api.log({ kind: 'send', title: toWallet ? `Sent ${cur} to ${dest.slice(0, 6)}…${dest.slice(-4)}` : 'Sent ' + cur, detail: fmt(n, cur === 'USDG' ? 2 : 4) + ' ' + cur, isPrivate: true })
             setAmt(''); setTo(''); await api.refresh()
-          }, 'Sent. Nobody saw.')}>{!validTo ? 'Enter a Hagi address' : n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : 'Send privately'}</button>}
+          }, toWallet ? 'Sent. Your wallet stayed out of it.' : 'Sent. Nobody saw.')}>{!validTo ? 'Enter an address' : n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : 'Send privately'}</button>}
         </> : !s.hagiAddress ? <div className="recv">
           <span className="fl">Your Hagi address appears here once your account is made. It receives USDG and every stock.</span>
           <NeedAccount />
@@ -50,7 +56,7 @@ export function Send({ run }: { run: Run }) {
         </div>}
       </Card>
       <div className="col n">
-        <Card title="Good to know"><p className="muted">A Hagi address starts with hagi1 and only works inside Hagi. One address receives USDG and all five stocks. To move funds to a normal wallet, use Unshield on the Portfolio page.</p></Card>
+        <Card title="Good to know"><p className="muted">Sending to a hagi1 address stays fully inside Hagi. Sending to a 0x wallet pays it straight from the vault: they see the amount arrive from Hagi, but not your wallet. One Hagi address receives USDG and all five stocks.</p></Card>
       </div>
     </div>
   )
