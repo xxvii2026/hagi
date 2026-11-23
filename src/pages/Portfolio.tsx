@@ -29,6 +29,10 @@ export function Portfolio({ run }: { run: Run }) {
   const [whole, cents] = fmt(useCountUp(bal)).split('.')
   const holdings = Object.entries(s.shielded).sort((a, b) => b[1] * token(b[0]).price - a[1] * token(a[0]).price)
   const unshielded = total(s.walletBal)
+  const [wWhole, wCents] = fmt(unshielded).split('.')
+  const [page, setPage] = useState(0)
+  const [wCopied, setWCopied] = useState(false)
+  const copyWallet = async () => { try { await navigator.clipboard.writeText(s.wallet ?? ''); setWCopied(true); setTimeout(() => setWCopied(false), 1500) } catch { /* clipboard blocked */ } }
   const ready = !!s.wallet && !!s.hagiAddress
   const amt4 = (k: string, v: number) => fmt(v, k === 'USDG' ? 2 : 4) + ' ' + k
   // No gas is fine: the claim tops the wallet up with a little testnet ETH first.
@@ -60,19 +64,39 @@ export function Portfolio({ run }: { run: Run }) {
       <div className="col">
         <Card className="hero">
           <div className="ghost"><Mark size={320} leaf="#252d5a" block="#313c74" /></div>
-          <div className="lab">
-            <span className="hl"><Icon name="lock" size={15} />Your private balance</span>
+          {/* Phones: swipe the card to see the public wallet behind your Hagi account. PC shows it in the Shield card instead. */}
+          <div className="hpages" onScroll={e => { const el = e.currentTarget; setPage(Math.round(el.scrollLeft / Math.max(1, el.clientWidth))) }}>
+            <div className="hpg">
+            <div className="lab">
+              <span className="hl"><Icon name="lock" size={15} />Your private balance</span>
+            </div>
+            {ready && !s.loaded ? <div className="big"><span className="skel skel-big" /></div> : <div className="big">${whole}<small>.{cents}</small></div>}
+            <div className="qas">
+              <button className="qa qm qadd" onClick={() => openAdd('shield')}><i><Icon name="plus" /></i>Add</button>
+              <button className="qa" onClick={() => go('swap')}><i><Icon name="swap" /></i>Swap</button>
+              <button className="qa" onClick={() => go('send')}><i><Icon name="right" /></i>Send</button>
+              <button className="qa qm" onClick={() => go('send?tab=receive')}><i><Icon name="down" /></i>Receive</button>
+            </div>
+            {ready && unshielded > 0 && (
+              <button className="walpill" onClick={shieldAll}><span>{usd(unshielded)} still in your wallet</span><b>Make private<Icon name="right" size={13} /></b></button>
+            )}
+            </div>
+            {ready && (
+              <div className="hpg hw" aria-label="Your wallet">
+                <div className="lab"><span className="hl"><Icon name="wallet" size={15} />Your wallet</span></div>
+                <div className="big">${wWhole}<small>.{wCents}</small></div>
+                <button className="waddr" onClick={copyWallet}><code>{s.wallet!.slice(0, 6)}…{s.wallet!.slice(-4)}</code><Icon name={wCopied ? 'check' : 'copy'} size={14} />{wCopied ? 'Copied' : 'Copy'}</button>
+                <div className="wtoks">
+                  {Object.entries(s.walletBal).map(([k, v]) => <span key={k}><TokenIcon symbol={k} size={20} />{amt4(k, v)}</span>)}
+                  <span className="gas">{fmt(s.eth, 5)} ETH for gas</span>
+                </div>
+                {unshielded > 0
+                  ? <button className="walpill" onClick={shieldAll}><span>Anyone can see this balance</span><b>Make private<Icon name="right" size={13} /></b></button>
+                  : <p className="wnote">This is the public wallet behind your account. Anything sent here can be made private.</p>}
+              </div>
+            )}
           </div>
-          {ready && !s.loaded ? <div className="big"><span className="skel skel-big" /></div> : <div className="big">${whole}<small>.{cents}</small></div>}
-          <div className="qas">
-            <button className="qa qm qadd" onClick={() => openAdd('shield')}><i><Icon name="plus" /></i>Add</button>
-            <button className="qa" onClick={() => go('swap')}><i><Icon name="swap" /></i>Swap</button>
-            <button className="qa" onClick={() => go('send')}><i><Icon name="right" /></i>Send</button>
-            <button className="qa qm" onClick={() => go('send?tab=receive')}><i><Icon name="down" /></i>Receive</button>
-          </div>
-          {ready && unshielded > 0 && (
-            <button className="walpill" onClick={shieldAll}><span>{usd(unshielded)} still in your wallet</span><b>Make private<Icon name="right" size={13} /></b></button>
-          )}
+          {ready && <div className="hdots" aria-hidden><i className={page === 0 ? 'on' : ''} /><i className={page === 1 ? 'on' : ''} /></div>}
         </Card>
 
         {ready && s.loaded && <Checklist onClaim={faucet} onPrivate={() => (Object.keys(s.walletBal).length ? shieldAll() : openAdd('shield'))} />}
