@@ -1,5 +1,5 @@
 // Talks to the chain: balances, pools, baskets, vault notes, and every action the app can take.
-import { concat, createPublicClient, createWalletClient, custom, getAddress, http, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
+import { concat, createPublicClient, createWalletClient, custom, getAddress, http, isAddress, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
 import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
 import { erc20Abi, registryAbi, swapAbi, vaultAbi } from './abi'
 import { CFG, chain } from './chain'
@@ -359,6 +359,45 @@ export async function send(sym: string, n: number, to: string, step: Step) {
   const amount = amountOf(sym, n, rawShielded(sym))
   const inputs = await inputsFor(sym, amount, step)
   await privately({ token: token(sym).address, inputs, outputs: [{ amount, publicKey: dest.publicKey, encPublic: dest.encPublic }, ...change(inputs, amount)] }, step)
+}
+
+export type BurstItem = { to: string; n: number }
+export const BURST_MAX = 20
+
+/** Pays many people in one go. Each payment is its own private transaction that spends the change of the one before,
+ *  so it runs as a quick chain. hagi1 addresses get a private note, 0x wallets are paid straight from the vault.
+ *  Returns how many were paid, so a failure part way through can say exactly where it stopped. */
+export async function burst(sym: string, items: BurstItem[], step: Step, onPaid?: (i: number) => void): Promise<number> {
+  if (!keys || !account) throw new Error('Unlock your Hagi account first')
+  if (items.length === 0) throw new Error('Add at least one person')
+  if (items.length > BURST_MAX) throw new Error(`You can pay up to ${BURST_MAX} people at once`)
+  const t = token(sym)
+  const plan = items.map(it => {
+    const to = it.to.trim(), amount = amountOf(sym, it.n, 0n)
+    if (amount <= 0n) throw new Error('Every amount needs to be more than zero')
+    const hagi = parseAddress(to)
+    if (hagi) return { amount, hagi, wallet: null as Hex | null }
+    if (isAddress(to)) return { amount, hagi: null, wallet: getAddress(to) }
+    throw new Error(`${to.slice(0, 12)}… is not a Hagi or 0x address`)
+  })
+  const total = plan.reduce((s, x) => s + x.amount, 0n)
+  if (total > rawShielded(sym)) throw new Error('Not enough shielded ' + sym + ' for everyone')
+  // Gather the funds into one note first, so each payment after that only spends the change.
+  await inputsFor(sym, total, m => step('Getting ready · ' + m))
+  let paid = 0
+  for (const [i, x] of plan.entries()) {
+    const sub: Step = m => step(`Paying ${i + 1} of ${plan.length} · ${m}`)
+    try {
+      const inputs = await inputsFor(sym, x.amount, sub)
+      if (x.hagi) await privately({ token: t.address, inputs, outputs: [{ amount: x.amount, publicKey: x.hagi.publicKey, encPublic: x.hagi.encPublic }, ...change(inputs, x.amount)] }, sub)
+      else await privately({ token: t.address, inputs, outputs: change(inputs, x.amount), withdraw: { recipient: x.wallet!, amount: x.amount } }, sub)
+    } catch (e) {
+      if (paid === 0) throw e
+      throw new Error(`Paid ${paid} of ${plan.length}, then stopped: ${friendly(e)} The rest were not sent and their funds are still in your private balance.`)
+    }
+    paid++; onPaid?.(i)
+  }
+  return paid
 }
 
 const quote = (from: Hex, to: Hex, amountIn: bigint) => pub.readContract({ address: CFG.contracts.swap, abi: swapAbi, functionName: 'quoteExactIn', args: [from, to, amountIn] })
