@@ -27,6 +27,7 @@ export function Send({ run }: { run: Run }) {
   const total = rows.reduce((a, r) => a + (r.ok ? r.n : 0), 0)
   const bad = rows.filter(r => !r.ok).length
   const anyWallet = rows.some(r => r.ok && r.kind === 'wallet')
+  const allPaid = rows.length > 0 && paid >= rows.length - 1
   const missing = rows.filter(r => !r.ok && r.why === 'No amount').length
   const [each, setEach] = useState('')
   const n = parseFloat(amt) || 0
@@ -58,13 +59,13 @@ export function Send({ run }: { run: Run }) {
               <span className="bkind">{r.ok ? (r.kind === 'hagi' ? 'Hagi' : 'Wallet') : r.why}</span><b>{r.ok ? fmt(r.n, cur === 'USDG' ? 2 : 4) : ''}</b></div>)}</div>}
             <div className="fld"><span className="fl">Token</span><div className="burst-tok"><TokenPicker value={cur} onChange={setSym} options={options} balances={s.shielded} /><span className="muted">Total {fmt(total, cur === 'USDG' ? 2 : 4)} {cur} · you have {fmt(have, cur === 'USDG' ? 2 : 4)}</span></div></div>
             {anyWallet && <div className="hint" style={{ marginBottom: 12 }}><span>Payouts to 0x wallets leave a few seconds apart, so someone watching could guess they came from one sender.</span></div>}
-            {!(s.wallet && s.hagiAddress) ? <NeedAccount /> : <button className="btn" disabled={!rows.length || bad > 0 || rows.length > engine.BURST_MAX || total <= 0 || total > have} onClick={() => run('Paying everyone privately', async step => {
+            {!(s.wallet && s.hagiAddress) ? <NeedAccount /> : <button className="btn" disabled={allPaid || !rows.length || bad > 0 || rows.length > engine.BURST_MAX || total <= 0 || total > have} onClick={() => run('Paying everyone privately', async step => {
               await confirmSpend(step)
               setPaid(-1)
               const done = await engine.burst(cur, rows.map(r => ({ to: r.to, n: r.n })), step, i => setPaid(i))
               api.log({ kind: 'send', title: `Paid ${done} people`, detail: fmt(total, cur === 'USDG' ? 2 : 4) + ' ' + cur, isPrivate: true })
-              setList(''); setPaid(-1); await api.refresh()
-            }, `Paid ${rows.length} people. Nobody saw who sent it.`)}>{!rows.length ? 'Add people' : bad ? 'Fix the list' : rows.length > engine.BURST_MAX ? `Up to ${engine.BURST_MAX} people` : total > have ? 'Not enough ' + cur : `Send to ${rows.length} ${rows.length === 1 ? 'person' : 'people'}`}</button>}
+              setPaid(rows.length - 1); await api.refresh()
+            }, `Paid ${rows.length} people. Nobody saw who sent it.`)}>{allPaid ? `All ${rows.length} paid` : !rows.length ? 'Add people' : bad ? 'Fix the list' : rows.length > engine.BURST_MAX ? `Up to ${engine.BURST_MAX} people` : total > have ? 'Not enough ' + cur : `Send to ${rows.length} ${rows.length === 1 ? 'person' : 'people'}`}</button>}
           </> : <>
           <div className="fld"><span className="fl">To</span><input className="txt" placeholder="hagi1… or 0x…" value={to} onChange={e => setTo(e.target.value)} aria-label="Recipient address" />
             <div className="hint"><span>{to && !validTo ? 'That doesn’t look like a Hagi or 0x address.' : toWallet ? 'They get it from the Hagi vault. Your wallet stays out of it.' : 'Paste a Hagi address, or any 0x wallet.'}</span></div></div>
