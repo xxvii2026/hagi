@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import * as engine from '../engine'
 import { confirmSpend } from '../confirm'
@@ -7,6 +7,7 @@ import { go } from '../nav'
 import { total, useStore } from '../store'
 import { Amount, AmountField, Card, Icon, Mark, NeedAccount, TokenIcon, TokenPicker, useCountUp, type Run } from '../ui'
 import { ActivityList } from './Activity'
+import { basis, costsOf, drift, held, loadPositions, updatePosition, valueOf, type Position } from '../positions'
 
 const MIX = ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#3a4a8a', '#c9d1ee', '#7f86ad', '#d9def0']
 
@@ -27,6 +28,10 @@ export function Portfolio({ run }: { run: Run }) {
   const n = parseFloat(amt) || 0
   const bal = total(s.shielded)
   const [whole, cents] = fmt(useCountUp(bal)).split('.')
+  const [pv, setPv] = useState(0)
+  const positions = useMemo(() => loadPositions(s.hagiAddress).filter(p => Object.values(held(p, s.shielded)).some(v => v > 1e-9)), [s.hagiAddress, s.shielded, pv]) // eslint-disable-line react-hooks/exhaustive-deps
+  const [basket, setBasket] = useState<number | null>(null)
+  const openPos = positions.find(p => p.id === basket) ?? null
   const holdings = Object.entries(s.shielded).sort((a, b) => b[1] * token(b[0]).price - a[1] * token(a[0]).price)
   const unshielded = total(s.walletBal)
   const [wWhole, wCents] = fmt(unshielded).split('.')
@@ -130,6 +135,16 @@ export function Portfolio({ run }: { run: Run }) {
           </>}
         </Card>
 
+        {ready && s.loaded && positions.length > 0 && <Card title="Your baskets">
+          {positions.map(pos => { const u = held(pos, s.shielded), v = valueOf(u), bs = basis(pos, u), ch = bs > 0 ? (v / bs - 1) * 100 : 0
+            return <button className="row hold bpos" key={pos.id} onClick={() => setBasket(pos.id)}>
+              <span className="bstack">{pos.items.slice(0, 3).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={30} />)}</span>
+              <div className="g"><b>{pos.name}</b><span>{pos.items.length} stocks</span></div>
+              <div className="r"><b><Amount value={v} seed={'b' + pos.id} prefix="$" /></b><span className={ch >= 0 ? 'up' : 'dn'}>{ch >= 0 ? '+' : ''}{fmt(ch, 1)}%</span></div>
+            </button> })}
+        </Card>}
+        {openPos && <BasketSheet pos={openPos} run={run} onClose={() => setBasket(null)} onChange={() => setPv(x => x + 1)} />}
+
       </div>
 
       <div className="col">
@@ -209,5 +224,59 @@ function Checklist({ onClaim, onPrivate }: { onClaim: () => void; onPrivate: () 
         </div>
       ))}
     </div>
+  )
+}
+
+/** One basket you own: its mix now against its target, what it's worth, and selling or rebalancing it in one tap. */
+function BasketSheet({ pos, run, onClose, onChange }: { pos: Position; run: Run; onClose: () => void; onChange: () => void }) {
+  const { s, api } = useStore()
+  const [pct, setPct] = useState(100)
+  const u = held(pos, s.shielded), v = valueOf(u), bs = basis(pos, u), ch = bs > 0 ? (v / bs - 1) * 100 : 0, off = drift(pos, u)
+  const owner = s.hagiAddress!
+  const sell = () => { onClose(); run('Selling ' + pos.name, async step => {
+    await confirmSpend(step)
+    const part: Record<string, number> = {}
+    for (const [k, x] of Object.entries(u)) if (x > 1e-9) part[k] = x * pct / 100
+    const settle = (got: Record<string, number>) => {
+      const left = { ...pos.units }, costs = { ...costsOf(pos) }
+      for (const k of Object.keys(got)) { const all = left[k] ?? 0; if (all > 0) costs[k] = (costs[k] ?? 0) * Math.max(0, 1 - part[k] / all); left[k] = Math.max(0, all - part[k]) }
+      if (pct === 100 && Object.keys(part).every(k => k in got)) for (const k of Object.keys(left)) left[k] = 0
+      updatePosition(owner, pos.id, left, costs); onChange()
+    }
+    let got: Record<string, number>
+    try { got = await engine.sellStocks(part, step) } catch (e) { settle((e as { partial?: Record<string, number> }).partial ?? {}); throw e }
+    settle(got)
+    const usdg = Object.values(got).reduce((t, x) => t + x, 0)
+    api.log({ kind: 'basket', title: (pct === 100 ? 'Sold basket: ' : `Sold ${pct}% of `) + pos.name, detail: fmt(usdg) + ' USDG', isPrivate: true })
+    await api.refresh()
+  }, pct === 100 ? 'Sold. The USDG is in your private balance.' : `Sold ${pct}%. The USDG is in your private balance.`) }
+  const rebal = () => { onClose(); run('Rebalancing ' + pos.name, async step => {
+    await confirmSpend(step)
+    const next = await engine.rebalance(pos.items, u, step)
+    const nv = valueOf(next), costs = Object.fromEntries(pos.items.map(it => [it.symbol, nv > 0 ? bs * (next[it.symbol] ?? 0) * token(it.symbol).price / nv : 0]))
+    updatePosition(owner, pos.id, next, costs); onChange()
+    api.log({ kind: 'basket', title: 'Rebalanced ' + pos.name, detail: pos.items.length + ' stocks', isPrivate: true })
+    await api.refresh()
+  }, 'Back on target.') }
+  return createPortal(
+    <div className="overlay" onClick={onClose}>
+      <div className="modal tsheet bsheet" onClick={e => e.stopPropagation()}>
+        <button className="x" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
+        <span className="bstack big">{pos.items.slice(0, 4).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={48} />)}</span>
+        <div className="ts-name">{pos.name}</div>
+        <div className="ts-val">{usd(v)}</div>
+        <div className={'ts-amt ' + (ch >= 0 ? 'up' : 'dn')}>{ch >= 0 ? '+' : ''}{fmt(ch, 2)}% · you put in {usd(bs)}</div>
+        <div className="bmix">{pos.items.map(it => { const now = v > 0 ? (u[it.symbol] * token(it.symbol).price / v) * 100 : 0
+          return <div className="bmrow" key={it.symbol}><TokenIcon symbol={it.symbol} size={26} /><span>{it.symbol}</span>
+            <div className="bar"><i style={{ width: Math.min(100, now) + '%' }} /><em style={{ left: it.weight + '%' }} /></div>
+            <b>{fmt(now, 0)}%<small> / {it.weight}%</small></b></div> })}</div>
+        <div className="bsell"><span>Sell</span>{[25, 50, 100].map(x => <button key={x} className={'chip' + (pct === x ? ' on' : '')} onClick={() => setPct(x)}>{x === 100 ? 'All' : x + '%'}</button>)}</div>
+        <div className="ts-acts">
+          <button onClick={sell}><i><Icon name="up" /></i>{pct === 100 ? 'Sell basket' : `Sell ${pct}%`}</button>
+          <button onClick={rebal} disabled={off < 2}><i><Icon name="swap" /></i>{off < 2 ? 'On target' : 'Rebalance'}</button>
+        </div>
+        <p className="muted small" style={{ marginTop: 14 }}>{off < 2 ? 'Your mix matches the basket.' : `Your mix is ${fmt(off, 0)} points off target. Rebalancing sells what grew and buys what fell behind.`} Only you can see this.</p>
+      </div>
+    </div>, document.body,
   )
 }

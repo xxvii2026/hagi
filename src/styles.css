@@ -870,3 +870,15 @@ body.busy .overlay .btn{pointer-events:auto;opacity:1}
 .burst-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
 .burst-tools .chip{cursor:pointer}
 .fillall{display:flex;align-items:center;gap:8px}.fillall .txt{width:130px;height:36px;padding:0 12px;font-size:14px}
+/* basket positions */
+.bstack{display:flex;flex:none}.bstack>*{margin-left:-10px;border-radius:50%;box-shadow:0 0 0 2px #fff}.bstack>*:first-child{margin-left:0}
+.bpos .bstack{width:70px}.bstack.big{margin:4px auto 6px}.bstack.big>*{margin-left:-14px}
+.up{color:#2f7a3e!important}.dn{color:#b5502e!important}
+.bmix{display:flex;flex-direction:column;gap:10px;margin:20px 0 6px;text-align:left}
+.bmrow{display:grid;grid-template-columns:26px 52px 1fr 92px;gap:10px;align-items:center;font-size:14px}
+.bmrow .bar{position:relative;height:8px;border-radius:9px;background:#eef0f7}.bmrow .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:9px;background:#566eba}
+.bmrow .bar em{position:absolute;top:-4px;width:2px;height:16px;margin-left:-1px;background:#1b2140;border-radius:1px}
+.bmrow b{text-align:right;font-weight:600}.bmrow small{color:var(--mute);font-weight:400}
+.bsell{display:flex;align-items:center;justify-content:center;gap:8px;margin:16px 0 4px;font-size:14px;color:var(--mute)}
+.bsell .chip.on{background:var(--ink);color:#fff}
+.ts-acts button:disabled{opacity:.45;pointer-events:none}
