@@ -15,7 +15,7 @@ const stops = (ready: boolean): Stop[] => [
   { sel: '.card.hero', title: 'Your private balance', text: 'Everything you shield adds up here. Only your key can read it. To everyone else it’s part of one shared vault.' },
   { sel: '[data-tour="shield"]', title: 'Shield and unshield', text: 'Shield moves tokens from your wallet into the vault. Unshield takes them back out. These two show your wallet on chain. What you do inside the vault doesn’t.' },
   { sel: '.links a[href="#/swap"], .tabbar a[href="#/swap"]', title: 'Swap privately', text: 'Trade one stock for another straight from your private balance. The swap shows on chain, but not that it was yours.' },
-  { sel: '.links a[href="#/send"], .tabbar a[href="#/send"]', title: 'Send privately', text: 'Pay another Hagi user. The amount and the person you paid stay hidden.' },
+  { sel: '.links a[href="#/send"], .tabbar a[href="#/send"]', title: 'Send privately', text: 'Pay another Hagi user fully privately, or pay any 0x wallet without showing yours.' },
   { sel: '.links a[href="#/baskets"], .tabbar a[href="#/baskets"]', title: 'Baskets', text: 'Buy a ready-made mix of stocks in one go, or make your own.' },
   { sel: '[data-tour="faucet"]', title: 'Free test money', text: 'Everything here is testnet. Claim 5,000 test USDG here, one time, and Hagi covers the gas.' },
   ready

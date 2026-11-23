@@ -199,24 +199,29 @@ const PAGES: Page[] = [
   },
   {
     slug: 'send', group: 'Guides', title: 'Send and receive',
-    lede: 'A private send moves tokens from your private balance to someone else’s. The chain shows neither the amount nor who got it.',
+    lede: 'Send from your private balance to another Hagi user, fully private, or to any 0x wallet without revealing yours.',
     body: <>
-      <H>Send</H>
+      <H>Send to a Hagi address</H>
       <Steps items={[
         <>Open <b>Send</b>.</>,
         <>Paste the recipient’s Hagi address. It starts with <code>hagi1</code>.</>,
         <>Pick the token and amount, then confirm.</>,
       ]} />
-      <P>USDG and every listed stock can be sent. The recipient does not need to be online. The funds are waiting for them the next time they open Hagi.</P>
+      <P>The chain shows only that a private transaction happened. The sender, the recipient, the token and the amount all stay private. The recipient does not need to be online. The funds are waiting for them the next time they open Hagi.</P>
+      <H>Send to any wallet</H>
+      <P>Paste a normal <code>0x</code> address instead. Hagi takes the amount out of your private balance and the relayer sends it straight to that wallet.</P>
+      <List items={[
+        <>Public: the receiving wallet, the token and the amount, like any withdrawal. It shows as coming from the Hagi vault.</>,
+        <>Hidden: who sent it. Your wallet is not on the transaction.</>,
+        <>Tip: sending the exact amount you just shielded, right after shielding it, makes it easier to guess it was you.</>,
+      ]} />
       <H>Receive</H>
       <Steps items={[
         <>Tap <b>Receive</b> (or open Send and pick the Receive tab) and choose <b>Copy address</b>.</>,
         <>Share that address with whoever is paying you.</>,
         <>Open Hagi. Incoming funds show up in your balance and in Activity as “Received”.</>,
       ]} />
-      <Note kind="warn" title="A Hagi address is not a wallet address">Never send tokens to a hagi1 address from a normal wallet or an exchange. It only works inside Hagi. And a normal 0x address can’t receive a private send. To pay a normal wallet, unshield to it.</Note>
-      <H>What others can see</H>
-      <P>Only that a private transaction happened. The sender, the recipient, the token and the amount all stay private.</P>
+      <Note kind="warn" title="A Hagi address is not a wallet address">Never send tokens to a hagi1 address from a normal wallet or an exchange. It only works inside Hagi.</Note>
     </>,
   },
   {

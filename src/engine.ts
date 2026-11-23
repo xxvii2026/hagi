@@ -346,10 +346,11 @@ export async function shield(sym: string, n: number, step: Step) {
   await sync(await waitFor(hash, step))
 }
 
-export async function unshield(sym: string, n: number, step: Step) {
+/** Takes funds out of the vault, to your own wallet or to any other 0x wallet. The relayer submits it, so your wallet isn't on the transaction. */
+export async function unshield(sym: string, n: number, step: Step, recipient?: Hex) {
   const amount = amountOf(sym, n, rawShielded(sym))
   const inputs = await inputsFor(sym, amount, step)
-  await privately({ token: token(sym).address, inputs, outputs: change(inputs, amount), withdraw: { recipient: account!, amount } }, step)
+  await privately({ token: token(sym).address, inputs, outputs: change(inputs, amount), withdraw: { recipient: recipient ?? account!, amount } }, step)
 }
 
 export async function send(sym: string, n: number, to: string, step: Step) {
