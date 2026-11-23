@@ -89,9 +89,7 @@ export function Portfolio({ run }: { run: Run }) {
                 <div className="wtoks">
                   {Object.entries(s.walletBal).map(([k, v]) => <span key={k}><TokenIcon symbol={k} size={20} />{amt4(k, v)}</span>)}
                 </div>
-                {unshielded > 0
-                  ? <button className="walpill" onClick={shieldAll}><span>Anyone can see this balance</span><b>Make private<Icon name="right" size={13} /></b></button>
-                  : <p className="wnote">This is the public wallet behind your account. Anything sent here can be made private.</p>}
+                {unshielded > 0 && <button className="walpill" onClick={shieldAll}><span>Anyone can see this balance</span><b>Make private<Icon name="right" size={13} /></b></button>}
               </div>
             )}
           </div>
