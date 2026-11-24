@@ -266,16 +266,15 @@ function BasketSheet({ pos, run, onClose, onChange }: { pos: Position; run: Run;
         <div className="ts-name">{pos.name}</div>
         <div className="ts-val">{usd(v)}</div>
         <div className={'ts-amt ' + (ch >= 0 ? 'up' : 'dn')}>{ch >= 0 ? '+' : ''}{fmt(ch, 2)}% · you put in {usd(bs)}</div>
+        <div className="bmhead"><span>Mix now vs target</span>{off < 1 ? <em className="ok">On target</em> : <em className="off">{fmt(off, 0)} pts off</em>}</div>
         <div className="bmix">{pos.items.map(it => { const now = v > 0 ? (u[it.symbol] * token(it.symbol).price / v) * 100 : 0
           return <div className="bmrow" key={it.symbol}><TokenIcon symbol={it.symbol} size={26} /><span>{it.symbol}</span>
             <div className="bar"><i style={{ width: Math.min(100, now) + '%' }} /><em style={{ left: it.weight + '%' }} /></div>
             <b>{fmt(now, 0)}%<small> / {it.weight}%</small></b></div> })}</div>
-        <div className="bsell"><span>Sell</span>{[25, 50, 100].map(x => <button key={x} className={'chip' + (pct === x ? ' on' : '')} onClick={() => setPct(x)}>{x === 100 ? 'All' : x + '%'}</button>)}</div>
-        <div className="ts-acts">
-          <button onClick={sell}><i><Icon name="up" /></i>{pct === 100 ? 'Sell basket' : `Sell ${pct}%`}</button>
-          <button onClick={rebal} disabled={off < 2}><i><Icon name="swap" /></i>{off < 2 ? 'On target' : 'Rebalance'}</button>
-        </div>
-        <p className="muted small" style={{ marginTop: 14 }}>{off < 2 ? 'Your mix matches the basket.' : `Your mix is ${fmt(off, 0)} points off target. Rebalancing sells what grew and buys what fell behind.`} Only you can see this.</p>
+        <div className="seg bseg" role="tablist" aria-label="How much to sell">{[25, 50, 100].map(x => <button key={x} className={pct === x ? 'on' : ''} onClick={() => setPct(x)}>{x === 100 ? 'All' : x + '%'}</button>)}</div>
+        <button className="btn" onClick={sell}>{pct === 100 ? 'Sell basket' : `Sell ${pct}%`}</button>
+        {off >= 1 && <button className="btn o bre" onClick={rebal}>Rebalance to target</button>}
+        <p className="muted small" style={{ marginTop: 14 }}>{off < 1 ? 'Your mix matches the basket. When prices move it apart, you can rebalance here.' : 'Rebalancing sells what grew past its share and buys what fell behind.'} Only you can see this.</p>
       </div>
     </div>, document.body,
   )
