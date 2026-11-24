@@ -2,7 +2,7 @@
 // and contracts/src/HagiVault.sol exactly.
 import { poseidon1, poseidon2, poseidon3 } from 'poseidon-lite'
 import nacl from 'tweetnacl'
-import { bytesToHex, concat, encodeAbiParameters, hexToBytes, keccak256, pad, toBytes, toHex, type Hex } from 'viem'
+import { bytesToHex, concat, encodeAbiParameters, getAddress, hexToBytes, keccak256, pad, toBytes, toHex, type Hex } from 'viem'
 
 export const FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617n
 export const LEVELS = 20
@@ -46,6 +46,29 @@ export function nullifier(n: Note, privateKey: bigint) {
   const c = commitment(n)
   const index = BigInt(n.index ?? 0)
   return poseidon3([c, index, poseidon3([privateKey, c, index])])
+}
+
+// ---------- Ghost Addresses ----------
+// A Ghost Address is a plain 0x address that only one Hagi account can claim from. It is the CREATE2
+// address of a tiny wallet contract, salted with a partial commitment Poseidon(publicKey, blinding).
+// The blinding comes from the spending key and an index, so any device with the account can find
+// every Ghost Address it ever made, and the funds claimed from one land in a note only this key can spend.
+
+const GHOST_TAG = BigInt(keccak256(toBytes('hagi.ghost'))) % FIELD
+
+export const ghostBlinding = (k: Pick<Keys, 'privateKey'>, i: number) => poseidon3([k.privateKey, GHOST_TAG, BigInt(i)])
+export const ghostPartial = (k: Pick<Keys, 'privateKey' | 'publicKey'>, i: number) => partialCommitment(k.publicKey, ghostBlinding(k, i))
+
+/** The 0x address for a partial commitment, exactly as HagiGhost.ghostAddress computes it. */
+export const ghostAddress = (factory: Hex, walletCodeHash: Hex, partial: bigint): Hex =>
+  getAddress(('0x' + keccak256(concat(['0xff', factory, b32(partial), walletCodeHash])).slice(26)) as Hex)
+
+/** Recognises a note claimed from one of this account's Ghost Addresses, even when its encrypted copy is missing or bad.
+ *  Claims always publish the token and amount, so the commitment can be rebuilt from the known blindings. */
+export function matchGhost(c: bigint, token: bigint, amount: bigint, ghosts: { blinding: bigint; partial: bigint }[]): bigint | null {
+  if (amount === 0n || token === 0n) return null
+  for (const g of ghosts) if (poseidon3([amount, token, g.partial]) === c) return g.blinding
+  return null
 }
 
 // ---------- note encryption ----------

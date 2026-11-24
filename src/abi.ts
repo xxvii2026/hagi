@@ -51,3 +51,11 @@ export const registryAbi = parseAbi([
   'error ZeroWeight()',
   'error WeightsMustTotal10000(uint256 total)',
 ])
+
+export const ghostAbi = parseAbi([
+  'function ghostAddress(uint256 partialCommitment) view returns (address)',
+  'function walletCodeHash() view returns (bytes32)',
+  'function feeBps() view returns (uint256)',
+  'function netOf(uint256 amount) view returns (uint256)',
+  'function claim(uint256 partialCommitment, address token, uint256 amount, bytes encryptedNote) returns (uint256)',
+])

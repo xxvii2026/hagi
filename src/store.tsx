@@ -17,8 +17,9 @@ export type State = {
   syncing: boolean
   offline: boolean             // the chain could not be read
   loaded: boolean              // the signed-in account's balances have been read at least once
+  ghost: engine.GhostState | null // the Ghost Address and anything waiting at it to be claimed
 }
-const initial: State = { wallet: null, hagiAddress: null, walletBal: {}, claimed: false, eth: 0, shielded: {}, activity: [], baskets: [], syncing: false, offline: false, loaded: false }
+const initial: State = { wallet: null, hagiAddress: null, walletBal: {}, claimed: false, eth: 0, shielded: {}, activity: [], baskets: [], syncing: false, offline: false, loaded: false, ghost: null }
 
 type Api = {
   connect: () => Promise<void>
@@ -26,6 +27,7 @@ type Api = {
   passkey: (create: boolean) => Promise<void>
   disconnect: () => void
   refresh: (quiet?: boolean) => Promise<void>
+  ghost: (fn?: 'new') => Promise<void>
   log: (a: Omit<Activity, 'id' | 'time'>) => void
 }
 const Ctx = createContext<{ s: State; api: Api }>({ s: initial, api: {} as Api })
@@ -41,6 +43,18 @@ export function Store({ children }: { children: ReactNode }) {
   const polls = useRef(0)
   const misses = useRef(0)
   const logRef = useRef<Api['log']>(() => {})
+  const seenGhost = useRef<Set<string> | null>(null)
+
+  // Reads the Ghost Address, and says so once when a new deposit lands there.
+  const readGhost = useCallback(async (fn?: 'new') => {
+    const g = fn === 'new' ? await engine.newGhost() : await engine.readGhosts()
+    if (!g) return
+    const ids = g.pending.map(p => p.address + p.symbol + p.raw)
+    const fresh = seenGhost.current ? g.pending.filter((_, i) => !seenGhost.current!.has(ids[i])) : []
+    seenGhost.current = new Set(ids)
+    for (const p of fresh) dispatchEvent(new CustomEvent('hagi-toast', { detail: { title: `${p.amount.toLocaleString('en-US', { maximumFractionDigits: p.symbol === 'USDG' ? 2 : 4 })} ${p.symbol} arrived at your Ghost Address`, sub: 'Claim it to make it private.' } }))
+    patch({ ghost: g })
+  }, [patch])
 
   // A quiet refresh is the background check for new funds: it doesn't flash "Syncing" in the top bar.
   const refresh = useCallback(async (quiet = false) => {
@@ -53,6 +67,7 @@ export function Store({ children }: { children: ReactNode }) {
       const baskets = full ? (await Promise.all([engine.readBaskets(), engine.readPools()]))[0] : null
       const w = await engine.readWallet()
       const shielded = await engine.sync()
+      if (full && engine.session.address) await readGhost().catch(e => console.warn('Hagi could not read Ghost Addresses', e))
       patch({ ...(baskets ? { baskets } : {}), walletBal: w.balances, claimed: w.claimed, eth: w.eth, shielded, offline: false, ...(engine.session.address ? { loaded: true } : {}) })
       misses.current = 0
       for (const r of engine.takeReceived()) {
@@ -69,7 +84,7 @@ export function Store({ children }: { children: ReactNode }) {
       busy.current = false
       if (!quiet) patch({ syncing: false })
     }
-  }, [patch])
+  }, [patch, readGhost])
 
   // On load, pick the wallet back up if it is still connected, then read the chain.
   // Public data (pools and baskets) loads even without a wallet, for the landing page.
@@ -111,8 +126,9 @@ export function Store({ children }: { children: ReactNode }) {
       patch({ wallet: r.wallet, hagiAddress: r.address, activity: load(activityKey(r.wallet), []) })
       await refresh()
     },
-    disconnect: () => { engine.lock(); shownBalance.last = 0; setS(x => ({ ...initial, baskets: x.baskets })) },
+    disconnect: () => { engine.lock(); seenGhost.current = null; shownBalance.last = 0; setS(x => ({ ...initial, baskets: x.baskets })) },
     refresh,
+    ghost: readGhost,
     log: a => {
       // Read the hash once, outside the state update, so it is never consumed twice.
       const hash = a.kind === 'receive' ? undefined : engine.takeHash() ?? undefined
@@ -122,7 +138,7 @@ export function Store({ children }: { children: ReactNode }) {
         return { ...x, activity }
       })
     },
-  }), [patch, refresh])
+  }), [patch, refresh, readGhost])
 
   logRef.current = api.log
   return <Ctx.Provider value={{ s, api }}>{children}</Ctx.Provider>

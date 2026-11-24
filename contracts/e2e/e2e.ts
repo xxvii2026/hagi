@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import { createPublicClient, createWalletClient, http, parseAbiItem, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { foundry } from 'viem/chains'
-import { MerkleTree, commitment, decryptNote, deriveKeys, encryptNote, nullifier, parseAddress, partialCommitment, randomField, toAddress, type Keys, type Note } from '../../src/zk/core'
+import { MerkleTree, commitment, decryptNote, deriveKeys, encryptNote, ghostAddress, ghostBlinding, ghostPartial, matchGhost, nullifier, parseAddress, partialCommitment, randomField, toAddress, type Keys, type Note } from '../../src/zk/core'
 import { buildTransaction } from '../../src/zk/prove'
 
 const PORT = 8546
@@ -45,14 +45,19 @@ async function main() {
     assert.deepEqual(parseAddress(toAddress(bKeys))?.publicKey, bKeys.publicKey)
 
     // Rebuilds the tree and finds a key's unspent notes from chain events, as the app will.
-    async function scan(keys: Keys) {
+    async function scan(keys: Keys, ghosts: { blinding: bigint; partial: bigint }[] = []) {
       const logs = await pub.getLogs({ address: v.vault, event: NEW_COMMITMENT, fromBlock: 0n })
       const tree = new MerkleTree()
       const notes: Note[] = []
       for (const l of logs.sort((a, b) => Number(a.args.index! - b.args.index!))) {
         assert.equal(Number(l.args.index), tree.size)
         tree.insert(l.args.commitment!)
-        const d = decryptNote(l.args.encryptedNote!, keys)
+        let d = decryptNote(l.args.encryptedNote!, keys)
+        if (!d || commitment({ ...d, amount: l.args.amount! > 0n ? l.args.amount! : d.amount, publicKey: keys.publicKey }) !== l.args.commitment) {
+          // A claim from a Ghost Address is recognised from the public token and amount, even without a usable encrypted note.
+          const g = matchGhost(l.args.commitment!, BigInt(l.args.token!), l.args.amount!, ghosts)
+          d = g == null ? null : { amount: l.args.amount!, token: BigInt(l.args.token!), blinding: g }
+        }
         if (!d) continue
         const note: Note = { ...d, amount: l.args.amount! > 0n ? l.args.amount! : d.amount, publicKey: keys.publicKey, index: Number(l.args.index) }
         if (commitment(note) !== l.args.commitment || note.amount === 0n) continue
@@ -150,8 +155,51 @@ async function main() {
     assert.deepEqual(b.notes.map(n => n.amount), [199_000000n])
     console.log('ok  relayer fee: 100 USDG withdrawn, 1 USDG paid to the relayer, 199 left shielded')
 
-    // 8. The vault holds exactly what the unspent notes say it holds
+    // 9. Ghost Addresses: a plain 0x address, funded from anywhere, that only claims into Alice's note
+    const gd = forge('DeployGhost.s.sol:DeployGhost', { HAGI_VAULT: v.vault, HAGI_GHOST_FEE_TO: relayer.account.address })
+    const ghostAbi = abi('HagiGhost')
+    const factory = { address: gd.ghost, abi: ghostAbi } as const
+    const codeHash = await pub.readContract({ ...factory, functionName: 'walletCodeHash' }) as Hex
+    const ghosts = [0, 1].map(i => ({ blinding: ghostBlinding(aKeys, i), partial: ghostPartial(aKeys, i) }))
+    const gAddr = ghostAddress(gd.ghost, codeHash, ghosts[0].partial)
+    assert.equal(gAddr, await pub.readContract({ ...factory, functionName: 'ghostAddress', args: [ghosts[0].partial] }))
+    assert.notEqual(gAddr, ghostAddress(gd.ghost, codeHash, ghosts[1].partial))
+    assert.equal(await pub.getCode({ address: gAddr }) ?? '0x', '0x', 'nothing is deployed before the first claim')
+    // "An exchange" pays the Ghost Address. Here it is Alice's wallet, but it could be anyone.
+    await send(alice, { address: base.usdg, abi: erc20, functionName: 'transfer', args: [gAddr, 400_000000n] })
+    assert.equal(await bal(base.usdg, gAddr), 400_000000n)
+    const net = await pub.readContract({ ...factory, functionName: 'netOf', args: [400_000000n] }) as bigint
+    assert.equal(net, 398_000000n)
+    const r1 = await bal(base.usdg, relayer.account.address)
+    rc = await send(relayer, { ...factory, functionName: 'claim', args: [ghosts[0].partial, base.usdg, 400_000000n, encryptNote({ amount: net, token: BigInt(base.usdg), blinding: ghosts[0].blinding }, aKeys.encPublic)] })
+    assert.equal(await bal(base.usdg, gAddr), 0n)
+    assert.equal(await bal(base.usdg, relayer.account.address) - r1, 2_000000n, '0.5% fee to the fee recipient')
     a = await scan(aKeys)
+    assert.ok(find(a.notes, base.usdg).some(n => n.amount === net), 'the claimed note is found by decryption')
+    console.log(`ok  ghost claim: 400 USDG sent to ${gAddr.slice(0, 10)}… became a 398 USDG private note (gas ${rc.gasUsed})`)
+
+    // A stranger claims a second deposit with a junk note: it still lands with Alice, found from the public amount
+    await send(alice, { address: stocks[1], abi: erc20, functionName: 'transfer', args: [gAddr, 3n * 10n ** 18n] })
+    const stranger = wallet(K0)
+    await send(stranger, { ...factory, functionName: 'claim', args: [ghosts[0].partial, stocks[1], 3n * 10n ** 18n, '0x1234'] })
+    const amdNet = 3n * 10n ** 18n - 3n * 10n ** 18n * 50n / 10_000n
+    assert.ok(!find((await scan(aKeys)).notes, stocks[1]).some(n => n.amount === amdNet), 'without Ghost matching the junk note is invisible')
+    a = await scan(aKeys, ghosts)
+    const amdNote = find(a.notes, stocks[1]).find(n => n.amount === amdNet)
+    assert.ok(amdNote, 'Ghost matching finds the note anyway')
+    console.log('ok  ghost safety: a third-party claim with a bad note still lands in Alice\'s balance and is found')
+
+    // The ghost note spends like any other: unshield it to a fresh wallet with a proof
+    const fresh = privateKeyToAccount(K2).address
+    const f0 = await bal(stocks[1], fresh)
+    tx = await buildTransaction({ keys: aKeys, tree: a.tree, token: stocks[1], inputs: [amdNote!], outputs: [], withdraw: { recipient: fresh, amount: amdNote!.amount } }, ART)
+    await transact(tx)
+    assert.equal(await bal(stocks[1], fresh) - f0, amdNote!.amount)
+    await assert.rejects(pub.simulateContract({ ...factory, functionName: 'claim', args: [ghosts[0].partial, base.usdg, 1n, '0x'], account: relayer.account }))
+    console.log('ok  ghost spend: the claimed note was spent with a proof; an empty Ghost Address cannot be claimed')
+
+    // 8. The vault holds exactly what the unspent notes say it holds
+    a = await scan(aKeys, ghosts)
     const shieldedUsdg = [...a.notes, ...b.notes].filter(n => n.token === BigInt(base.usdg)).reduce((t, n) => t + n.amount, 0n)
     assert.equal(await bal(base.usdg, v.vault), shieldedUsdg)
     console.log('ok  accounting: vault USDG balance equals the sum of unspent USDG notes')

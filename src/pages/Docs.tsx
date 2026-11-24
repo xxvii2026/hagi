@@ -221,7 +221,30 @@ const PAGES: Page[] = [
         <>Share that address with whoever is paying you.</>,
         <>Open Hagi. Incoming funds show up in your balance and in Activity as “Received”.</>,
       ]} />
-      <Note kind="warn" title="A Hagi address is not a wallet address">Never send tokens to a hagi1 address from a normal wallet or an exchange. It only works inside Hagi.</Note>
+      <Note kind="warn" title="A Hagi address is not a wallet address">Never send tokens to a hagi1 address from a normal wallet or an exchange. It only works inside Hagi. To get paid from outside Hagi, use a <To slug="ghost">Ghost Address</To>.</Note>
+    </>,
+  },
+  {
+    slug: 'ghost', group: 'Guides', title: 'Ghost Addresses',
+    lede: 'A normal 0x address that any wallet or exchange can pay, and that only your Hagi account can claim from, straight into your private balance.',
+    body: <>
+      <P>Your Hagi address only works inside Hagi. A Ghost Address works everywhere: it looks like any other <code>0x</code> address, so you can withdraw to it from an exchange, give it to a friend, or pay it from any wallet. Nothing on chain ties it to you or to your wallet.</P>
+      <H>Get paid to a Ghost Address</H>
+      <Steps items={[
+        <>Open <b>Receive</b> and pick <b>Ghost Address</b>.</>,
+        <>Copy the address or show the QR code. Send USDG or any listed stock to it on Robinhood Chain.</>,
+        <>When it arrives, tap <b>Claim</b>. The relayer sends the claim and pays the gas, so you don’t need a wallet or ETH.</>,
+      ]} />
+      <P>Claiming takes a 0.5% fee. The rest lands in your private balance as a new receipt that only your keys can spend.</P>
+      <H>What others can see</H>
+      <List items={[
+        <>Public: that the Ghost Address received the tokens, and that they were claimed into the vault. Like any transfer.</>,
+        <>Hidden: who owns the Ghost Address, and everything you do with the funds after the claim.</>,
+        <>Tip: every deposit to the same Ghost Address can be tied to the others. Tap <b>New address</b> to get a fresh one for each sender. Old addresses keep working and Hagi keeps watching them.</>,
+      ]} />
+      <H>How it works</H>
+      <P>A Ghost Address is the CREATE2 address of a tiny wallet contract, salted with a partial receipt that only your keys can make. Funds can be sent to it before anything is deployed. A claim deploys the wallet if needed and shields what it holds into a receipt completed from that same partial receipt, so whoever sends the claim can only ever put the money into your balance. Your addresses are numbered from your spending key, so any device you sign in on finds them again.</P>
+      <Note kind="warn" title="Only listed tokens">Send only USDG, TSLA, AMD, AMZN, NFLX or PLTR on Robinhood Chain. Anything else, including ETH, can’t be claimed and stays stuck at the address.</Note>
     </>,
   },
   {
@@ -298,6 +321,7 @@ const PAGES: Page[] = [
         ['HagiSwap', 'The test pools, one per stock against USDG', <Addr value={CFG.contracts.swap} />],
         ['BasketRegistry', 'Stores baskets and their recipes', <Addr value={CFG.contracts.basketRegistry} />],
         ['TestUSDG', 'The test dollar token, with a faucet', <Addr value={CFG.contracts.usdg} />],
+        ...(CFG.contracts.ghost ? [['HagiGhost', 'Makes Ghost Addresses and claims them into the vault', <Addr value={CFG.contracts.ghost} />]] : []),
       ]} />
       <H>Stock tokens</H>
       <Table head={['Token', 'Address']} rows={Object.entries(CFG.tokens).map(([k, v]) => [k, <Addr value={v} />])} />

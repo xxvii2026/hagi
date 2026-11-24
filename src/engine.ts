@@ -1,10 +1,10 @@
 // Talks to the chain: balances, pools, baskets, vault notes, and every action the app can take.
 import { concat, createPublicClient, createWalletClient, custom, getAddress, http, isAddress, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
 import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
-import { erc20Abi, registryAbi, swapAbi, vaultAbi } from './abi'
+import { erc20Abi, ghostAbi, registryAbi, swapAbi, vaultAbi } from './abi'
 import { CFG, chain } from './chain'
 import { STOCKS, TOKENS, fromUnits, token, tokenByAddress, type Basket } from './data'
-import { SIGN_MESSAGE, MerkleTree, commitment, decryptNote, deriveKeys, encryptNote, nullifier, parseAddress, partialCommitment, randomField, toAddress, type Keys, type Note } from './zk/core'
+import { SIGN_MESSAGE, MerkleTree, commitment, decryptNote, deriveKeys, encryptNote, ghostAddress, ghostBlinding, ghostPartial, matchGhost, nullifier, parseAddress, partialCommitment, randomField, toAddress, type Keys, type Note } from './zk/core'
 import type { TxRequest } from './zk/prove'
 
 export type Step = (label: string) => void
@@ -201,13 +201,19 @@ export async function sync(minBlock = 0n): Promise<Record<string, number>> {
   const t = new MerkleTree()
   const mine: Note[] = []
   const privateOnes = new Set<Note>()
-  for (const [index, c, , amount, enc] of logs) {
+  const ghosts = ghostKeys()
+  for (const [index, c, tk, amount, enc] of logs) {
     if (index !== t.size) throw new Error('The vault history has a gap. Try again in a minute.')
     t.insert(BigInt(c))
     const d = decryptNote(enc, keys)
-    if (!d) continue
-    const note: Note = { ...d, amount: BigInt(amount) > 0n ? BigInt(amount) : d.amount, publicKey: keys.publicKey, index }
-    if (note.amount > 0n && commitment(note) === BigInt(c)) { mine.push(note); if (BigInt(amount) === 0n) privateOnes.add(note) }
+    let note: Note | null = d ? { ...d, amount: BigInt(amount) > 0n ? BigInt(amount) : d.amount, publicKey: keys.publicKey, index } : null
+    if (!note || commitment(note) !== BigInt(c)) {
+      // A claim from one of this account's Ghost Addresses is found from its public token and amount,
+      // so a claim someone else sent with a bad encrypted note still shows up.
+      const g = ghosts.length ? matchGhost(BigInt(c), BigInt(tk), BigInt(amount), ghosts) : null
+      note = g == null ? null : { amount: BigInt(amount), token: BigInt(tk), blinding: g, publicKey: keys.publicKey, index }
+    }
+    if (note && note.amount > 0n && commitment(note) === BigInt(c)) { mine.push(note); if (BigInt(amount) === 0n) privateOnes.add(note) }
   }
   const nfs = mine.map(n => nullifier(n, keys!.privateKey).toString())
   const spent = await Promise.all(mine.map((_, i) => spentSeen.has(nfs[i]) ? true
@@ -244,6 +250,84 @@ function amountOf(sym: string, n: number, have: bigint) {
   const typed = BigInt(Math.round(n * 1e6)) * 10n ** BigInt(t.decimals - 6)
   const diff = have > typed ? have - typed : typed - have
   return diff < 10n ** BigInt(Math.max(0, t.decimals - 6)) ? have : typed
+}
+
+// ---------- Ghost Addresses ----------
+// A Ghost Address is a plain 0x address that anyone can pay (a wallet, an exchange, a friend) and that only
+// this account can claim from. Claiming moves the funds straight into a private note. The relayer sends the
+// claim and pays the gas, so no wallet and no ETH are needed. Each account can make as many as it likes:
+// addresses are numbered from the spending key, so every device finds the same ones.
+
+export const ghostEnabled = () => !!CFG.contracts.ghost
+const LOOKAHEAD = 1 // also watch the next unused address, so a new device spots funds sent to one made elsewhere
+const ghostSlot = () => 'hagi-ghosts-' + keys!.publicKey.toString(16).slice(0, 24)
+const ghostCount = () => { try { return Math.max(1, Number(localStorage.getItem(ghostSlot())) || 1) } catch { return 1 } }
+const setGhostCount = (n: number) => { try { localStorage.setItem(ghostSlot(), String(n)) } catch { /* optional */ } }
+function ghostKeys() {
+  if (!keys || !ghostEnabled()) return []
+  return Array.from({ length: ghostCount() + LOOKAHEAD }, (_, i) => ({ i, blinding: ghostBlinding(keys!, i), partial: ghostPartial(keys!, i) }))
+}
+
+let codeHash: Hex | null = null
+async function ghostCodeHash(): Promise<Hex> {
+  const slot = 'hagi-ghost-code-' + CFG.contracts.ghost!.toLowerCase()
+  try { codeHash ??= localStorage.getItem(slot) as Hex | null } catch { /* optional */ }
+  if (!codeHash) {
+    codeHash = await pub.readContract({ address: CFG.contracts.ghost!, abi: ghostAbi, functionName: 'walletCodeHash' })
+    try { localStorage.setItem(slot, codeHash) } catch { /* optional */ }
+  }
+  return codeHash
+}
+
+export type GhostDeposit = { index: number; address: Hex; symbol: string; amount: number; raw: bigint }
+export type GhostState = { address: Hex; index: number; count: number; pending: GhostDeposit[] }
+
+/** The current Ghost Address, every older one, and whatever is waiting at any of them to be claimed. */
+export async function readGhosts(onlyCurrent = false): Promise<GhostState | null> {
+  if (!keys || !ghostEnabled()) return null
+  const hash = await ghostCodeHash()
+  let list = ghostKeys().map(g => ({ ...g, address: ghostAddress(CFG.contracts.ghost!, hash, g.partial) }))
+  const current = ghostCount() - 1
+  const watch = onlyCurrent ? list.filter(g => g.i === current) : list
+  const raw = await Promise.all(watch.flatMap(g => TOKENS.map(t => pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'balanceOf', args: [g.address] }))))
+  const pending: GhostDeposit[] = []
+  watch.forEach((g, gi) => TOKENS.forEach((t, ti) => { const r = raw[gi * TOKENS.length + ti]; if (r > 0n) pending.push({ index: g.i, address: g.address, symbol: t.symbol, amount: fromUnits(r, t.decimals), raw: r }) }))
+  // Funds at an address this device hasn't made yet means another device made it: catch up.
+  const top = Math.max(current, ...pending.map(p => p.index))
+  if (top > current) { setGhostCount(top + 1); list = ghostKeys().map(g => ({ ...g, address: ghostAddress(CFG.contracts.ghost!, hash, g.partial) })) }
+  const now = list[ghostCount() - 1]
+  return { address: now.address, index: now.i, count: ghostCount(), pending }
+}
+
+/** Moves to a brand new Ghost Address. Older ones keep working and are still watched. */
+export async function newGhost(): Promise<GhostState | null> {
+  if (!keys) throw new Error('Sign in first')
+  setGhostCount(ghostCount() + 1)
+  return readGhosts()
+}
+
+/** Claims a deposit from a Ghost Address into the private balance. The relayer sends it, so no wallet or gas is needed. */
+export async function claimGhost(d: GhostDeposit, step: Step): Promise<number> {
+  if (!keys) throw new Error('Sign in first')
+  const t = token(d.symbol)
+  const g = ghostKeys().find(x => x.i === d.index)
+  if (!g) throw new Error('That Ghost Address isn’t on this account')
+  step('Checking the deposit')
+  const raw = await pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'balanceOf', args: [d.address] })
+  if (raw === 0n) throw new Error('Nothing is waiting at this address anymore. If it was claimed, it’s already in your balance.')
+  const net = await pub.readContract({ address: CFG.contracts.ghost!, abi: ghostAbi, functionName: 'netOf', args: [raw] })
+  step('Sending the claim through the relayer')
+  const body = { partial: g.partial.toString(), token: t.address, amount: raw.toString(), encryptedNote: encryptNote({ amount: net, token: BigInt(t.address), blinding: g.blinding }, keys.encPublic) }
+  let res: Response
+  try { res = await fetch(CFG.relayerUrl.replace(/relay$/, 'ghost'), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) }
+  catch { throw new Error('The relayer couldn’t be reached. Your deposit is safe at the Ghost Address. Try again in a minute.') }
+  const j: { hash?: Hex; error?: string } = await res.json().catch(() => ({}))
+  if (!res.ok || !j.hash) {
+    if (j.error === 'TokenNotAllowed') throw new Error('Hagi doesn’t list this token, so it can’t be claimed.')
+    throw new Error((j.error ?? 'The claim didn’t go through.') + ' Your deposit is safe at the Ghost Address.')
+  }
+  await sync(await waitFor(j.hash, step))
+  return fromUnits(net, t.decimals)
 }
 
 // ---------- sending transactions ----------
