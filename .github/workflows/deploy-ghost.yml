@@ -1,0 +1,45 @@
+name: Deploy Ghost Addresses to testnet
+# Runs only when contracts/deployments/request-ghost changes on the contracts branch.
+# Deploys HagiGhost next to the live vault (the vault itself does not change), then records the address.
+on:
+  push:
+    branches: [contracts]
+    paths: ['contracts/deployments/request-ghost']
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      RPC: ${{ secrets.RPC_URL || 'https://rpc.testnet.chain.robinhood.com' }}
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+      HAGI_VAULT: '0x0C3C8c6929851818d6a15A4c57D68F9342B81798'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci
+      - name: Unit tests
+        run: forge test
+      - name: Deploy HagiGhost
+        run: |
+          export DEPLOYER_PRIVATE_KEY="0x${DEPLOYER_PRIVATE_KEY#0x}"
+          forge script script/DeployGhost.s.sol:DeployGhost --rpc-url "$RPC" --broadcast --slow --gas-estimate-multiplier 150 | tee deploy.log
+          GHOST=$(grep -oE 'DEPLOYED ghost 0x[0-9a-fA-F]{40}' deploy.log | awk '{print $3}')
+          BLOCK=$(grep -oE 'DEPLOYED block [0-9]+' deploy.log | awk '{print $3}')
+          HASH=$(cast call "$GHOST" 'walletCodeHash()(bytes32)' --rpc-url "$RPC")
+          FEE=$(cast call "$GHOST" 'feeBps()(uint256)' --rpc-url "$RPC")
+          printf '{\n  "chainId": 46630,\n  "HagiGhost": "%s",\n  "vault": "%s",\n  "walletCodeHash": "%s",\n  "feeBps": %s,\n  "block": %s\n}\n' "$GHOST" "$HAGI_VAULT" "$HASH" "$FEE" "$BLOCK" > deployments/ghost-testnet.json
+          cat deployments/ghost-testnet.json
+      - name: Record the address
+        run: |
+          git config user.name "hagi-deploy"
+          git config user.email "hagi-deploy@users.noreply.github.com"
+          git add deployments/ghost-testnet.json
+          git commit -m "Record the HagiGhost testnet deployment"
+          git push
