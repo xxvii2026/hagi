@@ -262,7 +262,7 @@ function BasketSheet({ pos, run, onClose, onChange }: { pos: Position; run: Run;
     <div className="overlay" onClick={onClose}>
       <div className="modal tsheet bsheet" onClick={e => e.stopPropagation()}>
         <button className="x" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
-        <span className="bstack big">{pos.items.slice(0, 4).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={48} />)}</span>
+        <span className="bstack big">{pos.items.slice(0, 6).map(it => <TokenIcon key={it.symbol} symbol={it.symbol} size={48} />)}</span>
         <div className="ts-name">{pos.name}</div>
         <div className="ts-val">{usd(v)}</div>
         <div className={'ts-amt ' + (ch >= 0 ? 'up' : 'dn')}>{ch >= 0 ? '+' : ''}{fmt(ch, 2)}% · you put in {usd(bs)}</div>
