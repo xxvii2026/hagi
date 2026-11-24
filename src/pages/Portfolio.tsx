@@ -34,6 +34,7 @@ export function Portfolio({ run }: { run: Run }) {
   const openPos = positions.find(p => p.id === basket) ?? null
   const holdings = Object.entries(s.shielded).sort((a, b) => b[1] * token(b[0]).price - a[1] * token(a[0]).price)
   const unshielded = total(s.walletBal)
+  const ghostWaiting = (s.ghost?.pending ?? []).reduce((t, p) => t + p.amount * token(p.symbol).price, 0)
   const [wWhole, wCents] = fmt(unshielded).split('.')
   const [page, setPage] = useState(0)
   const [wCopied, setWCopied] = useState(false)
@@ -82,6 +83,9 @@ export function Portfolio({ run }: { run: Run }) {
               <button className="qa" onClick={() => go('send')}><i><Icon name="right" /></i>Send</button>
               <button className="qa qm" onClick={() => go('send?tab=receive')}><i><Icon name="down" /></i>Receive</button>
             </div>
+            {ready && ghostWaiting > 0 && (
+              <button className="walpill ghostpill" onClick={() => go('send?tab=receive&r=ghost')}><span><i className="gdot" />{usd(ghostWaiting)} waiting at your Ghost Address</span><b>Claim<Icon name="right" size={13} /></b></button>
+            )}
             {ready && unshielded > 0 && (
               <button className="walpill" onClick={shieldAll}><span>{usd(unshielded)} still in your wallet</span><b>Make private<Icon name="right" size={13} /></b></button>
             )}

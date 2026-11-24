@@ -8,6 +8,7 @@ import { useStore } from '../store'
 import { parseAddress } from '../zk/core'
 import { getAddress, isAddress } from 'viem'
 import { AmountField, Card, NeedAccount, TokenPicker, type Run } from '../ui'
+import { GhostPanel } from './Ghost'
 
 export function Send({ run }: { run: Run }) {
   const { s, api } = useStore()
@@ -21,6 +22,8 @@ export function Send({ run }: { run: Run }) {
   const [qr, setQr] = useState('')
   const [copied, setCopied] = useState(false)
   const [many, setMany] = useState(hashParam('mode') === 'burst')
+  // Receive shows the hagi1 address, or a Ghost Address that any wallet or exchange can pay.
+  const [rmode, setRmode] = useState<'hagi' | 'ghost'>(hashParam('r') === 'ghost' && engine.ghostEnabled() ? 'ghost' : 'hagi')
   const [list, setList] = useState('')
   const [paid, setPaid] = useState(-1)
   const rows = parseBurst(list)
@@ -79,7 +82,9 @@ export function Send({ run }: { run: Run }) {
             setAmt(''); setTo(''); await api.refresh()
           }, toWallet ? 'Sent. Your wallet stayed out of it.' : 'Sent. Nobody saw.')}>{!validTo ? 'Enter an address' : n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : 'Send privately'}</button>}
           </>}
-        </> : !s.hagiAddress ? <div className="recv">
+        </> : <>
+        {engine.ghostEnabled() && <div className="seg" role="tablist" aria-label="Receive with"><button className={rmode === 'hagi' ? 'on' : ''} onClick={() => setRmode('hagi')}>Hagi address</button><button className={rmode === 'ghost' ? 'on' : ''} onClick={() => setRmode('ghost')}>Ghost Address</button></div>}
+        {rmode === 'ghost' ? <GhostPanel run={run} /> : !s.hagiAddress ? <div className="recv">
           <span className="fl">Your Hagi address appears here once your account is made. It receives USDG and every stock.</span>
           <NeedAccount />
         </div> : <div className="recv">
@@ -88,9 +93,11 @@ export function Send({ run }: { run: Run }) {
           <div className="rcv-addr"><code>{s.hagiAddress.slice(0, 10)}…{s.hagiAddress.slice(-8)}</code></div>
           <div className="rcv-acts"><button className="btn" onClick={copy}>{copied ? 'Copied' : 'Copy address'}</button></div>
         </div>}
+        </>}
       </Card>
       <div className="col n">
-        <Card title="Good to know"><p className="muted">Sending to a hagi1 address stays fully inside Hagi. Sending to a 0x wallet pays it straight from the vault: they see the amount arrive from Hagi, but not your wallet. One Hagi address receives USDG and all five stocks.</p></Card>
+        {tab === 'receive' && rmode === 'ghost' ? <Card title="How Ghost Addresses work"><p className="muted">A Ghost Address is a normal 0x address, so any wallet or exchange can pay it. Nothing links it to you or your wallet. When you claim, the money goes straight into your private balance, and only your Hagi account can ever claim from it.</p><p className="muted">The deposit itself is public, like any transfer. If you don’t want two deposits tied to each other, make a new address for each sender. Old addresses keep working.</p></Card>
+        : <Card title="Good to know"><p className="muted">Sending to a hagi1 address stays fully inside Hagi. Sending to a 0x wallet pays it straight from the vault: they see the amount arrive from Hagi, but not your wallet. One Hagi address receives USDG and all five stocks.</p></Card>}
       </div>
     </div>
   )
