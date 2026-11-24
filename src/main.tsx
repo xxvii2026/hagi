@@ -10,8 +10,8 @@ listenForInstall()
 // Offline shell and cached proving files. Only in a real build, so local development always gets fresh code.
 if (import.meta.env.PROD && 'serviceWorker' in navigator) addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => { /* optional */ }) })
 
-// The admin dashboard is unlisted (#/admin) and loads separately, so it adds nothing to the app's own bundle.
-const Admin = lazy(() => import('./pages/Admin'))
+// The admin dashboard is unlisted (#/admin), loads separately, and only opens after an admin wallet signs in.
+const Admin = lazy(() => import('./pages/AdminGate'))
 const isAdmin = () => location.hash.split('?')[0] === '#/admin'
 
 function Root() {
