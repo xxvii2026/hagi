@@ -4,7 +4,7 @@
 import { createPublicClient, createWalletClient, http, isAddress, parseAbi, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
-const GHOST = process.env.GHOST_ADDRESS as Hex | undefined
+const GHOST = (process.env.GHOST_ADDRESS || '0x722445E4a5582FF615aE7f72fc928f62C87d75EF') as Hex | undefined
 const RPC = process.env.RPC_URL || 'https://rpc.testnet.chain.robinhood.com'
 const CHAIN_ID = Number(process.env.CHAIN_ID || 46630)
 const FIELD = 21888242871839275222246405745257275088548364400416034343698204186575808495617n
