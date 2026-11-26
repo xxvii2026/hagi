@@ -1,0 +1,572 @@
+{
+"Activity": {
+"zh": "动态",
+"es": "Actividad",
+"fr": "Activité"
+},
+"Sign in": {
+"zh": "登录",
+"es": "Iniciar sesión",
+"fr": "Se connecter"
+},
+"Testnet": {
+"zh": "测试网",
+"es": "Testnet",
+"fr": "Testnet"
+},
+"Syncing": {
+"zh": "同步中",
+"es": "Sincronizando",
+"fr": "Synchronisation"
+},
+"Can’t reach the chain": {
+"zh": "无法连接区块链",
+"es": "No se puede conectar a la cadena",
+"fr": "Impossible de joindre la chaîne"
+},
+"Take the tour": {
+"zh": "查看导览",
+"es": "Hacer el recorrido",
+"fr": "Faire la visite"
+},
+"Shield": {
+"zh": "存入隐私",
+"es": "Proteger",
+"fr": "Protéger"
+},
+"Unshield": {
+"zh": "取出",
+"es": "Desproteger",
+"fr": "Retirer"
+},
+"From your wallet": {
+"zh": "从你的钱包",
+"es": "Desde tu billetera",
+"fr": "Depuis votre portefeuille"
+},
+"From your private balance": {
+"zh": "从你的私密余额",
+"es": "Desde tu saldo privado",
+"fr": "Depuis votre solde privé"
+},
+"Wallet balance": {
+"zh": "钱包余额",
+"es": "Saldo de billetera",
+"fr": "Solde du portefeuille"
+},
+"Private balance": {
+"zh": "私密余额",
+"es": "Saldo privado",
+"fr": "Solde privé"
+},
+"Enter an amount": {
+"zh": "输入金额",
+"es": "Ingresa un monto",
+"fr": "Saisissez un montant"
+},
+"Claim 5,000 test USDG (one time)": {
+"zh": "领取 5,000 测试 USDG（仅限一次）",
+"es": "Reclama 5,000 USDG de prueba (una vez)",
+"fr": "Réclamer 5 000 USDG de test (une fois)"
+},
+"Add": {
+"zh": "存入",
+"es": "Añadir",
+"fr": "Ajouter"
+},
+"Receive": {
+"zh": "收款",
+"es": "Recibir",
+"fr": "Recevoir"
+},
+"Claim": {
+"zh": "领取",
+"es": "Reclamar",
+"fr": "Réclamer"
+},
+"Make private": {
+"zh": "设为私密",
+"es": "Hacer privado",
+"fr": "Rendre privé"
+},
+"Copied": {
+"zh": "已复制",
+"es": "Copiado",
+"fr": "Copié"
+},
+"Copy": {
+"zh": "复制",
+"es": "Copiar",
+"fr": "Copier"
+},
+"Anyone can see this balance": {
+"zh": "任何人都能看到这笔余额",
+"es": "Cualquiera puede ver este saldo",
+"fr": "Tout le monde peut voir ce solde"
+},
+"Your private balance lives here": {
+"zh": "你的私密余额在这里",
+"es": "Tu saldo privado vive aquí",
+"fr": "Votre solde privé se trouve ici"
+},
+"Sign in to see it. It takes a few seconds.": {
+"zh": "登录即可查看，只需几秒钟。",
+"es": "Inicia sesión para verlo. Toma unos segundos.",
+"fr": "Connectez-vous pour le voir. Ça prend quelques secondes."
+},
+"Nothing here yet": {
+"zh": "这里还没有内容",
+"es": "Aún no hay nada aquí",
+"fr": "Rien ici pour l’instant"
+},
+"You have test funds in your wallet. Make them private to start.": {
+"zh": "你的钱包里有测试资金。先把它们设为私密吧。",
+"es": "Tienes fondos de prueba en tu billetera. Hazlos privados para empezar.",
+"fr": "Vous avez des fonds de test dans votre portefeuille. Rendez-les privés pour commencer."
+},
+"Your wallet is empty. Add funds to get started.": {
+"zh": "你的钱包是空的。存入资金即可开始。",
+"es": "Tu billetera está vacía. Añade fondos para empezar.",
+"fr": "Votre portefeuille est vide. Ajoutez des fonds pour commencer."
+},
+"Claim free test USDG, then make it private. Nothing here is real money.": {
+"zh": "领取免费测试 USDG，然后设为私密。这里没有真钱。",
+"es": "Reclama USDG de prueba gratis y luego hazlo privado. Nada aquí es dinero real.",
+"fr": "Réclamez des USDG de test gratuits, puis rendez-les privés. Rien ici n’est de l’argent réel."
+},
+"Claim test USDG": {
+"zh": "领取测试 USDG",
+"es": "Reclamar USDG de prueba",
+"fr": "Réclamer des USDG de test"
+},
+"Your baskets": {
+"zh": "你的组合",
+"es": "Tus cestas",
+"fr": "Vos paniers"
+},
+"See all": {
+"zh": "查看全部",
+"es": "Ver todo",
+"fr": "Tout voir"
+},
+"Add to your private balance": {
+"zh": "存入你的私密余额",
+"es": "Añadir a tu saldo privado",
+"fr": "Ajouter à votre solde privé"
+},
+"Move out of Hagi": {
+"zh": "从 Hagi 转出",
+"es": "Sacar de Hagi",
+"fr": "Sortir de Hagi"
+},
+"Close": {
+"zh": "关闭",
+"es": "Cerrar",
+"fr": "Fermer"
+},
+"Price": {
+"zh": "价格",
+"es": "Precio",
+"fr": "Prix"
+},
+"Share of balance": {
+"zh": "占余额比例",
+"es": "Parte del saldo",
+"fr": "Part du solde"
+},
+"Visible to others": {
+"zh": "他人可见",
+"es": "Visible para otros",
+"fr": "Visible par les autres"
+},
+"No": {
+"zh": "否",
+"es": "No",
+"fr": "Non"
+},
+"Withdraw": {
+"zh": "提取",
+"es": "Retirar",
+"fr": "Retirer"
+},
+"Get started": {
+"zh": "开始使用",
+"es": "Empieza",
+"fr": "Commencer"
+},
+"5,000 free test USDG, one time.": {
+"zh": "免费 5,000 测试 USDG，仅限一次。",
+"es": "5,000 USDG de prueba gratis, una vez.",
+"fr": "5 000 USDG de test gratuits, une fois."
+},
+"Make it private": {
+"zh": "设为私密",
+"es": "Hazlo privado",
+"fr": "Rendez-le privé"
+},
+"Move it into your private balance.": {
+"zh": "把它转入你的私密余额。",
+"es": "Muévelo a tu saldo privado.",
+"fr": "Déplacez-le vers votre solde privé."
+},
+"Do something private": {
+"zh": "做一笔私密操作",
+"es": "Haz algo privado",
+"fr": "Faites quelque chose de privé"
+},
+"Swap, send or buy a basket.": {
+"zh": "兑换、发送或买入组合。",
+"es": "Intercambia, envía o compra una cesta.",
+"fr": "Échangez, envoyez ou achetez un panier."
+},
+"Hide": {
+"zh": "隐藏",
+"es": "Ocultar",
+"fr": "Masquer"
+},
+"Mix now vs target": {
+"zh": "当前比例 vs 目标",
+"es": "Mezcla actual vs objetivo",
+"fr": "Répartition actuelle vs cible"
+},
+"On target": {
+"zh": "符合目标",
+"es": "En objetivo",
+"fr": "Dans la cible"
+},
+"All": {
+"zh": "全部",
+"es": "Todo",
+"fr": "Tout"
+},
+"Sell basket": {
+"zh": "卖出组合",
+"es": "Vender cesta",
+"fr": "Vendre le panier"
+},
+"Rebalance to target": {
+"zh": "按目标再平衡",
+"es": "Rebalancear al objetivo",
+"fr": "Rééquilibrer vers la cible"
+},
+"How much to sell": {
+"zh": "卖出多少",
+"es": "Cuánto vender",
+"fr": "Combien vendre"
+},
+"Your mix matches the basket. When prices move it apart, you can rebalance here.": {
+"zh": "你的比例与组合一致。价格变动造成偏离时，你可以在这里再平衡。",
+"es": "Tu mezcla coincide con la cesta. Cuando los precios la desajusten, puedes rebalancear aquí.",
+"fr": "Votre répartition correspond au panier. Quand les prix l’écartent, vous pouvez rééquilibrer ici."
+},
+"Rebalancing sells what grew past its share and buys what fell behind.": {
+"zh": "再平衡会卖出涨超比例的部分，买入落后的部分。",
+"es": "Rebalancear vende lo que creció de más y compra lo que se quedó atrás.",
+"fr": "Le rééquilibrage vend ce qui a dépassé sa part et achète ce qui a pris du retard."
+},
+"Only you can see this.": {
+"zh": "只有你能看到。",
+"es": "Solo tú puedes ver esto.",
+"fr": "Vous seul pouvez voir ceci."
+},
+"Send,": {
+"zh": "发送，",
+"es": "Envía,",
+"fr": "Envoyez,"
+},
+"Swap,": {
+"zh": "兑换，",
+"es": "Intercambia,",
+"fr": "Échangez,"
+},
+"Pay a Hagi address privately, or any wallet without revealing yours.": {
+"zh": "私密地付款给 Hagi 地址，或付款给任何钱包而不暴露你的钱包。",
+"es": "Paga a una dirección de Hagi en privado, o a cualquier billetera sin revelar la tuya.",
+"fr": "Payez une adresse Hagi en privé, ou n’importe quel portefeuille sans révéler le vôtre."
+},
+"Single": {
+"zh": "单笔",
+"es": "Individual",
+"fr": "Unique"
+},
+"Burst": {
+"zh": "批量",
+"es": "Ráfaga",
+"fr": "Rafale"
+},
+"Send mode": {
+"zh": "发送模式",
+"es": "Modo de envío",
+"fr": "Mode d’envoi"
+},
+"People and amounts": {
+"zh": "收款人和金额",
+"es": "Personas y montos",
+"fr": "Personnes et montants"
+},
+"Import CSV": {
+"zh": "导入 CSV",
+"es": "Importar CSV",
+"fr": "Importer un CSV"
+},
+"Amount each": {
+"zh": "每人金额",
+"es": "Monto por persona",
+"fr": "Montant chacun"
+},
+"Paste or import a list. hagi1 addresses and 0x wallets can be mixed.": {
+"zh": "粘贴或导入名单。hagi1 地址和 0x 钱包可以混用。",
+"es": "Pega o importa una lista. Puedes mezclar direcciones hagi1 y billeteras 0x.",
+"fr": "Collez ou importez une liste. Les adresses hagi1 et les portefeuilles 0x peuvent être mélangés."
+},
+"Token": {
+"zh": "代币",
+"es": "Token",
+"fr": "Token"
+},
+"Payouts to 0x wallets leave a few seconds apart, so someone watching could guess they came from one sender.": {
+"zh": "付给 0x 钱包的款项会间隔几秒发出，旁观者可能猜到它们来自同一发送方。",
+"es": "Los pagos a billeteras 0x salen con unos segundos de diferencia, así que alguien atento podría adivinar que vienen de un mismo remitente.",
+"fr": "Les paiements vers des portefeuilles 0x partent à quelques secondes d’intervalle, donc un observateur pourrait deviner qu’ils viennent d’un même expéditeur."
+},
+"Add people": {
+"zh": "添加收款人",
+"es": "Añadir personas",
+"fr": "Ajouter des personnes"
+},
+"Fix the list": {
+"zh": "修正名单",
+"es": "Corrige la lista",
+"fr": "Corrigez la liste"
+},
+"To": {
+"zh": "收款方",
+"es": "Para",
+"fr": "À"
+},
+"That doesn’t look like a Hagi or 0x address.": {
+"zh": "这看起来不像 Hagi 或 0x 地址。",
+"es": "Eso no parece una dirección de Hagi o 0x.",
+"fr": "Cela ne ressemble pas à une adresse Hagi ou 0x."
+},
+"They get it from the Hagi vault. Your wallet stays out of it.": {
+"zh": "对方从 Hagi 金库收到款项，你的钱包不会出现。",
+"es": "Lo reciben desde la bóveda de Hagi. Tu billetera queda fuera.",
+"fr": "Ils le reçoivent du coffre Hagi. Votre portefeuille reste en dehors."
+},
+"Paste a Hagi address, or any 0x wallet.": {
+"zh": "粘贴 Hagi 地址或任意 0x 钱包。",
+"es": "Pega una dirección de Hagi o cualquier billetera 0x.",
+"fr": "Collez une adresse Hagi ou n’importe quel portefeuille 0x."
+},
+"Amount": {
+"zh": "金额",
+"es": "Monto",
+"fr": "Montant"
+},
+"Enter an address": {
+"zh": "输入地址",
+"es": "Ingresa una dirección",
+"fr": "Saisissez une adresse"
+},
+"Send privately": {
+"zh": "私密发送",
+"es": "Enviar en privado",
+"fr": "Envoyer en privé"
+},
+"Hagi address": {
+"zh": "Hagi 地址",
+"es": "Dirección de Hagi",
+"fr": "Adresse Hagi"
+},
+"Ghost Address": {
+"zh": "幽灵地址",
+"es": "Dirección fantasma",
+"fr": "Adresse fantôme"
+},
+"Receive with": {
+"zh": "收款方式",
+"es": "Recibir con",
+"fr": "Recevoir avec"
+},
+"Your Hagi address appears here once your account is made. It receives USDG and every stock.": {
+"zh": "账户创建后，你的 Hagi 地址会显示在这里。它可以接收 USDG 和所有股票。",
+"es": "Tu dirección de Hagi aparece aquí cuando se crea tu cuenta. Recibe USDG y todas las acciones.",
+"fr": "Votre adresse Hagi apparaît ici une fois votre compte créé. Elle reçoit les USDG et toutes les actions."
+},
+"Your Hagi address. It receives USDG and every stock": {
+"zh": "你的 Hagi 地址，可接收 USDG 和所有股票",
+"es": "Tu dirección de Hagi. Recibe USDG y todas las acciones",
+"fr": "Votre adresse Hagi. Elle reçoit les USDG et toutes les actions"
+},
+"Copy address": {
+"zh": "复制地址",
+"es": "Copiar dirección",
+"fr": "Copier l’adresse"
+},
+"How Ghost Addresses work": {
+"zh": "幽灵地址如何运作",
+"es": "Cómo funcionan las direcciones fantasma",
+"fr": "Comment fonctionnent les adresses fantômes"
+},
+"Good to know": {
+"zh": "须知",
+"es": "Bueno saber",
+"fr": "Bon à savoir"
+},
+"Sending to a hagi1 address stays fully inside Hagi. Sending to a 0x wallet pays it straight from the vault: they see the amount arrive from Hagi, but not your wallet. One Hagi address receives USDG and all five stocks.": {
+"zh": "发送到 hagi1 地址完全在 Hagi 内部完成。发送到 0x 钱包会直接从金库付款：对方能看到款项来自 Hagi，但看不到你的钱包。一个 Hagi 地址可接收 USDG 和全部五只股票。",
+"es": "Enviar a una dirección hagi1 se queda totalmente dentro de Hagi. Enviar a una billetera 0x paga directo desde la bóveda: ven el monto llegar desde Hagi, pero no tu billetera. Una dirección de Hagi recibe USDG y las cinco acciones.",
+"fr": "Envoyer à une adresse hagi1 reste entièrement dans Hagi. Envoyer à un portefeuille 0x paie directement depuis le coffre : ils voient le montant arriver de Hagi, mais pas votre portefeuille. Une adresse Hagi reçoit les USDG et les cinq actions."
+},
+"Trade from your private balance, straight out of the vault and back in.": {
+"zh": "用你的私密余额交易，直接从金库取出再存回。",
+"es": "Opera desde tu saldo privado, directo desde la bóveda y de vuelta.",
+"fr": "Échangez depuis votre solde privé, directement depuis le coffre et retour."
+},
+"You pay": {
+"zh": "你支付",
+"es": "Pagas",
+"fr": "Vous payez"
+},
+"You get": {
+"zh": "你获得",
+"es": "Recibes",
+"fr": "Vous recevez"
+},
+"Switch tokens": {
+"zh": "交换代币",
+"es": "Cambiar tokens",
+"fr": "Inverser les tokens"
+},
+"Route": {
+"zh": "路径",
+"es": "Ruta",
+"fr": "Route"
+},
+"Hagi test pools": {
+"zh": "Hagi 测试池",
+"es": "Pools de prueba de Hagi",
+"fr": "Pools de test Hagi"
+},
+"Slippage limit": {
+"zh": "滑点上限",
+"es": "Límite de deslizamiento",
+"fr": "Limite de glissement"
+},
+"Loading": {
+"zh": "加载中",
+"es": "Cargando",
+"fr": "Chargement"
+},
+"Popular right now": {
+"zh": "当前热门",
+"es": "Popular ahora",
+"fr": "Populaire en ce moment"
+},
+"Ghost Addresses are on their way.": {
+"zh": "幽灵地址即将上线。",
+"es": "Las direcciones fantasma están en camino.",
+"fr": "Les adresses fantômes arrivent bientôt."
+},
+"Your Ghost Address appears here once your account is made.": {
+"zh": "账户创建后，你的幽灵地址会显示在这里。",
+"es": "Tu dirección fantasma aparece aquí cuando se crea tu cuenta.",
+"fr": "Votre adresse fantôme apparaît ici une fois votre compte créé."
+},
+"A deposit is waiting": {
+"zh": "有一笔存款待领取",
+"es": "Hay un depósito esperando",
+"fr": "Un dépôt vous attend"
+},
+"At this address": {
+"zh": "在此地址",
+"es": "En esta dirección",
+"fr": "À cette adresse"
+},
+"Claim all": {
+"zh": "全部领取",
+"es": "Reclamar todo",
+"fr": "Tout réclamer"
+},
+"Your Ghost Address. Pay it from any wallet or exchange": {
+"zh": "你的幽灵地址。可从任何钱包或交易所付款",
+"es": "Tu dirección fantasma. Págala desde cualquier billetera o exchange",
+"fr": "Votre adresse fantôme. Payez-la depuis n’importe quel portefeuille ou exchange"
+},
+"Watching for deposits": {
+"zh": "正在监听存款",
+"es": "Esperando depósitos",
+"fr": "En attente de dépôts"
+},
+"New address": {
+"zh": "新地址",
+"es": "Nueva dirección",
+"fr": "Nouvelle adresse"
+},
+"Making one…": {
+"zh": "生成中…",
+"es": "Creando una…",
+"fr": "Création…"
+},
+"Send USDG, TSLA, AMD, AMZN, NFLX or PLTR on Robinhood Chain. Other tokens can’t be claimed. Claiming is free of gas, with a 0.5% fee.": {
+"zh": "在 Robinhood Chain 上发送 USDG、TSLA、AMD、AMZN、NFLX 或 PLTR。其他代币无法领取。领取免 gas，收取 0.5% 手续费。",
+"es": "Envía USDG, TSLA, AMD, AMZN, NFLX o PLTR en Robinhood Chain. Otros tokens no se pueden reclamar. Reclamar no cuesta gas, con una comisión del 0.5%.",
+"fr": "Envoyez des USDG, TSLA, AMD, AMZN, NFLX ou PLTR sur Robinhood Chain. Les autres tokens ne peuvent pas être réclamés. La réclamation est sans gas, avec des frais de 0,5 %."
+},
+"Recipient address": {
+"zh": "收款地址",
+"es": "Dirección del destinatario",
+"fr": "Adresse du destinataire"
+},
+"Recipients and amounts": {
+"zh": "收款人和金额",
+"es": "Destinatarios y montos",
+"fr": "Destinataires et montants"
+},
+"You have": {
+"zh": "你有",
+"es": "Tienes",
+"fr": "Vous avez"
+},
+"Nothing on the record yet.": {
+"zh": "还没有任何记录。",
+"es": "Aún no hay nada registrado.",
+"fr": "Rien d’enregistré pour l’instant."
+},
+"Max": {
+"zh": "最大",
+"es": "Máx",
+"fr": "Max"
+},
+"Get the Hagi app": {
+"zh": "获取 Hagi 应用",
+"es": "Obtén la app de Hagi",
+"fr": "Obtenez l’app Hagi"
+},
+"Add it to your home screen": {
+"zh": "添加到主屏幕",
+"es": "Añádela a tu pantalla de inicio",
+"fr": "Ajoutez-la à votre écran d’accueil"
+},
+"How": {
+"zh": "怎么做",
+"es": "Cómo",
+"fr": "Comment"
+},
+"Total": {
+"zh": "合计",
+"es": "Total",
+"fr": "Total"
+},
+"you have": {
+"zh": "你有",
+"es": "tienes",
+"fr": "vous avez"
+},
+"About": {
+"zh": "约",
+"es": "Aprox.",
+"fr": "Environ"
+}
+}
