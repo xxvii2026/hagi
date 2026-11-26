@@ -13,6 +13,7 @@ const PAT: [RegExp, (m: RegExpMatchArray) => Record<L3, string>][] = [
   [/^Not enough (\w+)$/, m => ({ zh: `${m[1]} 不足`, es: `No tienes suficiente ${m[1]}`, fr: `Pas assez de ${m[1]}` })],
   [/^You have ([\d.,]+) (\w+)$/, m => ({ zh: `你有 ${m[1]} ${m[2]}`, es: `Tienes ${m[1]} ${m[2]}`, fr: `Vous avez ${m[1]} ${m[2]}` })],
   [/^(Shield|Unshield) ([\d.,]+) (\w+)$/, m => m[1] === 'Shield' ? { zh: `存入 ${m[2]} ${m[3]}`, es: `Proteger ${m[2]} ${m[3]}`, fr: `Protéger ${m[2]} ${m[3]}` } : { zh: `取出 ${m[2]} ${m[3]}`, es: `Desproteger ${m[2]} ${m[3]}`, fr: `Retirer ${m[2]} ${m[3]}` }],
+  [/^(\d+) of (\d+)$/, m => ({ zh: `${m[1]} / ${m[2]}`, es: `${m[1]} de ${m[2]}`, fr: `${m[1]} sur ${m[2]}` })],
   [/^(\d+) of (\d+) done$/, m => ({ zh: `已完成 ${m[1]}/${m[2]}`, es: `${m[1]} de ${m[2]} hechos`, fr: `${m[1]} sur ${m[2]} faits` })],
   [/^(\d+) stocks$/, m => ({ zh: `${m[1]} 只股票`, es: `${m[1]} acciones`, fr: `${m[1]} actions` })],
   [/^Send to (\d+) (person|people)$/, m => ({ zh: `发送给 ${m[1]} 人`, es: `Enviar a ${m[1]} ${m[1] === '1' ? 'persona' : 'personas'}`, fr: `Envoyer à ${m[1]} ${m[1] === '1' ? 'personne' : 'personnes'}` })],
@@ -21,6 +22,23 @@ const PAT: [RegExp, (m: RegExpMatchArray) => Record<L3, string>][] = [
   [/^(\d+) pts off$/, m => ({ zh: `偏离 ${m[1]} 点`, es: `${m[1]} pts desviado`, fr: `${m[1]} pts d’écart` })],
   [/^(\d+) deposits are waiting$/, m => ({ zh: `有 ${m[1]} 笔存款待领取`, es: `Hay ${m[1]} depósitos esperando`, fr: `${m[1]} dépôts vous attendent` })],
   [/^(\$[\d.,]+) still in your wallet$/, m => ({ zh: `钱包里还有 ${m[1]}`, es: `${m[1]} aún en tu billetera`, fr: `${m[1]} encore dans votre portefeuille` })],
+  [/^(Shielded|Unshielded) (\w+)$/, m => m[1] === 'Shielded' ? { zh: `已存入 ${m[2]}`, es: `${m[2]} protegido`, fr: `${m[2]} protégé` } : { zh: `已取出 ${m[2]}`, es: `${m[2]} retirado`, fr: `${m[2]} retiré` }],
+  [/^Sent (\w+) to (0x\S+)$/, m => ({ zh: `已发送 ${m[1]} 至 ${m[2]}`, es: `${m[1]} enviado a ${m[2]}`, fr: `${m[1]} envoyé à ${m[2]}` })],
+  [/^Sent (\w+)$/, m => ({ zh: `已发送 ${m[1]}`, es: `${m[1]} enviado`, fr: `${m[1]} envoyé` })],
+  [/^Swapped (\w+) for (\w+)$/, m => ({ zh: `用 ${m[1]} 兑换了 ${m[2]}`, es: `${m[1]} intercambiado por ${m[2]}`, fr: `${m[1]} échangé contre ${m[2]}` })],
+  [/^Bought basket: (.+)$/, m => ({ zh: `买入组合：${m[1]}`, es: `Cesta comprada: ${m[1]}`, fr: `Panier acheté : ${m[1]}` })],
+  [/^Sold basket: (.+)$/, m => ({ zh: `卖出组合：${m[1]}`, es: `Cesta vendida: ${m[1]}`, fr: `Panier vendu : ${m[1]}` })],
+  [/^Sold (\d+)% of (.+)$/, m => ({ zh: `卖出 ${m[2]} 的 ${m[1]}%`, es: `Vendido ${m[1]}% de ${m[2]}`, fr: `${m[1]} % de ${m[2]} vendu` })],
+  [/^Sold (\d+)%\. The USDG is in your private balance\.$/, m => ({ zh: `已卖出 ${m[1]}%。USDG 已进入你的私密余额。`, es: `Vendido ${m[1]}%. El USDG está en tu saldo privado.`, fr: `${m[1]} % vendu. Les USDG sont dans votre solde privé.` })],
+  [/^(Rebalanced|Rebalancing|Selling|Buying) (.+)$/, m => { const n = m[2], v = m[1]; return v === 'Rebalanced' ? { zh: `已再平衡 ${n}`, es: `${n} rebalanceada`, fr: `${n} rééquilibré` } : v === 'Rebalancing' ? { zh: `正在再平衡 ${n}`, es: `Rebalanceando ${n}`, fr: `Rééquilibrage de ${n}` } : v === 'Selling' ? { zh: `正在卖出 ${n}`, es: `Vendiendo ${n}`, fr: `Vente de ${n}` } : { zh: `正在买入 ${n}`, es: `Comprando ${n}`, fr: `Achat de ${n}` } }],
+  [/^Paid (\d+) people\. Nobody saw who sent it\.$/, m => ({ zh: `已付款给 ${m[1]} 人。没人知道是谁发的。`, es: `Pagado a ${m[1]} personas. Nadie vio quién lo envió.`, fr: `${m[1]} personnes payées. Personne n’a vu qui a envoyé.` })],
+  [/^Paid (\d+) people$/, m => ({ zh: `已付款给 ${m[1]} 人`, es: `Pagado a ${m[1]} personas`, fr: `${m[1]} personnes payées` })],
+  [/^Claimed (\w+) · Ghost Address$/, m => ({ zh: `已领取 ${m[1]} · 幽灵地址`, es: `${m[1]} reclamado · Dirección fantasma`, fr: `${m[1]} réclamé · Adresse fantôme` })],
+  [/^Paying (\d+) of (\d+) · (.+)$/, m => ({ zh: `正在付款 ${m[1]}/${m[2]} · ${tr(m[3], 'zh')}`, es: `Pagando ${m[1]} de ${m[2]} · ${tr(m[3], 'es')}`, fr: `Paiement ${m[1]} sur ${m[2]} · ${tr(m[3], 'fr')}` })],
+  [/^(\d+) (m|min|h|d) ago$/, m => ({ zh: `${m[1]} ${m[2] === 'd' ? '天' : m[2] === 'h' ? '小时' : '分钟'}前`, es: `hace ${m[1]} ${m[2]}`, fr: `il y a ${m[1]} ${m[2] === 'd' ? 'j' : m[2]}` })],
+  [/^(\d+) days ago$/, m => ({ zh: `${m[1]} 天前`, es: `hace ${m[1]} días`, fr: `il y a ${m[1]} jours` })],
+  [/^Up to (\d+) people( at a time\.)?$/, m => ({ zh: `每次最多 ${m[1]} 人`, es: `Hasta ${m[1]} personas${m[2] ? ' a la vez.' : ''}`, fr: `Jusqu’à ${m[1]} personnes${m[2] ? ' à la fois.' : ''}` })],
+  [/^Weights must total 100% \(now (\d+)%\)$/, m => ({ zh: `权重合计必须为 100%（当前 ${m[1]}%）`, es: `Los pesos deben sumar 100% (ahora ${m[1]}%)`, fr: `Les poids doivent totaliser 100 % (actuellement ${m[1]} %)` })],
   [/^(\$[\d.,]+) waiting at your Ghost Address$/, m => ({ zh: `${m[1]} 在你的幽灵地址等待领取`, es: `${m[1]} esperando en tu dirección fantasma`, fr: `${m[1]} en attente à votre adresse fantôme` })],
 ]
 const ATTRS = ['placeholder', 'aria-label', 'title']
@@ -86,11 +104,23 @@ export function useLanding(lang: Lang) {
   }, [lang])
 }
 
+// One language for the whole site. The translator runs once at the root, so sign-in, the intro,
+// sheets, toasts and the progress window all follow it; the switcher just changes it.
+let current: Lang = load()
+const subs = new Set<(l: Lang) => void>()
+function setGlobal(l: Lang) { current = l; try { localStorage.setItem('hagi-lang', l) } catch { /* private mode */ } subs.forEach(f => f(l)) }
+function useLang(): Lang {
+  const [l, set] = useState(current)
+  useEffect(() => { subs.add(set); return () => { subs.delete(set) } }, [])
+  return l
+}
+/** Mount once at the root. Docs stays English. */
+export function LangRoot({ off }: { off?: boolean }) { const l = useLang(); useLanding(off ? 'en' : l); return null }
+
 export function LangSwitch() {
-  const [lang, setLang] = useState<Lang>(load)
-  useLanding(lang)
+  const lang = useLang()
   const [open, setOpen] = useState(false)
-  const pick = (l: Lang) => { setLang(l); setOpen(false); try { localStorage.setItem('hagi-lang', l) } catch { /* private mode */ } }
+  const pick = (l: Lang) => { setGlobal(l); setOpen(false) }
   return (
     <div className="lang" data-noi18n>
       <button className="lang-b" onClick={() => setOpen(o => !o)} aria-label="Language">
