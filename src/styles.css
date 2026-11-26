@@ -915,3 +915,6 @@ body.busy .overlay .btn{pointer-events:auto;opacity:1}
 .walpill.ghostpill span{display:flex;align-items:center;gap:10px}
 .walpill.ghostpill .gdot{background:#c9d1ee}
 .col.n .card p.muted+p.muted{margin-top:10px}
+
+.lang{position:relative;margin-right:10px}.lang-b{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid rgba(201,211,255,.28);color:inherit;border-radius:999px;padding:8px 13px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.lang-m{position:absolute;right:0;top:calc(100% + 8px);background:#fff;border-radius:16px;box-shadow:0 14px 40px rgba(10,14,40,.25);padding:6px;display:flex;flex-direction:column;min-width:110px;z-index:50}.lang-m button{background:none;border:0;text-align:left;padding:10px 14px;border-radius:10px;font:inherit;font-size:15px;color:#1b2140;cursor:pointer}.lang-m button:hover,.lang-m button.on{background:#eef0f8}
