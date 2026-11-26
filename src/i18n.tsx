@@ -10,7 +10,16 @@ const ATTRS = ['placeholder', 'aria-label', 'title']
 const orig = new WeakMap<Node, string>()
 const origAttr = new WeakMap<Element, Record<string, string>>()
 
-function load(): Lang { try { const v = localStorage.getItem('hagi-lang'); return (['zh', 'es', 'fr'].includes(v || '') ? v : 'en') as Lang } catch { return 'en' } }
+// A saved choice wins. Otherwise follow the language the visitor's browser or phone is set to.
+function load(): Lang {
+  try { const v = localStorage.getItem('hagi-lang'); if (v === 'en' || v === 'zh' || v === 'es' || v === 'fr') return v } catch { /* private mode */ }
+  for (const l of navigator.languages || [navigator.language]) {
+    const k = (l || '').slice(0, 2).toLowerCase()
+    if (k === 'zh' || k === 'es' || k === 'fr') return k
+    if (k === 'en') return 'en'
+  }
+  return 'en'
+}
 
 function tr(s: string, lang: Lang) {
   if (lang === 'en') return s
