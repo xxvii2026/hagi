@@ -47,6 +47,25 @@ const FAQ: [string, string][] = [
   ['Can anyone make a basket?', 'Yes. Pick two to eight listed stocks and set the weights. A basket cannot be changed after it is created.'],
 ]
 
+// $HAGI contract address and Pons link. The row stays hidden until the address is filled in.
+const TOKEN = { ca: '0x4643d8eaa4adc2ce361331b831ea6335742a29a1', pons: 'https://ponsfamily.com/launchpad/0x4643d8eaa4adc2ce361331b831ea6335742a29a1' }
+function TokenRow() {
+  const [copied, setCopied] = useState(false)
+  if (!TOKEN.ca) return null
+  const copy = () => { navigator.clipboard?.writeText(TOKEN.ca).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }) }
+  return (
+    <div className="ltoken">
+      <button className="ca" onClick={copy} title="Copy contract address">
+        <span>CA</span><code>{TOKEN.ca.slice(0, 6)}…{TOKEN.ca.slice(-4)}</code>
+        {copied ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+          : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="12" height="12" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" /></svg>}
+      </button>
+      {TOKEN.pons && <a className="pons" href={TOKEN.pons} target="_blank" rel="noopener noreferrer">Buy $HAGI on Pons
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg></a>}
+    </div>
+  )
+}
+
 export function Landing() {
   const { s } = useStore()
   const [me, setMe] = useState(true) // true = viewing as you, so amounts are readable
@@ -123,6 +142,7 @@ export function Landing() {
         <h1><span>Stocks,</span> off the record.</h1>
         <p>Hold, swap and send stock tokens without putting your portfolio on display. Your balance sits in a shared vault that only you can read.</p>
         <div className="lcta2"><button className={primary} onClick={open}>Open the app</button><button className={secondary} onClick={() => jump('private')}>See what stays private</button></div>
+        <TokenRow />
 
         <div className={'mock ' + (me ? 'peek' : '')}>
           <div className="mockbar"><Toggle /></div>
