@@ -568,5 +568,1020 @@
 "zh": "约",
 "es": "Aprox.",
 "fr": "Environ"
+},
+"Your built-in wallet, for test ETH and tokens": {
+"zh": "你的内置钱包，用于测试 ETH 和代币",
+"es": "Tu billetera integrada, para ETH y tokens de prueba",
+"fr": "Votre portefeuille intégré, pour l’ETH et les tokens de test"
+},
+"Export my history": {
+"zh": "导出我的记录",
+"es": "Exportar mi historial",
+"fr": "Exporter mon historique"
+},
+"How Hagi works, in plain words": {
+"zh": "用大白话讲 Hagi 如何运作",
+"es": "Cómo funciona Hagi, en palabras simples",
+"fr": "Comment fonctionne Hagi, en termes simples"
+},
+"Disconnect": {
+"zh": "断开连接",
+"es": "Desconectar",
+"fr": "Déconnecter"
+},
+"Locks your Hagi account on this tab": {
+"zh": "在此标签页锁定你的 Hagi 账户",
+"es": "Bloquea tu cuenta de Hagi en esta pestaña",
+"fr": "Verrouille votre compte Hagi dans cet onglet"
+},
+"Passkey account": {
+"zh": "通行密钥账户",
+"es": "Cuenta con passkey",
+"fr": "Compte passkey"
+},
+"Wallet account": {
+"zh": "钱包账户",
+"es": "Cuenta de billetera",
+"fr": "Compte portefeuille"
+},
+"Copy my Hagi address": {
+"zh": "复制我的 Hagi 地址",
+"es": "Copiar mi dirección de Hagi",
+"fr": "Copier mon adresse Hagi"
+},
+"Copy wallet address": {
+"zh": "复制钱包地址",
+"es": "Copiar dirección de billetera",
+"fr": "Copier l’adresse du portefeuille"
+},
+"Downloads your activity as a file": {
+"zh": "将你的动态下载为文件",
+"es": "Descarga tu actividad como archivo",
+"fr": "Télécharge votre activité dans un fichier"
+},
+"Nothing to export yet": {
+"zh": "暂无可导出的内容",
+"es": "Aún no hay nada que exportar",
+"fr": "Rien à exporter pour l’instant"
+},
+"Welcome back. Use your Face ID, fingerprint or screen lock to open your account.": {
+"zh": "欢迎回来。使用面容 ID、指纹或屏幕锁打开你的账户。",
+"es": "Bienvenido de nuevo. Usa tu Face ID, huella o bloqueo de pantalla para abrir tu cuenta.",
+"fr": "Bon retour. Utilisez Face ID, votre empreinte ou le verrouillage d’écran pour ouvrir votre compte."
+},
+"No wallet, no email. Your Face ID, fingerprint or screen lock is your key, and it never leaves this device.": {
+"zh": "无需钱包，无需邮箱。你的面容 ID、指纹或屏幕锁就是你的密钥，并且永远不会离开这台设备。",
+"es": "Sin billetera, sin correo. Tu Face ID, huella o bloqueo de pantalla es tu clave, y nunca sale de este dispositivo.",
+"fr": "Pas de portefeuille, pas d’e-mail. Face ID, votre empreinte ou le verrouillage d’écran est votre clé, et elle ne quitte jamais cet appareil."
+},
+"Checking your passkey…": {
+"zh": "正在验证你的通行密钥…",
+"es": "Verificando tu passkey…",
+"fr": "Vérification de votre passkey…"
+},
+"Sign in with passkey": {
+"zh": "使用通行密钥登录",
+"es": "Iniciar sesión con passkey",
+"fr": "Se connecter avec une passkey"
+},
+"Creating your passkey…": {
+"zh": "正在创建你的通行密钥…",
+"es": "Creando tu passkey…",
+"fr": "Création de votre passkey…"
+},
+"Create my Hagi account": {
+"zh": "创建我的 Hagi 账户",
+"es": "Crear mi cuenta de Hagi",
+"fr": "Créer mon compte Hagi"
+},
+"Check your wallet…": {
+"zh": "请查看你的钱包…",
+"es": "Revisa tu billetera…",
+"fr": "Vérifiez votre portefeuille…"
+},
+"Continue with your wallet": {
+"zh": "使用你的钱包继续",
+"es": "Continuar con tu billetera",
+"fr": "Continuer avec votre portefeuille"
+},
+"Connect a wallet instead": {
+"zh": "改为连接钱包",
+"es": "Conectar una billetera en su lugar",
+"fr": "Connecter un portefeuille à la place"
+},
+"or": {
+"zh": "或",
+"es": "o",
+"fr": "ou"
+},
+"Account menu": {
+"zh": "账户菜单",
+"es": "Menú de cuenta",
+"fr": "Menu du compte"
+},
+"I have a passkey": {
+"zh": "我已有通行密钥",
+"es": "Ya tengo una passkey",
+"fr": "J’ai déjà une passkey"
+},
+"Pay anyone,": {
+"zh": "付款给任何人，",
+"es": "Paga a quien sea,",
+"fr": "Payez qui vous voulez,"
+},
+"privately.": {
+"zh": "私密无痕。",
+"es": "en privado.",
+"fr": "en privé."
+},
+"A whole basket,": {
+"zh": "一整个组合，",
+"es": "Una cesta entera,",
+"fr": "Un panier entier,"
+},
+"one tap.": {
+"zh": "一键搞定。",
+"es": "con un toque.",
+"fr": "en un geste."
+},
+"No wallet.": {
+"zh": "无需钱包。",
+"es": "Sin billetera.",
+"fr": "Pas de portefeuille."
+},
+"Just Face ID.": {
+"zh": "只需面容 ID。",
+"es": "Solo Face ID.",
+"fr": "Juste Face ID."
+},
+"Hold TSLA, AMD, AMZN and more without putting your portfolio on display.": {
+"zh": "持有 TSLA、AMD、AMZN 等，无需公开你的投资组合。",
+"es": "Guarda TSLA, AMD, AMZN y más sin exhibir tu portafolio.",
+"fr": "Détenez TSLA, AMD, AMZN et plus sans exposer votre portefeuille."
+},
+"They get the money. Nobody sees who sent it, who got it, or how much.": {
+"zh": "对方收到钱。没人知道谁发的、谁收的、发了多少。",
+"es": "Ellos reciben el dinero. Nadie ve quién lo envió, quién lo recibió ni cuánto.",
+"fr": "Ils reçoivent l’argent. Personne ne voit qui l’a envoyé, qui l’a reçu, ni combien."
+},
+"Buy a mix of stocks in a single private move.": {
+"zh": "一次私密操作买入一组股票。",
+"es": "Compra una mezcla de acciones en un solo movimiento privado.",
+"fr": "Achetez un mélange d’actions en une seule opération privée."
+},
+"Your face, fingerprint or screen lock is your key. It never leaves this phone.": {
+"zh": "你的面容、指纹或屏幕锁就是你的密钥，永远不会离开这部手机。",
+"es": "Tu cara, huella o bloqueo de pantalla es tu clave. Nunca sale de este teléfono.",
+"fr": "Votre visage, votre empreinte ou le verrouillage d’écran est votre clé. Elle ne quitte jamais ce téléphone."
+},
+"Welcome to Hagi": {
+"zh": "欢迎来到 Hagi",
+"es": "Bienvenido a Hagi",
+"fr": "Bienvenue sur Hagi"
+},
+"Claim it to make it private.": {
+"zh": "领取后即可设为私密。",
+"es": "Reclámalo para hacerlo privado.",
+"fr": "Réclamez-le pour le rendre privé."
+},
+"Hagi could not read Ghost Addresses": {
+"zh": "Hagi 无法读取幽灵地址",
+"es": "Hagi no pudo leer las direcciones fantasma",
+"fr": "Hagi n’a pas pu lire les adresses fantômes"
+},
+"Received": {
+"zh": "已收到",
+"es": "Recibido",
+"fr": "Reçu"
+},
+"You received": {
+"zh": "你收到了",
+"es": "Recibiste",
+"fr": "Vous avez reçu"
+},
+"It’s in your private balance.": {
+"zh": "已进入你的私密余额。",
+"es": "Está en tu saldo privado.",
+"fr": "C’est dans votre solde privé."
+},
+"Hagi could not read the chain": {
+"zh": "Hagi 无法读取区块链",
+"es": "Hagi no pudo leer la cadena",
+"fr": "Hagi n’a pas pu lire la chaîne"
+},
+"Stop, keep it private": {
+"zh": "停止，保持私密",
+"es": "Detente, mantenlo privado",
+"fr": "Stop, restez privé"
+},
+"Send from my wallet": {
+"zh": "从我的钱包发送",
+"es": "Enviar desde mi billetera",
+"fr": "Envoyer depuis mon portefeuille"
+},
+"Others can see": {
+"zh": "他人可见",
+"es": "Otros pueden ver",
+"fr": "Les autres peuvent voir"
+},
+"Stays private": {
+"zh": "保持私密",
+"es": "Se mantiene privado",
+"fr": "Reste privé"
+},
+"Token:": {
+"zh": "代币：",
+"es": "Token:",
+"fr": "Token :"
+},
+"Done.": {
+"zh": "完成。",
+"es": "Listo.",
+"fr": "Terminé."
+},
+"Done": {
+"zh": "完成",
+"es": "Listo",
+"fr": "Terminé"
+},
+"Your balance is updated": {
+"zh": "你的余额已更新",
+"es": "Tu saldo está actualizado",
+"fr": "Votre solde est à jour"
+},
+"Starting…": {
+"zh": "开始中…",
+"es": "Iniciando…",
+"fr": "Démarrage…"
+},
+"Private sending is unavailable": {
+"zh": "私密发送暂不可用",
+"es": "El envío privado no está disponible",
+"fr": "L’envoi privé est indisponible"
+},
+"That didn’t go through": {
+"zh": "操作未成功",
+"es": "Eso no se completó",
+"fr": "Cela n’a pas abouti"
+},
+"Your balance has been updated.": {
+"zh": "你的余额已更新。",
+"es": "Tu saldo se ha actualizado.",
+"fr": "Votre solde a été mis à jour."
+},
+"Please keep this tab open.": {
+"zh": "请保持此标签页开启。",
+"es": "Mantén esta pestaña abierta.",
+"fr": "Veuillez garder cet onglet ouvert."
+},
+"Tap": {
+"zh": "点按",
+"es": "Toca",
+"fr": "Touchez"
+},
+"Share": {
+"zh": "分享",
+"es": "Compartir",
+"fr": "Partager"
+},
+"in Safari's bar, then": {
+"zh": "（在 Safari 工具栏中），然后选择",
+"es": "en la barra de Safari, luego",
+"fr": "dans la barre de Safari, puis"
+},
+"Add to Home Screen": {
+"zh": "添加到主屏幕",
+"es": "Añadir a pantalla de inicio",
+"fr": "Sur l’écran d’accueil"
+},
+"Open your browser's menu": {
+"zh": "打开浏览器菜单",
+"es": "Abre el menú de tu navegador",
+"fr": "Ouvrez le menu de votre navigateur"
+},
+"and choose": {
+"zh": "并选择",
+"es": "y elige",
+"fr": "et choisissez"
+},
+"Install app": {
+"zh": "安装应用",
+"es": "Instalar app",
+"fr": "Installer l’app"
+},
+"Add to Home screen": {
+"zh": "添加到主屏幕",
+"es": "Añadir a pantalla de inicio",
+"fr": "Ajouter à l’écran d’accueil"
+},
+"Open Hagi from your home screen": {
+"zh": "从主屏幕打开 Hagi",
+"es": "Abre Hagi desde tu pantalla de inicio",
+"fr": "Ouvrez Hagi depuis votre écran d’accueil"
+},
+"in your browser": {
+"zh": "在浏览器中",
+"es": "en tu navegador",
+"fr": "dans votre navigateur"
+},
+"Tap Install app": {
+"zh": "点按「安装应用」",
+"es": "Toca Instalar app",
+"fr": "Touchez Installer l’app"
+},
+"Hagi lives on your home screen": {
+"zh": "Hagi 住在你的主屏幕上",
+"es": "Hagi vive en tu pantalla de inicio",
+"fr": "Hagi vit sur votre écran d’accueil"
+},
+"Add it once and it opens full screen like any other app, with no browser bars and quick sign-in.": {
+"zh": "添加一次后，它就会像其他应用一样全屏打开，没有浏览器栏，登录也更快。",
+"es": "Añádela una vez y se abre a pantalla completa como cualquier app, sin barras del navegador y con inicio de sesión rápido.",
+"fr": "Ajoutez-la une fois et elle s’ouvre en plein écran comme n’importe quelle app, sans barres de navigateur et avec une connexion rapide."
+},
+"Install Hagi": {
+"zh": "安装 Hagi",
+"es": "Instalar Hagi",
+"fr": "Installer Hagi"
+},
+"Continue in browser": {
+"zh": "在浏览器中继续",
+"es": "Continuar en el navegador",
+"fr": "Continuer dans le navigateur"
+},
+"Install": {
+"zh": "安装",
+"es": "Instalar",
+"fr": "Installer"
+},
+"In Safari, it sits in the bottom bar. On newer iPhones, tap ··· first.": {
+"zh": "在 Safari 中，它位于底部栏。较新的 iPhone 需先点按 ···。",
+"es": "En Safari está en la barra inferior. En iPhones nuevos, toca ··· primero.",
+"fr": "Dans Safari, il se trouve dans la barre du bas. Sur les iPhone récents, touchez d’abord ···."
+},
+"Scroll down the list if you don’t see it.": {
+"zh": "如果看不到，请向下滚动列表。",
+"es": "Desplázate por la lista si no lo ves.",
+"fr": "Faites défiler la liste si vous ne le voyez pas."
+},
+"Sign in with Face ID and you’re in.": {
+"zh": "用面容 ID 登录即可进入。",
+"es": "Inicia sesión con Face ID y listo.",
+"fr": "Connectez-vous avec Face ID et c’est parti."
+},
+"The menu at the top right.": {
+"zh": "右上角的菜单。",
+"es": "El menú arriba a la derecha.",
+"fr": "Le menu en haut à droite."
+},
+"Some phones call it Add to Home screen.": {
+"zh": "有些手机称之为「添加到主屏幕」。",
+"es": "Algunos teléfonos lo llaman Añadir a pantalla de inicio.",
+"fr": "Certains téléphones l’appellent Ajouter à l’écran d’accueil."
+},
+"Sign in with your fingerprint and you’re in.": {
+"zh": "用指纹登录即可进入。",
+"es": "Inicia sesión con tu huella y listo.",
+"fr": "Connectez-vous avec votre empreinte et c’est parti."
+},
+"Hide this": {
+"zh": "隐藏",
+"es": "Ocultar esto",
+"fr": "Masquer"
+},
+"Add Hagi to your home screen": {
+"zh": "将 Hagi 添加到主屏幕",
+"es": "Añade Hagi a tu pantalla de inicio",
+"fr": "Ajoutez Hagi à votre écran d’accueil"
+},
+"Back": {
+"zh": "返回",
+"es": "Atrás",
+"fr": "Retour"
+},
+"Skip": {
+"zh": "跳过",
+"es": "Omitir",
+"fr": "Passer"
+},
+"A quick look around before you start. It takes about thirty seconds.": {
+"zh": "开始前快速逛一圈，大约三十秒。",
+"es": "Un vistazo rápido antes de empezar. Toma unos treinta segundos.",
+"fr": "Un petit tour avant de commencer. Ça prend environ trente secondes."
+},
+"Everything you shield adds up here. Only your key can read it. To everyone else it’s part of one shared vault.": {
+"zh": "你存入的一切都汇总在这里。只有你的密钥能读取。在其他人看来，它只是共享金库的一部分。",
+"es": "Todo lo que proteges se suma aquí. Solo tu clave puede leerlo. Para los demás es parte de una bóveda compartida.",
+"fr": "Tout ce que vous protégez s’additionne ici. Seule votre clé peut le lire. Pour les autres, ça fait partie d’un coffre partagé."
+},
+"Shield and unshield": {
+"zh": "存入与取出",
+"es": "Proteger y desproteger",
+"fr": "Protéger et retirer"
+},
+"Swap privately": {
+"zh": "私密兑换",
+"es": "Intercambia en privado",
+"fr": "Échangez en privé"
+},
+"Trade one stock for another straight from your private balance. The swap shows on chain, but not that it was yours.": {
+"zh": "直接用私密余额把一只股票换成另一只。链上能看到这笔兑换，但看不出是你。",
+"es": "Cambia una acción por otra directo desde tu saldo privado. El intercambio aparece en la cadena, pero no que fue tuyo.",
+"fr": "Échangez une action contre une autre directement depuis votre solde privé. L’échange apparaît sur la chaîne, mais pas qu’il était le vôtre."
+},
+"Pay another Hagi user fully privately, or pay any 0x wallet without showing yours.": {
+"zh": "完全私密地付款给其他 Hagi 用户，或付款给任何 0x 钱包而不暴露你的钱包。",
+"es": "Paga a otro usuario de Hagi en total privacidad, o a cualquier billetera 0x sin mostrar la tuya.",
+"fr": "Payez un autre utilisateur Hagi en toute confidentialité, ou n’importe quel portefeuille 0x sans montrer le vôtre."
+},
+"Buy a ready-made mix of stocks in one go, or make your own.": {
+"zh": "一次买入现成的股票组合，或自己创建。",
+"es": "Compra una mezcla de acciones lista de una vez, o crea la tuya.",
+"fr": "Achetez un mélange d’actions tout prêt en une fois, ou créez le vôtre."
+},
+"Free test money": {
+"zh": "免费测试资金",
+"es": "Dinero de prueba gratis",
+"fr": "Argent de test gratuit"
+},
+"Everything here is testnet. Claim 5,000 test USDG here, one time, and Hagi covers the gas.": {
+"zh": "这里的一切都在测试网上。在此领取 5,000 测试 USDG（仅限一次），gas 由 Hagi 承担。",
+"es": "Todo aquí es testnet. Reclama 5,000 USDG de prueba aquí, una vez, y Hagi paga el gas.",
+"fr": "Tout ici est sur testnet. Réclamez 5 000 USDG de test ici, une fois, et Hagi paie le gas."
+},
+"You’re all set": {
+"zh": "一切就绪",
+"es": "Todo listo",
+"fr": "Tout est prêt"
+},
+"Your wallet menu is here: copy your Hagi address, export your history, or disconnect.": {
+"zh": "你的钱包菜单在这里：复制 Hagi 地址、导出记录或断开连接。",
+"es": "Tu menú de billetera está aquí: copia tu dirección de Hagi, exporta tu historial o desconéctate.",
+"fr": "Votre menu portefeuille est ici : copiez votre adresse Hagi, exportez votre historique ou déconnectez-vous."
+},
+"Start here": {
+"zh": "从这里开始",
+"es": "Empieza aquí",
+"fr": "Commencez ici"
+},
+"Sign in with a passkey: Face ID, fingerprint or your screen lock. The first time, that creates your Hagi account. No wallet or email needed.": {
+"zh": "使用通行密钥登录：面容 ID、指纹或屏幕锁。首次登录会创建你的 Hagi 账户，无需钱包或邮箱。",
+"es": "Inicia sesión con una passkey: Face ID, huella o bloqueo de pantalla. La primera vez crea tu cuenta de Hagi. Sin billetera ni correo.",
+"fr": "Connectez-vous avec une passkey : Face ID, empreinte ou verrouillage d’écran. La première fois, cela crée votre compte Hagi. Pas besoin de portefeuille ni d’e-mail."
+},
+"Show me": {
+"zh": "带我看看",
+"es": "Muéstrame",
+"fr": "Montrez-moi"
+},
+"Next": {
+"zh": "下一步",
+"es": "Siguiente",
+"fr": "Suivant"
+},
+"Tour of Hagi": {
+"zh": "Hagi 导览",
+"es": "Recorrido por Hagi",
+"fr": "Visite de Hagi"
+},
+"Close the tour": {
+"zh": "关闭导览",
+"es": "Cerrar el recorrido",
+"fr": "Fermer la visite"
+},
+"Confirm with Face ID": {
+"zh": "用面容 ID 确认",
+"es": "Confirmar con Face ID",
+"fr": "Confirmer avec Face ID"
+},
+"That passkey belongs to a different Hagi account.": {
+"zh": "该通行密钥属于另一个 Hagi 账户。",
+"es": "Esa passkey pertenece a otra cuenta de Hagi.",
+"fr": "Cette passkey appartient à un autre compte Hagi."
+},
+"Unshielded from Hagi": {
+"zh": "从 Hagi 取出",
+"es": "Retirado de Hagi",
+"fr": "Retiré de Hagi"
+},
+"Shielded into Hagi": {
+"zh": "存入 Hagi",
+"es": "Protegido en Hagi",
+"fr": "Protégé dans Hagi"
+},
+"From the test pools": {
+"zh": "来自测试池",
+"es": "Desde los pools de prueba",
+"fr": "Depuis les pools de test"
+},
+"To the test pools": {
+"zh": "转入测试池",
+"es": "A los pools de prueba",
+"fr": "Vers les pools de test"
+},
+"Claimed from the faucet": {
+"zh": "从水龙头领取",
+"es": "Reclamado del faucet",
+"fr": "Réclamé au faucet"
+},
+"Burned": {
+"zh": "已销毁",
+"es": "Quemado",
+"fr": "Brûlé"
+},
+"Received from": {
+"zh": "收自",
+"es": "Recibido de",
+"fr": "Reçu de"
+},
+"Sent to": {
+"zh": "发往",
+"es": "Enviado a",
+"fr": "Envoyé à"
+},
+"Could not read the wallet history": {
+"zh": "无法读取钱包记录",
+"es": "No se pudo leer el historial de la billetera",
+"fr": "Impossible de lire l’historique du portefeuille"
+},
+"This device or browser can’t use passkeys for Hagi yet. Try the latest Chrome or Safari, or connect a wallet instead.": {
+"zh": "此设备或浏览器暂不支持 Hagi 通行密钥。请尝试最新版 Chrome 或 Safari，或改为连接钱包。",
+"es": "Este dispositivo o navegador aún no puede usar passkeys para Hagi. Prueba la última versión de Chrome o Safari, o conecta una billetera.",
+"fr": "Cet appareil ou ce navigateur ne peut pas encore utiliser les passkeys pour Hagi. Essayez la dernière version de Chrome ou Safari, ou connectez un portefeuille."
+},
+"Passkey cancelled. Try again when you’re ready.": {
+"zh": "已取消通行密钥。准备好后再试一次。",
+"es": "Passkey cancelada. Inténtalo de nuevo cuando quieras.",
+"fr": "Passkey annulée. Réessayez quand vous êtes prêt."
+},
+"There’s already a Hagi passkey on this device. Use “I have a passkey” instead.": {
+"zh": "此设备上已有 Hagi 通行密钥。请改用「我已有通行密钥」。",
+"es": "Ya hay una passkey de Hagi en este dispositivo. Usa “Ya tengo una passkey”.",
+"fr": "Il y a déjà une passkey Hagi sur cet appareil. Utilisez « J’ai déjà une passkey »."
+},
+"Passkeys only work on hagitrade.xyz over a secure connection.": {
+"zh": "通行密钥仅在安全连接下的 hagitrade.xyz 上可用。",
+"es": "Las passkeys solo funcionan en hagitrade.xyz con una conexión segura.",
+"fr": "Les passkeys ne fonctionnent que sur hagitrade.xyz via une connexion sécurisée."
+},
+"Connect a wallet first": {
+"zh": "请先连接钱包",
+"es": "Conecta una billetera primero",
+"fr": "Connectez d’abord un portefeuille"
+},
+"The vault history has a gap. Try again in a minute.": {
+"zh": "金库记录有缺口，请一分钟后再试。",
+"es": "El historial de la bóveda tiene un hueco. Inténtalo en un minuto.",
+"fr": "L’historique du coffre a un trou. Réessayez dans une minute."
+},
+"Sign in first": {
+"zh": "请先登录",
+"es": "Inicia sesión primero",
+"fr": "Connectez-vous d’abord"
+},
+"That Ghost Address isn’t on this account": {
+"zh": "该幽灵地址不属于此账户",
+"es": "Esa dirección fantasma no es de esta cuenta",
+"fr": "Cette adresse fantôme n’appartient pas à ce compte"
+},
+"Checking the deposit": {
+"zh": "正在核对存款",
+"es": "Verificando el depósito",
+"fr": "Vérification du dépôt"
+},
+"Nothing is waiting at this address anymore. If it was claimed, it’s already in your balance.": {
+"zh": "此地址已没有待领取的款项。如果已领取，它已在你的余额中。",
+"es": "Ya no hay nada esperando en esta dirección. Si se reclamó, ya está en tu saldo.",
+"fr": "Plus rien n’attend à cette adresse. Si c’était réclamé, c’est déjà dans votre solde."
+},
+"Sending the claim through the relayer": {
+"zh": "正在通过中继器提交领取",
+"es": "Enviando el reclamo por el relayer",
+"fr": "Envoi de la réclamation via le relayeur"
+},
+"The relayer couldn’t be reached. Your deposit is safe at the Ghost Address. Try again in a minute.": {
+"zh": "无法连接中继器。你的存款安全地留在幽灵地址中，请一分钟后再试。",
+"es": "No se pudo contactar al relayer. Tu depósito está seguro en la dirección fantasma. Inténtalo en un minuto.",
+"fr": "Le relayeur est injoignable. Votre dépôt est en sécurité à l’adresse fantôme. Réessayez dans une minute."
+},
+"Hagi doesn’t list this token, so it can’t be claimed.": {
+"zh": "Hagi 未上架此代币，因此无法领取。",
+"es": "Hagi no lista este token, así que no se puede reclamar.",
+"fr": "Hagi ne liste pas ce token, il ne peut donc pas être réclamé."
+},
+"The claim didn’t go through.": {
+"zh": "领取未成功。",
+"es": "El reclamo no se completó.",
+"fr": "La réclamation n’a pas abouti."
+},
+"Waiting for the network": {
+"zh": "等待网络确认",
+"es": "Esperando a la red",
+"fr": "En attente du réseau"
+},
+"The transaction failed on chain.": {
+"zh": "交易在链上失败。",
+"es": "La transacción falló en la cadena.",
+"fr": "La transaction a échoué sur la chaîne."
+},
+"Unlock your Hagi account first": {
+"zh": "请先解锁你的 Hagi 账户",
+"es": "Desbloquea tu cuenta de Hagi primero",
+"fr": "Déverrouillez d’abord votre compte Hagi"
+},
+"Building your private proof": {
+"zh": "正在生成你的私密证明",
+"es": "Creando tu prueba privada",
+"fr": "Création de votre preuve privée"
+},
+"Sending through the relayer": {
+"zh": "正在通过中继器发送",
+"es": "Enviando por el relayer",
+"fr": "Envoi via le relayeur"
+},
+"The vault rejected this transaction:": {
+"zh": "金库拒绝了这笔交易：",
+"es": "La bóveda rechazó esta transacción:",
+"fr": "Le coffre a refusé cette transaction :"
+},
+"Stopped. Nothing was sent and your funds have not moved.": {
+"zh": "已停止。没有发送任何内容，你的资金未被移动。",
+"es": "Detenido. No se envió nada y tus fondos no se movieron.",
+"fr": "Arrêté. Rien n’a été envoyé et vos fonds n’ont pas bougé."
+},
+"Confirm in your wallet. Your address will show on this one": {
+"zh": "请在钱包中确认。这笔交易会显示你的地址",
+"es": "Confirma en tu billetera. Tu dirección aparecerá en esta",
+"fr": "Confirmez dans votre portefeuille. Votre adresse apparaîtra sur celle-ci"
+},
+"Combining smaller notes": {
+"zh": "正在合并小额凭证",
+"es": "Combinando notas pequeñas",
+"fr": "Regroupement des petites notes"
+},
+"Getting you a little gas": {
+"zh": "正在为你准备少量 gas",
+"es": "Consiguiéndote un poco de gas",
+"fr": "On vous donne un peu de gas"
+},
+"Couldn’t get gas. Try the Robinhood faucet.": {
+"zh": "无法获取 gas。请尝试 Robinhood 水龙头。",
+"es": "No se pudo obtener gas. Prueba el faucet de Robinhood.",
+"fr": "Impossible d’obtenir du gas. Essayez le faucet Robinhood."
+},
+"You’ve already claimed your test USDG.": {
+"zh": "你已领取过测试 USDG。",
+"es": "Ya reclamaste tus USDG de prueba.",
+"fr": "Vous avez déjà réclamé vos USDG de test."
+},
+"Claiming test USDG": {
+"zh": "正在领取测试 USDG",
+"es": "Reclamando USDG de prueba",
+"fr": "Réclamation des USDG de test"
+},
+"Confirm in your wallet": {
+"zh": "请在钱包中确认",
+"es": "Confirma en tu billetera",
+"fr": "Confirmez dans votre portefeuille"
+},
+"Moving it into your private balance": {
+"zh": "正在转入你的私密余额",
+"es": "Moviéndolo a tu saldo privado",
+"fr": "Transfert vers votre solde privé"
+},
+"Confirm the deposit in your wallet": {
+"zh": "请在钱包中确认存款",
+"es": "Confirma el depósito en tu billetera",
+"fr": "Confirmez le dépôt dans votre portefeuille"
+},
+"That is not a Hagi address": {
+"zh": "这不是 Hagi 地址",
+"es": "Esa no es una dirección de Hagi",
+"fr": "Ce n’est pas une adresse Hagi"
+},
+"Add at least one person": {
+"zh": "至少添加一个人",
+"es": "Añade al menos una persona",
+"fr": "Ajoutez au moins une personne"
+},
+"Every amount needs to be more than zero": {
+"zh": "每个金额都必须大于零",
+"es": "Cada monto debe ser mayor que cero",
+"fr": "Chaque montant doit être supérieur à zéro"
+},
+"Nothing in this basket to rebalance": {
+"zh": "这个组合没有可再平衡的内容",
+"es": "No hay nada en esta cesta para rebalancear",
+"fr": "Rien à rééquilibrer dans ce panier"
+},
+"This basket is already on target": {
+"zh": "这个组合已符合目标",
+"es": "Esta cesta ya está en objetivo",
+"fr": "Ce panier est déjà dans la cible"
+},
+"Creating your basket": {
+"zh": "正在创建你的组合",
+"es": "Creando tu cesta",
+"fr": "Création de votre panier"
+},
+"Cancelled in your wallet.": {
+"zh": "已在钱包中取消。",
+"es": "Cancelado en tu billetera.",
+"fr": "Annulé dans votre portefeuille."
+},
+"Your wallet needs testnet ETH to pay for gas. Get some from the faucet.": {
+"zh": "你的钱包需要测试网 ETH 来支付 gas。请从水龙头领取。",
+"es": "Tu billetera necesita ETH de testnet para pagar el gas. Consigue en el faucet.",
+"fr": "Votre portefeuille a besoin d’ETH testnet pour payer le gas. Obtenez-en au faucet."
+},
+"The price moved too far while this was sending. Try again.": {
+"zh": "发送期间价格波动过大，请重试。",
+"es": "El precio se movió demasiado mientras se enviaba. Inténtalo de nuevo.",
+"fr": "Le prix a trop bougé pendant l’envoi. Réessayez."
+},
+"Your balance changed while this was sending. Reload and try again.": {
+"zh": "发送期间你的余额发生了变化。请刷新后重试。",
+"es": "Tu saldo cambió mientras se enviaba. Recarga e inténtalo de nuevo.",
+"fr": "Votre solde a changé pendant l’envoi. Rechargez et réessayez."
+},
+"That basket is not valid. Check the stocks and weights.": {
+"zh": "该组合无效。请检查股票和权重。",
+"es": "Esa cesta no es válida. Revisa las acciones y los pesos.",
+"fr": "Ce panier n’est pas valide. Vérifiez les actions et les poids."
+},
+"Your wallet is on another network. Switch it to Robinhood Chain Testnet and try again.": {
+"zh": "你的钱包在其他网络上。请切换到 Robinhood Chain 测试网后重试。",
+"es": "Tu billetera está en otra red. Cámbiala a Robinhood Chain Testnet e inténtalo de nuevo.",
+"fr": "Votre portefeuille est sur un autre réseau. Passez à Robinhood Chain Testnet et réessayez."
+},
+"Could not reach the network. Check your connection and try again.": {
+"zh": "无法连接网络。请检查网络连接后重试。",
+"es": "No se pudo conectar a la red. Revisa tu conexión e inténtalo de nuevo.",
+"fr": "Impossible de joindre le réseau. Vérifiez votre connexion et réessayez."
+},
+"Swapping": {
+"zh": "兑换中",
+"es": "Intercambiando",
+"fr": "Échange en cours"
+},
+"Done. Swapped inside the vault.": {
+"zh": "完成。已在金库内兑换。",
+"es": "Listo. Intercambiado dentro de la bóveda.",
+"fr": "Terminé. Échangé dans le coffre."
+},
+"Create a basket": {
+"zh": "创建组合",
+"es": "Crear una cesta",
+"fr": "Créer un panier"
+},
+"Name": {
+"zh": "名称",
+"es": "Nombre",
+"fr": "Nom"
+},
+"A basket can’t be changed after it’s created. To change the mix, make a new one.": {
+"zh": "组合创建后无法修改。想换比例，就新建一个。",
+"es": "Una cesta no se puede cambiar después de crearla. Para cambiar la mezcla, crea una nueva.",
+"fr": "Un panier ne peut pas être modifié après sa création. Pour changer le mélange, créez-en un nouveau."
+},
+"Buy a ready-made mix of stocks in one transaction. Anyone can make one.": {
+"zh": "一笔交易买入现成的股票组合。任何人都可以创建。",
+"es": "Compra una mezcla de acciones lista en una transacción. Cualquiera puede crear una.",
+"fr": "Achetez un mélange d’actions tout prêt en une transaction. Tout le monde peut en créer un."
+},
+"+ Create a basket": {
+"zh": "+ 创建组合",
+"es": "+ Crear una cesta",
+"fr": "+ Créer un panier"
+},
+"You haven’t made a basket yet": {
+"zh": "你还没有创建组合",
+"es": "Aún no has creado una cesta",
+"fr": "Vous n’avez pas encore créé de panier"
+},
+"Pick a few stocks, set the weights and share it.": {
+"zh": "选几只股票，设置权重，然后分享出去。",
+"es": "Elige algunas acciones, define los pesos y compártela.",
+"fr": "Choisissez quelques actions, réglez les poids et partagez-le."
+},
+"Buying": {
+"zh": "买入中",
+"es": "Comprando",
+"fr": "Achat en cours"
+},
+"Bought. It’s on your Portfolio as one basket.": {
+"zh": "已买入。它会作为一个组合显示在你的投资组合中。",
+"es": "Comprado. Está en tu Portafolio como una cesta.",
+"fr": "Acheté. Il apparaît dans votre portefeuille comme un panier."
+},
+"Buy basket": {
+"zh": "买入组合",
+"es": "Comprar cesta",
+"fr": "Acheter le panier"
+},
+"Basket created. It’s permanent now.": {
+"zh": "组合已创建，现在永久生效。",
+"es": "Cesta creada. Ahora es permanente.",
+"fr": "Panier créé. Il est désormais permanent."
+},
+"Create basket": {
+"zh": "创建组合",
+"es": "Crear cesta",
+"fr": "Créer le panier"
+},
+"Most bought": {
+"zh": "最多人买",
+"es": "Más comprados",
+"fr": "Les plus achetés"
+},
+"Newest": {
+"zh": "最新",
+"es": "Más nuevos",
+"fr": "Les plus récents"
+},
+"Mine": {
+"zh": "我的",
+"es": "Míos",
+"fr": "Les miens"
+},
+"Getting test USDG": {
+"zh": "正在领取测试 USDG",
+"es": "Obteniendo USDG de prueba",
+"fr": "Obtention des USDG de test"
+},
+"Shielding": {
+"zh": "存入中",
+"es": "Protegiendo",
+"fr": "Protection en cours"
+},
+"Shielded. Off the record now.": {
+"zh": "已存入。现在不留痕迹。",
+"es": "Protegido. Ya está fuera del registro.",
+"fr": "Protégé. Désormais en toute discrétion."
+},
+"Unshielding": {
+"zh": "取出中",
+"es": "Desprotegiendo",
+"fr": "Retrait en cours"
+},
+"Unshielded. Back on the record.": {
+"zh": "已取出。重新公开。",
+"es": "Desprotegido. De vuelta al registro.",
+"fr": "Retiré. De nouveau visible."
+},
+"Sold. The USDG is in your private balance.": {
+"zh": "已卖出。USDG 已进入你的私密余额。",
+"es": "Vendido. El USDG está en tu saldo privado.",
+"fr": "Vendu. Les USDG sont dans votre solde privé."
+},
+"Back on target.": {
+"zh": "已恢复目标比例。",
+"es": "De vuelta al objetivo.",
+"fr": "De retour dans la cible."
+},
+"A Ghost Address is a normal 0x address, so any wallet or exchange can pay it. Nothing links it to you or your wallet. When you claim, the money goes straight into your private balance, and only your Hagi account can ever claim from it.": {
+"zh": "幽灵地址是普通的 0x 地址，任何钱包或交易所都能付款给它。它与你或你的钱包没有任何关联。领取时，资金会直接进入你的私密余额，且只有你的 Hagi 账户能从中领取。",
+"es": "Una dirección fantasma es una dirección 0x normal, así que cualquier billetera o exchange puede pagarla. Nada la vincula a ti ni a tu billetera. Al reclamar, el dinero va directo a tu saldo privado, y solo tu cuenta de Hagi puede reclamar de ella.",
+"fr": "Une adresse fantôme est une adresse 0x normale, donc n’importe quel portefeuille ou exchange peut la payer. Rien ne la relie à vous ni à votre portefeuille. Quand vous réclamez, l’argent va directement dans votre solde privé, et seul votre compte Hagi peut y réclamer."
+},
+"The deposit itself is public, like any transfer. If you don’t want two deposits tied to each other, make a new address for each sender. Old addresses keep working.": {
+"zh": "存款本身是公开的，和任何转账一样。如果不希望两笔存款被关联，就为每个付款方生成新地址。旧地址仍可继续使用。",
+"es": "El depósito en sí es público, como cualquier transferencia. Si no quieres que dos depósitos queden vinculados, crea una dirección nueva para cada remitente. Las direcciones antiguas siguen funcionando.",
+"fr": "Le dépôt lui-même est public, comme tout transfert. Si vous ne voulez pas que deux dépôts soient liés, créez une nouvelle adresse pour chaque expéditeur. Les anciennes adresses restent valables."
+},
+"No amount": {
+"zh": "无金额",
+"es": "Sin monto",
+"fr": "Pas de montant"
+},
+"Wallet": {
+"zh": "钱包",
+"es": "Billetera",
+"fr": "Portefeuille"
+},
+"Paying everyone privately": {
+"zh": "正在私密地给所有人付款",
+"es": "Pagando a todos en privado",
+"fr": "Paiement privé de tout le monde"
+},
+"Sending privately": {
+"zh": "私密发送中",
+"es": "Enviando en privado",
+"fr": "Envoi privé en cours"
+},
+"Sent. Your wallet stayed out of it.": {
+"zh": "已发送。你的钱包没有出现。",
+"es": "Enviado. Tu billetera quedó fuera.",
+"fr": "Envoyé. Votre portefeuille est resté en dehors."
+},
+"Sent. Nobody saw.": {
+"zh": "已发送。没人看到。",
+"es": "Enviado. Nadie lo vio.",
+"fr": "Envoyé. Personne n’a vu."
+},
+"Bad address": {
+"zh": "地址有误",
+"es": "Dirección inválida",
+"fr": "Adresse invalide"
+},
+"Amount for everyone without one": {
+"zh": "给没有金额的人统一填写",
+"es": "Monto para todos los que no tienen",
+"fr": "Montant pour ceux qui n’en ont pas"
+},
+"Paste addresses, or address and amount pairs.\nHagi lines them up for you.": {
+"zh": "粘贴地址，或「地址 + 金额」。\nHagi 会帮你整理好。",
+"es": "Pega direcciones, o pares de dirección y monto.\nHagi las ordena por ti.",
+"fr": "Collez des adresses, ou des paires adresse et montant.\nHagi les aligne pour vous."
+},
+"When": {
+"zh": "时间",
+"es": "Cuándo",
+"fr": "Quand"
+},
+"Transaction": {
+"zh": "交易",
+"es": "Transacción",
+"fr": "Transaction"
+},
+"Network": {
+"zh": "网络",
+"es": "Red",
+"fr": "Réseau"
+},
+"View on the explorer": {
+"zh": "在浏览器中查看",
+"es": "Ver en el explorador",
+"fr": "Voir dans l’explorateur"
+},
+"Activity,": {
+"zh": "动态，",
+"es": "Actividad,",
+"fr": "Activité,"
+},
+"for your eyes only.": {
+"zh": "只给你看。",
+"es": "solo para tus ojos.",
+"fr": "pour vos yeux seulement."
+},
+"This list is kept on this device. Private items stay pixelated until you tap them.": {
+"zh": "此列表保存在这台设备上。私密项目会保持马赛克，直到你点按它们。",
+"es": "Esta lista se guarda en este dispositivo. Los elementos privados se ven pixelados hasta que los tocas.",
+"fr": "Cette liste est conservée sur cet appareil. Les éléments privés restent pixelisés jusqu’à ce que vous les touchiez."
+},
+"Just now": {
+"zh": "刚刚",
+"es": "Justo ahora",
+"fr": "À l’instant"
+},
+"Private. Tap to reveal": {
+"zh": "私密。点按查看",
+"es": "Privado. Toca para ver",
+"fr": "Privé. Touchez pour révéler"
+},
+"Private amount. Tap to reveal": {
+"zh": "私密金额。点按查看",
+"es": "Monto privado. Toca para ver",
+"fr": "Montant privé. Touchez pour révéler"
+},
+"Tap to hide": {
+"zh": "点按隐藏",
+"es": "Toca para ocultar",
+"fr": "Touchez pour masquer"
+},
+"Claiming your deposits": {
+"zh": "正在领取你的存款",
+"es": "Reclamando tus depósitos",
+"fr": "Réclamation de vos dépôts"
+},
+"Claiming your deposit": {
+"zh": "正在领取你的存款",
+"es": "Reclamando tu depósito",
+"fr": "Réclamation de votre dépôt"
+},
+"Claimed. It’s in your private balance now.": {
+"zh": "已领取。现在已进入你的私密余额。",
+"es": "Reclamado. Ya está en tu saldo privado.",
+"fr": "Réclamé. C’est maintenant dans votre solde privé."
+},
+"Tesla": {
+"zh": "特斯拉",
+"es": "Tesla",
+"fr": "Tesla"
+},
+"Amazon": {
+"zh": "亚马逊",
+"es": "Amazon",
+"fr": "Amazon"
+},
+"Netflix": {
+"zh": "奈飞",
+"es": "Netflix",
+"fr": "Netflix"
+},
+"Palantir": {
+"zh": "Palantir",
+"es": "Palantir",
+"fr": "Palantir"
 }
 }

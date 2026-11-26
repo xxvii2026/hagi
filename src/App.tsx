@@ -1,4 +1,4 @@
-import { LangSwitch } from './i18n'
+import { LangRoot, LangSwitch } from './i18n'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FAUCET_URL } from './chain'
 import * as engine from './engine'
@@ -160,6 +160,7 @@ export default function App() {
 
   return (
     <>
+      <LangRoot off={page === 'docs'} />
       <header className={'nav' + (app ? ' appnav' : '')}>
         <a className="lg" href="#/home"><Mark leaf={dark ? '#ffffff' : undefined} secret />hagi</a>
         <nav className="links">{page === 'home'
