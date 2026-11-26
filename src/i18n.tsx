@@ -2,10 +2,27 @@
 // and puts the English back when you switch to English or leave the landing page.
 import { useEffect, useState } from 'react'
 import DICT from './i18n-landing.json'
+import APP from './i18n-app.json'
 
 export type Lang = 'en' | 'zh' | 'es' | 'fr'
 const LANGS: { k: Lang; label: string }[] = [{ k: 'en', label: 'EN' }, { k: 'zh', label: '中文' }, { k: 'es', label: 'ES' }, { k: 'fr', label: 'FR' }]
-const D = DICT as Record<string, Record<Exclude<Lang, 'en'>, string>>
+type L3 = Exclude<Lang, 'en'>
+const D = { ...(DICT as Record<string, Record<L3, string>>), ...(APP as Record<string, Record<L3, string>>) }
+// Text with numbers or names in it, like "Not enough TSLA" or "2 of 3 done".
+const PAT: [RegExp, (m: RegExpMatchArray) => Record<L3, string>][] = [
+  [/^Not enough (\w+)$/, m => ({ zh: `${m[1]} 不足`, es: `No tienes suficiente ${m[1]}`, fr: `Pas assez de ${m[1]}` })],
+  [/^You have ([\d.,]+) (\w+)$/, m => ({ zh: `你有 ${m[1]} ${m[2]}`, es: `Tienes ${m[1]} ${m[2]}`, fr: `Vous avez ${m[1]} ${m[2]}` })],
+  [/^(Shield|Unshield) ([\d.,]+) (\w+)$/, m => m[1] === 'Shield' ? { zh: `存入 ${m[2]} ${m[3]}`, es: `Proteger ${m[2]} ${m[3]}`, fr: `Protéger ${m[2]} ${m[3]}` } : { zh: `取出 ${m[2]} ${m[3]}`, es: `Desproteger ${m[2]} ${m[3]}`, fr: `Retirer ${m[2]} ${m[3]}` }],
+  [/^(\d+) of (\d+) done$/, m => ({ zh: `已完成 ${m[1]}/${m[2]}`, es: `${m[1]} de ${m[2]} hechos`, fr: `${m[1]} sur ${m[2]} faits` })],
+  [/^(\d+) stocks$/, m => ({ zh: `${m[1]} 只股票`, es: `${m[1]} acciones`, fr: `${m[1]} actions` })],
+  [/^Send to (\d+) (person|people)$/, m => ({ zh: `发送给 ${m[1]} 人`, es: `Enviar a ${m[1]} ${m[1] === '1' ? 'persona' : 'personas'}`, fr: `Envoyer à ${m[1]} ${m[1] === '1' ? 'personne' : 'personnes'}` })],
+  [/^All (\d+) paid$/, m => ({ zh: `${m[1]} 人已全部付款`, es: `Los ${m[1]} pagados`, fr: `Les ${m[1]} payés` })],
+  [/^Sell (\d+)%$/, m => ({ zh: `卖出 ${m[1]}%`, es: `Vender ${m[1]}%`, fr: `Vendre ${m[1]} %` })],
+  [/^(\d+) pts off$/, m => ({ zh: `偏离 ${m[1]} 点`, es: `${m[1]} pts desviado`, fr: `${m[1]} pts d’écart` })],
+  [/^(\d+) deposits are waiting$/, m => ({ zh: `有 ${m[1]} 笔存款待领取`, es: `Hay ${m[1]} depósitos esperando`, fr: `${m[1]} dépôts vous attendent` })],
+  [/^(\$[\d.,]+) still in your wallet$/, m => ({ zh: `钱包里还有 ${m[1]}`, es: `${m[1]} aún en tu billetera`, fr: `${m[1]} encore dans votre portefeuille` })],
+  [/^(\$[\d.,]+) waiting at your Ghost Address$/, m => ({ zh: `${m[1]} 在你的幽灵地址等待领取`, es: `${m[1]} esperando en tu dirección fantasma`, fr: `${m[1]} en attente à votre adresse fantôme` })],
+]
 const ATTRS = ['placeholder', 'aria-label', 'title']
 const orig = new WeakMap<Node, string>()
 const origAttr = new WeakMap<Element, Record<string, string>>()
@@ -24,7 +41,9 @@ function load(): Lang {
 function tr(s: string, lang: Lang) {
   if (lang === 'en') return s
   const k = s.trim(); const hit = D[k]?.[lang]
-  return hit ? s.replace(k, hit) : s
+  if (hit) return s.replace(k, hit)
+  for (const [re, f] of PAT) { const m = k.match(re); if (m) return s.replace(k, f(m)[lang]) }
+  return s
 }
 
 function apply(root: Node, lang: Lang) {
