@@ -48,7 +48,7 @@ const FAQ: [string, string][] = [
 ]
 
 // $HAGI contract address and Pons link. The row stays hidden until the address is filled in.
-const TOKEN = { ca: '', pons: '' }
+const TOKEN = { ca: '0x4643d8eaa4adc2ce361331b831ea6335742a29a1', pons: 'https://ponsfamily.com/launchpad/0x4643d8eaa4adc2ce361331b831ea6335742a29a1' }
 function TokenRow() {
   const [copied, setCopied] = useState(false)
   if (!TOKEN.ca) return null
