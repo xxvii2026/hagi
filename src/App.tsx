@@ -1,3 +1,4 @@
+import { LangSwitch } from './i18n'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { FAUCET_URL } from './chain'
 import * as engine from './engine'
@@ -167,6 +168,7 @@ export default function App() {
         <div className="rt">
           {app && <button className="help" onClick={startTour} aria-label="Take the tour" title="Take the tour">?</button>}
           {app && <span className={'net' + (s.offline ? ' is-off' : '')}><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>}
+          {page === 'home' && <LangSwitch />}
           {page === 'home' ? <a className="wal" href="#/portfolio" onClick={e => { e.preventDefault(); openApp() }}>Open the app</a>
             : ready ? <WalletMenu />
             : <button className="wal" onClick={askConnect}><i /><span className="t-long">Sign in</span><span className="t-short">Sign in</span></button>}

@@ -1,0 +1,567 @@
+{
+"Check your wallet": {
+"zh": "查看你的钱包",
+"es": "Revisa tu billetera",
+"fr": "Vérifier votre portefeuille"
+},
+"How it works": {
+"zh": "运作方式",
+"es": "Cómo funciona",
+"fr": "Comment ça marche"
+},
+"Baskets": {
+"zh": "组合",
+"es": "Cestas",
+"fr": "Paniers"
+},
+"Questions": {
+"zh": "常见问题",
+"es": "Preguntas",
+"fr": "Questions"
+},
+"Docs": {
+"zh": "文档",
+"es": "Documentación",
+"fr": "Docs"
+},
+"Open the app": {
+"zh": "打开应用",
+"es": "Abrir la app",
+"fr": "Ouvrir l’app"
+},
+"Stocks,": {
+"zh": "股票，",
+"es": "Acciones,",
+"fr": "Vos actions,"
+},
+"off the record.": {
+"zh": "不留痕迹。",
+"es": "fuera del registro.",
+"fr": "en toute discrétion."
+},
+"Hold, swap and send stock tokens without putting your portfolio on display. Your balance sits in a shared vault that only you can read.": {
+"zh": "持有、兑换和发送股票代币，无需公开你的投资组合。你的余额存放在一个共享金库中，只有你能读取。",
+"es": "Guarda, intercambia y envía tokens de acciones sin exhibir tu portafolio. Tu saldo está en una bóveda compartida que solo tú puedes leer.",
+"fr": "Détenez, échangez et envoyez des tokens d’actions sans exposer votre portefeuille. Votre solde est dans un coffre partagé que vous seul pouvez lire."
+},
+"See what stays private": {
+"zh": "看看哪些保持私密",
+"es": "Mira qué se mantiene privado",
+"fr": "Voir ce qui reste privé"
+},
+"Buy $HAGI on Pons": {
+"zh": "在 Pons 购买 $HAGI",
+"es": "Compra $HAGI en Pons",
+"fr": "Acheter $HAGI sur Pons"
+},
+"Viewing as": {
+"zh": "查看身份",
+"es": "Viendo como",
+"fr": "Vu par"
+},
+"You": {
+"zh": "你",
+"es": "Tú",
+"fr": "Vous"
+},
+"Anyone else": {
+"zh": "其他人",
+"es": "Cualquier otro",
+"fr": "N’importe qui"
+},
+"Your private balance": {
+"zh": "你的私密余额",
+"es": "Tu saldo privado",
+"fr": "Votre solde privé"
+},
+"Swap": {
+"zh": "兑换",
+"es": "Intercambiar",
+"fr": "Échanger"
+},
+"Send": {
+"zh": "发送",
+"es": "Enviar",
+"fr": "Envoyer"
+},
+"Your stocks and cash": {
+"zh": "你的股票和现金",
+"es": "Tus acciones y efectivo",
+"fr": "Vos actions et liquidités"
+},
+"Test USDG": {
+"zh": "测试 USDG",
+"es": "USDG de prueba",
+"fr": "USDG de test"
+},
+"Recent activity": {
+"zh": "近期动态",
+"es": "Actividad reciente",
+"fr": "Activité récente"
+},
+"Sent AMD": {
+"zh": "已发送 AMD",
+"es": "AMD enviado",
+"fr": "AMD envoyé"
+},
+"1 h ago": {
+"zh": "1 小时前",
+"es": "hace 1 h",
+"fr": "il y a 1 h"
+},
+"Swapped USDG for TSLA": {
+"zh": "用 USDG 兑换了 TSLA",
+"es": "USDG intercambiado por TSLA",
+"fr": "USDG échangé contre TSLA"
+},
+"3 h ago": {
+"zh": "3 小时前",
+"es": "hace 3 h",
+"fr": "il y a 3 h"
+},
+"Bought basket: All five": {
+"zh": "买入组合：全部五只",
+"es": "Cesta comprada: Las cinco",
+"fr": "Panier acheté : Les cinq"
+},
+"Yesterday": {
+"zh": "昨天",
+"es": "Ayer",
+"fr": "Hier"
+},
+"Shielded USDG": {
+"zh": "已隐私存入 USDG",
+"es": "USDG protegido",
+"fr": "USDG protégé"
+},
+"2 days ago": {
+"zh": "2 天前",
+"es": "hace 2 días",
+"fr": "il y a 2 jours"
+},
+"Your view": {
+"zh": "你看到的",
+"es": "Tu vista",
+"fr": "Votre vue"
+},
+"The public view": {
+"zh": "公众看到的",
+"es": "La vista pública",
+"fr": "La vue publique"
+},
+"This is what you see when you open Hagi. Every number is readable, because your key decrypts it.": {
+"zh": "这是你打开 Hagi 时看到的画面。每个数字都清晰可读，因为你的密钥可以解密它。",
+"es": "Esto es lo que ves al abrir Hagi. Cada número se puede leer, porque tu clave lo descifra.",
+"fr": "Voici ce que vous voyez en ouvrant Hagi. Chaque chiffre est lisible, car votre clé le déchiffre."
+},
+"This is what the same account looks like to anyone else. Balances, holdings and sends are unreadable.": {
+"zh": "这是同一个账户在其他人眼中的样子。余额、持仓和转账都无法读取。",
+"es": "Así se ve la misma cuenta para cualquier otra persona. Saldos, posiciones y envíos no se pueden leer.",
+"fr": "Voici le même compte vu par n’importe qui d’autre. Soldes, positions et envois sont illisibles."
+},
+"Stock tokens and USDG on testnet": {
+"zh": "测试网上的股票代币和 USDG",
+"es": "Tokens de acciones y USDG en testnet",
+"fr": "Tokens d’actions et USDG sur testnet"
+},
+"What does": {
+"zh": "你的钱包",
+"es": "¿Qué muestra",
+"fr": "Que montre"
+},
+"your wallet show?": {
+"zh": "暴露了什么？",
+"es": "tu billetera?",
+"fr": "votre portefeuille ?"
+},
+"Paste your Robinhood Chain address. This is what anyone can see about it, straight from public data.": {
+"zh": "粘贴你的 Robinhood Chain 地址。这就是任何人都能从公开数据中看到的内容。",
+"es": "Pega tu dirección de Robinhood Chain. Esto es lo que cualquiera puede ver de ella, directo de los datos públicos.",
+"fr": "Collez votre adresse Robinhood Chain. Voici ce que tout le monde peut en voir, directement depuis les données publiques."
+},
+"Check": {
+"zh": "查看",
+"es": "Revisar",
+"fr": "Vérifier"
+},
+"Try an example wallet": {
+"zh": "试试示例钱包",
+"es": "Prueba una billetera de ejemplo",
+"fr": "Essayer un portefeuille exemple"
+},
+"How a private swap works": {
+"zh": "私密兑换如何运作",
+"es": "Cómo funciona un intercambio privado",
+"fr": "Comment fonctionne un échange privé"
+},
+"Your USDG is already in the vault.": {
+"zh": "你的 USDG 已经在金库里。",
+"es": "Tu USDG ya está en la bóveda.",
+"fr": "Vos USDG sont déjà dans le coffre."
+},
+"You shielded it earlier. To the chain it’s one receipt among many.": {
+"zh": "你之前已将它存入。在链上，它只是众多凭证中的一张。",
+"es": "Lo protegiste antes. Para la cadena es un recibo entre muchos.",
+"fr": "Vous les avez protégés plus tôt. Pour la chaîne, c’est un reçu parmi tant d’autres."
+},
+"You ask for a swap.": {
+"zh": "你发起兑换。",
+"es": "Pides un intercambio.",
+"fr": "Vous demandez un échange."
+},
+"Your browser builds a proof that you own enough, without pointing at which receipts are yours.": {
+"zh": "你的浏览器生成一个证明，证明你有足够的资金，而不暴露哪些凭证属于你。",
+"es": "Tu navegador crea una prueba de que tienes suficiente, sin señalar cuáles recibos son tuyos.",
+"fr": "Votre navigateur crée une preuve que vous avez assez, sans indiquer quels reçus sont à vous."
+},
+"The trade happens inside the vault.": {
+"zh": "交易在金库内完成。",
+"es": "El intercambio ocurre dentro de la bóveda.",
+"fr": "L’échange a lieu dans le coffre."
+},
+"The vault trades with the pool and writes you a new receipt for the Tesla.": {
+"zh": "金库与资金池交易，并为你开出一张新的特斯拉凭证。",
+"es": "La bóveda opera con el pool y te emite un nuevo recibo por el Tesla.",
+"fr": "Le coffre échange avec le pool et vous émet un nouveau reçu pour le Tesla."
+},
+"A relayer sends it.": {
+"zh": "由中继器发送。",
+"es": "Un relayer lo envía.",
+"fr": "Un relayeur l’envoie."
+},
+"Your wallet never signs the transaction, so it never appears on it.": {
+"zh": "你的钱包从不签署这笔交易，所以它永远不会出现在交易中。",
+"es": "Tu billetera nunca firma la transacción, así que nunca aparece en ella.",
+"fr": "Votre portefeuille ne signe jamais la transaction, il n’y apparaît donc jamais."
+},
+"The world sees a swap.": {
+"zh": "世界只看到一笔兑换。",
+"es": "El mundo ve un intercambio.",
+"fr": "Le monde voit un échange."
+},
+"Nobody sees you.": {
+"zh": "没人看到你。",
+"es": "Nadie te ve a ti.",
+"fr": "Personne ne vous voit."
+},
+"Your wallet": {
+"zh": "你的钱包",
+"es": "Tu billetera",
+"fr": "Votre portefeuille"
+},
+"Proof built": {
+"zh": "证明已生成",
+"es": "Prueba creada",
+"fr": "Preuve créée"
+},
+"Hagi vault": {
+"zh": "Hagi 金库",
+"es": "Bóveda Hagi",
+"fr": "Coffre Hagi"
+},
+"Relayer": {
+"zh": "中继器",
+"es": "Relayer",
+"fr": "Relayeur"
+},
+"sends the swap": {
+"zh": "发送兑换",
+"es": "envía el intercambio",
+"fr": "envoie l’échange"
+},
+"On chain": {
+"zh": "链上",
+"es": "En la cadena",
+"fr": "Sur la chaîne"
+},
+"Someone swapped": {
+"zh": "有人兑换了",
+"es": "Alguien intercambió",
+"fr": "Quelqu’un a échangé"
+},
+"One account,": {
+"zh": "一个账户，",
+"es": "Una cuenta,",
+"fr": "Un compte,"
+},
+"two views.": {
+"zh": "两种视角。",
+"es": "dos vistas.",
+"fr": "deux vues."
+},
+"Flip the switch in the preview to see both. This is the short version.": {
+"zh": "切换预览中的开关即可看到两种视角。以下是简要说明。",
+"es": "Cambia el interruptor en la vista previa para ver ambas. Esta es la versión corta.",
+"fr": "Basculez l’interrupteur dans l’aperçu pour voir les deux. Voici la version courte."
+},
+"Always private": {
+"zh": "始终私密",
+"es": "Siempre privado",
+"fr": "Toujours privé"
+},
+"Your balance, which stocks you hold, and who you send to and how much.": {
+"zh": "你的余额、你持有哪些股票、你发给谁以及金额。",
+"es": "Tu saldo, qué acciones tienes, a quién envías y cuánto.",
+"fr": "Votre solde, les actions que vous détenez, à qui vous envoyez et combien."
+},
+"Always public": {
+"zh": "始终公开",
+"es": "Siempre público",
+"fr": "Toujours public"
+},
+"Money going into the vault, money coming out, and the size of a swap.": {
+"zh": "进入金库的资金、离开金库的资金，以及兑换的金额。",
+"es": "El dinero que entra a la bóveda, el que sale y el tamaño de un intercambio.",
+"fr": "L’argent qui entre dans le coffre, celui qui en sort, et la taille d’un échange."
+},
+"Never possible": {
+"zh": "绝不可能",
+"es": "Nunca posible",
+"fr": "Jamais possible"
+},
+"Anyone but you moving your funds. The vault has no admin withdrawal.": {
+"zh": "除你之外的任何人动用你的资金。金库没有管理员提款功能。",
+"es": "Que alguien que no seas tú mueva tus fondos. La bóveda no tiene retiro de administrador.",
+"fr": "Que quelqu’un d’autre que vous déplace vos fonds. Le coffre n’a pas de retrait administrateur."
+},
+"Baskets,": {
+"zh": "组合，",
+"es": "Cestas,",
+"fr": "Des paniers,"
+},
+"in one go.": {
+"zh": "一次搞定。",
+"es": "de una vez.",
+"fr": "en une fois."
+},
+"Buy a ready-made mix of stocks in a single transaction. Anyone can make one, and nobody can change it afterwards.": {
+"zh": "一笔交易买入现成的股票组合。任何人都可以创建，创建后没人能修改。",
+"es": "Compra una mezcla de acciones lista en una sola transacción. Cualquiera puede crear una y nadie puede cambiarla después.",
+"fr": "Achetez un mélange d’actions tout prêt en une seule transaction. Tout le monde peut en créer un, et personne ne peut le modifier ensuite."
+},
+"See all baskets": {
+"zh": "查看所有组合",
+"es": "Ver todas las cestas",
+"fr": "Voir tous les paniers"
+},
+"100 pixels, 100 percent. Pick a stock, then paint.": {
+"zh": "100 个像素，100%。选一只股票，然后开始涂色。",
+"es": "100 píxeles, 100 por ciento. Elige una acción y pinta.",
+"fr": "100 pixels, 100 pour cent. Choisissez une action, puis peignez."
+},
+"Paint your basket": {
+"zh": "涂出你的组合",
+"es": "Pinta tu cesta",
+"fr": "Peignez votre panier"
+},
+"Shuffle": {
+"zh": "随机",
+"es": "Mezclar",
+"fr": "Mélanger"
+},
+"Split evenly": {
+"zh": "平均分配",
+"es": "Repartir por igual",
+"fr": "Répartir également"
+},
+"Make this basket": {
+"zh": "创建这个组合",
+"es": "Crear esta cesta",
+"fr": "Créer ce panier"
+},
+"Opens the app with your mix filled in. Once it’s made, nobody can change it.": {
+"zh": "打开应用并自动填入你的组合。创建后没人能修改。",
+"es": "Abre la app con tu mezcla ya lista. Una vez creada, nadie puede cambiarla.",
+"fr": "Ouvre l’app avec votre mélange déjà rempli. Une fois créé, personne ne peut le modifier."
+},
+"All five": {
+"zh": "全部五只",
+"es": "Las cinco",
+"fr": "Les cinq"
+},
+"stocks": {
+"zh": "只股票",
+"es": "acciones",
+"fr": "actions"
+},
+"Starter basket": {
+"zh": "入门组合",
+"es": "Cesta inicial",
+"fr": "Panier de départ"
+},
+"Buy": {
+"zh": "买入",
+"es": "Comprar",
+"fr": "Acheter"
+},
+"Chips and data": {
+"zh": "芯片与数据",
+"es": "Chips y datos",
+"fr": "Puces et données"
+},
+"Screens and carts": {
+"zh": "屏幕与购物车",
+"es": "Pantallas y carritos",
+"fr": "Écrans et paniers d’achat"
+},
+"Questions,": {
+"zh": "问题，",
+"es": "Preguntas,",
+"fr": "Vos questions,"
+},
+"answered plainly.": {
+"zh": "直白解答。",
+"es": "respondidas claro.",
+"fr": "nos réponses claires."
+},
+"Is this real money?": {
+"zh": "这是真钱吗？",
+"es": "¿Es dinero real?",
+"fr": "Est-ce de l’argent réel ?"
+},
+"No. Hagi runs on Robinhood Chain Testnet. The tokens are free test tokens with no value.": {
+"zh": "不是。Hagi 运行在 Robinhood Chain 测试网上。这些代币是免费的测试代币，没有价值。",
+"es": "No. Hagi funciona en Robinhood Chain Testnet. Los tokens son tokens de prueba gratis y sin valor.",
+"fr": "Non. Hagi fonctionne sur Robinhood Chain Testnet. Les tokens sont des tokens de test gratuits et sans valeur."
+},
+"Has Hagi been audited?": {
+"zh": "Hagi 经过审计了吗？",
+"es": "¿Hagi ha sido auditado?",
+"fr": "Hagi a-t-il été audité ?"
+},
+"No. It is an early testnet build. Do not treat it as safe for real funds until an independent audit is published.": {
+"zh": "没有。这是早期测试网版本。在独立审计报告发布之前，请勿将其视为可安全存放真实资金。",
+"es": "No. Es una versión temprana en testnet. No lo consideres seguro para fondos reales hasta que se publique una auditoría independiente.",
+"fr": "Non. C’est une première version sur testnet. Ne la considérez pas comme sûre pour de vrais fonds tant qu’un audit indépendant n’est pas publié."
+},
+"Who can move my funds?": {
+"zh": "谁能动用我的资金？",
+"es": "¿Quién puede mover mis fondos?",
+"fr": "Qui peut déplacer mes fonds ?"
+},
+"By design, only a proof made with your own key. The vault is a smart contract with no admin withdrawal.": {
+"zh": "按设计，只有用你自己的密钥生成的证明才可以。金库是一个没有管理员提款功能的智能合约。",
+"es": "Por diseño, solo una prueba hecha con tu propia clave. La bóveda es un contrato inteligente sin retiro de administrador.",
+"fr": "Par conception, seule une preuve faite avec votre propre clé. Le coffre est un smart contract sans retrait administrateur."
+},
+"Do I need a new wallet or a seed phrase?": {
+"zh": "我需要新钱包或助记词吗？",
+"es": "¿Necesito una billetera nueva o una frase semilla?",
+"fr": "Ai-je besoin d’un nouveau portefeuille ou d’une phrase secrète ?"
+},
+"No. Your Hagi account is derived from a signature by your existing wallet, so there is nothing new to write down.": {
+"zh": "不需要。你的 Hagi 账户由你现有钱包的签名生成，所以无需记下任何新内容。",
+"es": "No. Tu cuenta de Hagi se deriva de una firma de tu billetera actual, así que no hay nada nuevo que anotar.",
+"fr": "Non. Votre compte Hagi est dérivé d’une signature de votre portefeuille actuel, il n’y a donc rien de nouveau à noter."
+},
+"Can anyone make a basket?": {
+"zh": "任何人都能创建组合吗？",
+"es": "¿Cualquiera puede crear una cesta?",
+"fr": "Tout le monde peut-il créer un panier ?"
+},
+"Yes. Pick two to eight listed stocks and set the weights. A basket cannot be changed after it is created.": {
+"zh": "可以。从上架股票中选择二到八只并设置权重。组合创建后无法修改。",
+"es": "Sí. Elige de dos a ocho acciones listadas y define los pesos. Una cesta no se puede cambiar después de creada.",
+"fr": "Oui. Choisissez de deux à huit actions listées et définissez les poids. Un panier ne peut pas être modifié après sa création."
+},
+"Nothing to sign up for.": {
+"zh": "无需注册。",
+"es": "Nada que registrar.",
+"fr": "Aucune inscription."
+},
+"Bring a wallet.": {
+"zh": "带上钱包就行。",
+"es": "Trae una billetera.",
+"fr": "Apportez un portefeuille."
+},
+"Try it with test money. No email, no waitlist.": {
+"zh": "用测试资金试试。无需邮箱，无需排队。",
+"es": "Pruébalo con dinero de prueba. Sin correo, sin lista de espera.",
+"fr": "Essayez avec de l’argent de test. Pas d’e-mail, pas de liste d’attente."
+},
+"Get test funds": {
+"zh": "领取测试资金",
+"es": "Obtener fondos de prueba",
+"fr": "Obtenir des fonds de test"
+},
+"Testnet only. Not audited. Nothing on this page is financial advice, and stock tokens are not shares.": {
+"zh": "仅限测试网。未经审计。本页内容不构成任何投资建议，股票代币也不是股份。",
+"es": "Solo testnet. Sin auditar. Nada en esta página es asesoría financiera, y los tokens de acciones no son acciones.",
+"fr": "Testnet uniquement. Non audité. Rien sur cette page n’est un conseil financier, et les tokens d’actions ne sont pas des actions."
+},
+"Stocks, off the record.": {
+"zh": "股票，不留痕迹。",
+"es": "Acciones, fuera del registro.",
+"fr": "Vos actions, en toute discrétion."
+},
+"Product": {
+"zh": "产品",
+"es": "Producto",
+"fr": "Produit"
+},
+"Portfolio": {
+"zh": "投资组合",
+"es": "Portafolio",
+"fr": "Portefeuille"
+},
+"Learn": {
+"zh": "了解",
+"es": "Aprende",
+"fr": "Apprendre"
+},
+"What’s private": {
+"zh": "哪些是私密的",
+"es": "Qué es privado",
+"fr": "Ce qui est privé"
+},
+"More": {
+"zh": "更多",
+"es": "Más",
+"fr": "Plus"
+},
+"Faucet": {
+"zh": "水龙头",
+"es": "Faucet",
+"fr": "Faucet"
+},
+"Explorer": {
+"zh": "浏览器",
+"es": "Explorador",
+"fr": "Explorateur"
+},
+"Copy contract address": {
+"zh": "复制合约地址",
+"es": "Copiar dirección del contrato",
+"fr": "Copier l’adresse du contrat"
+},
+"Choose whose view to show": {
+"zh": "选择显示谁的视角",
+"es": "Elige qué vista mostrar",
+"fr": "Choisir la vue à afficher"
+},
+"Hidden": {
+"zh": "已隐藏",
+"es": "Oculto",
+"fr": "Masqué"
+},
+"Wallet address": {
+"zh": "钱包地址",
+"es": "Dirección de billetera",
+"fr": "Adresse du portefeuille"
+},
+"Name it": {
+"zh": "命名",
+"es": "Ponle nombre",
+"fr": "Nommez-le"
+},
+"Basket name": {
+"zh": "组合名称",
+"es": "Nombre de la cesta",
+"fr": "Nom du panier"
+},
+"Pick a stock to paint with": {
+"zh": "选一只股票来涂色",
+"es": "Elige una acción para pintar",
+"fr": "Choisissez une action pour peindre"
+}
+}
