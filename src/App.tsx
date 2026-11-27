@@ -9,6 +9,7 @@ import { Portfolio } from './pages/Portfolio'
 import { Swap } from './pages/Swap'
 import { Baskets } from './pages/Baskets'
 import { Send } from './pages/Send'
+import { DropPage } from './pages/Drop'
 import { Activity } from './pages/Activity'
 import { Landing } from './pages/Landing'
 import { Docs } from './pages/Docs'
@@ -21,7 +22,7 @@ import { PullToRefresh } from './pull'
 import type { IconName } from './ui'
 
 const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
-const ROUTES = ['home', 'docs', ...PAGES] as const
+const ROUTES = ['home', 'docs', 'drop', ...PAGES] as const
 // The phone tab bar: the same pages, with icons.
 const TABS: [typeof PAGES[number], string, IconName][] = [['portfolio', 'Portfolio', 'wallet'], ['swap', 'Swap', 'swap'], ['baskets', 'Baskets', 'basket'], ['send', 'Send', 'send'], ['activity', 'Activity', 'clock']]
 type Page = (typeof ROUTES)[number]
@@ -179,7 +180,7 @@ export default function App() {
       {page === 'portfolio' && <InstallCard />}
       {/* Remount when the query changes too, so links like Send vs Send?tab=receive open the right tab. */}
       <main key={page + (location.hash.split("?")[1] ?? "")} className="pg">
-        {page === 'home' ? <Landing /> : page === 'docs' ? <Docs /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : <Portfolio run={run} />}
+        {page === 'home' ? <Landing /> : page === 'docs' ? <Docs /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : page === 'drop' ? <DropPage run={run} /> : <Portfolio run={run} />}
       </main>
       {page !== 'home' && <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href="#/docs">Docs</a><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>}
       {app && (

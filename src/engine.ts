@@ -1,5 +1,5 @@
 // Talks to the chain: balances, pools, baskets, vault notes, and every action the app can take.
-import { concat, createPublicClient, createWalletClient, custom, getAddress, http, isAddress, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
+import { bytesToHex, concat, createPublicClient, createWalletClient, custom, encodeAbiParameters, getAddress, http, isAddress, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
 import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
 import { erc20Abi, ghostAbi, registryAbi, swapAbi, vaultAbi } from './abi'
 import { CFG, chain } from './chain'
@@ -268,35 +268,52 @@ function ghostKeys() {
   return Array.from({ length: ghostCount() + LOOKAHEAD }, (_, i) => ({ i, blinding: ghostBlinding(keys!, i), partial: ghostPartial(keys!, i) }))
 }
 
-let codeHash: Hex | null = null
-async function ghostCodeHash(): Promise<Hex> {
-  const slot = 'hagi-ghost-code-' + CFG.contracts.ghost!.toLowerCase()
-  try { codeHash ??= localStorage.getItem(slot) as Hex | null } catch { /* optional */ }
-  if (!codeHash) {
-    codeHash = await pub.readContract({ address: CFG.contracts.ghost!, abi: ghostAbi, functionName: 'walletCodeHash' })
-    try { localStorage.setItem(slot, codeHash) } catch { /* optional */ }
+// Ghost Swaps: the same addresses, but tied to a stock as well, so whatever is sent arrives as that stock.
+export const ghostSwapEnabled = () => !!CFG.contracts.ghostSwap
+const targetSlot = () => 'hagi-ghost-targets-' + keys!.publicKey.toString(16).slice(0, 24)
+const targets = (): string[] => { try { return JSON.parse(localStorage.getItem(targetSlot()) || '[]') } catch { return [] } }
+/** Remembers that this account handed out a Ghost Swap address for `sym`, so it keeps being watched. */
+export function watchTarget(sym: string) { const t = targets(); if (!t.includes(sym)) try { localStorage.setItem(targetSlot(), JSON.stringify([...t, sym])) } catch { /* optional */ } }
+
+const codeHashes: Record<string, Hex> = {}
+async function codeHashOf(factory: Hex): Promise<Hex> {
+  const slot = 'hagi-ghost-code-' + factory.toLowerCase()
+  try { codeHashes[factory] ??= localStorage.getItem(slot) as Hex } catch { /* optional */ }
+  if (!codeHashes[factory]) {
+    codeHashes[factory] = await pub.readContract({ address: factory, abi: ghostAbi, functionName: 'walletCodeHash' })
+    try { localStorage.setItem(slot, codeHashes[factory]) } catch { /* optional */ }
   }
-  return codeHash
+  return codeHashes[factory]
 }
+const swapAddress = (hash: Hex, partial: bigint, sym: string) =>
+  ghostAddress(CFG.contracts.ghostSwap!, hash, BigInt(keccak256(encodeAbiParameters([{ type: 'uint256' }, { type: 'address' }], [partial, token(sym).address]))))
 
-export type GhostDeposit = { index: number; address: Hex; symbol: string; amount: number; raw: bigint }
-export type GhostState = { address: Hex; index: number; count: number; pending: GhostDeposit[] }
+/** `target` is set for a Ghost Swap deposit: the stock it will arrive as. */
+export type GhostDeposit = { index: number; address: Hex; symbol: string; amount: number; raw: bigint; target?: string }
+export type GhostState = { address: Hex; index: number; count: number; pending: GhostDeposit[]; swaps: Record<string, Hex> }
 
-/** The current Ghost Address, every older one, and whatever is waiting at any of them to be claimed. */
-export async function readGhosts(onlyCurrent = false): Promise<GhostState | null> {
+/** The current Ghost Address, its Ghost Swap addresses, every older one, and whatever is waiting at any of them. */
+export async function readGhosts(): Promise<GhostState | null> {
   if (!keys || !ghostEnabled()) return null
-  const hash = await ghostCodeHash()
-  let list = ghostKeys().map(g => ({ ...g, address: ghostAddress(CFG.contracts.ghost!, hash, g.partial) }))
-  const current = ghostCount() - 1
-  const watch = onlyCurrent ? list.filter(g => g.i === current) : list
-  const raw = await Promise.all(watch.flatMap(g => TOKENS.map(t => pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'balanceOf', args: [g.address] }))))
+  const hash = await codeHashOf(CFG.contracts.ghost!)
+  const sHash = ghostSwapEnabled() ? await codeHashOf(CFG.contracts.ghostSwap!) : null
+  const watched = targets()
+  const spots = (list: ReturnType<typeof ghostKeys>) => list.flatMap(g => [
+    { i: g.i, address: ghostAddress(CFG.contracts.ghost!, hash, g.partial), target: undefined as string | undefined },
+    ...(sHash ? watched.map(sym => ({ i: g.i, address: swapAddress(sHash, g.partial, sym), target: sym })) : []),
+  ])
+  const watch = spots(ghostKeys())
+  const raw = await Promise.all(watch.flatMap(w => TOKENS.map(t => pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'balanceOf', args: [w.address] }))))
   const pending: GhostDeposit[] = []
-  watch.forEach((g, gi) => TOKENS.forEach((t, ti) => { const r = raw[gi * TOKENS.length + ti]; if (r > 0n) pending.push({ index: g.i, address: g.address, symbol: t.symbol, amount: fromUnits(r, t.decimals), raw: r }) }))
+  watch.forEach((w, wi) => TOKENS.forEach((t, ti) => { const r = raw[wi * TOKENS.length + ti]; if (r > 0n) pending.push({ index: w.i, address: w.address, symbol: t.symbol, amount: fromUnits(r, t.decimals), raw: r, target: w.target }) }))
   // Funds at an address this device hasn't made yet means another device made it: catch up.
+  const current = ghostCount() - 1
   const top = Math.max(current, ...pending.map(p => p.index))
-  if (top > current) { setGhostCount(top + 1); list = ghostKeys().map(g => ({ ...g, address: ghostAddress(CFG.contracts.ghost!, hash, g.partial) })) }
-  const now = list[ghostCount() - 1]
-  return { address: now.address, index: now.i, count: ghostCount(), pending }
+  if (top > current) setGhostCount(top + 1)
+  const now = ghostKeys()[ghostCount() - 1]
+  const swaps: Record<string, Hex> = {}
+  if (sHash) for (const t of TOKENS) swaps[t.symbol] = swapAddress(sHash, now.partial, t.symbol)
+  return { address: ghostAddress(CFG.contracts.ghost!, hash, now.partial), index: now.i, count: ghostCount(), pending, swaps }
 }
 
 /** Moves to a brand new Ghost Address. Older ones keep working and are still watched. */
@@ -306,8 +323,9 @@ export async function newGhost(): Promise<GhostState | null> {
   return readGhosts()
 }
 
-/** Claims a deposit from a Ghost Address into the private balance. The relayer sends it, so no wallet or gas is needed. */
-export async function claimGhost(d: GhostDeposit, step: Step): Promise<number> {
+/** Claims a deposit into the private balance, swapping it first when it sits at a Ghost Swap address.
+ *  The relayer sends it, so no wallet or gas is needed. Returns what arrived, in the token it arrived as. */
+export async function claimGhost(d: GhostDeposit, step: Step): Promise<{ symbol: string; amount: number }> {
   if (!keys) throw new Error('Sign in first')
   const t = token(d.symbol)
   const g = ghostKeys().find(x => x.i === d.index)
@@ -315,9 +333,20 @@ export async function claimGhost(d: GhostDeposit, step: Step): Promise<number> {
   step('Checking the deposit')
   const raw = await pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'balanceOf', args: [d.address] })
   if (raw === 0n) throw new Error('Nothing is waiting at this address anymore. If it was claimed, it’s already in your balance.')
-  const net = await pub.readContract({ address: CFG.contracts.ghost!, abi: ghostAbi, functionName: 'netOf', args: [raw] })
-  step('Sending the claim through the relayer')
-  const body = { partial: g.partial.toString(), token: t.address, amount: raw.toString(), encryptedNote: encryptNote({ amount: net, token: BigInt(t.address), blinding: g.blinding }, keys.encPublic) }
+  const factory = d.target ? CFG.contracts.ghostSwap! : CFG.contracts.ghost!
+  const net = await pub.readContract({ address: factory, abi: ghostAbi, functionName: 'netOf', args: [raw] })
+  let body: Record<string, string>, out = { symbol: d.symbol, amount: fromUnits(net, t.decimals) }
+  if (d.target) {
+    const o = token(d.target)
+    const q = o.symbol === t.symbol ? net : await quote(t.address, o.address, net)
+    step(o.symbol === t.symbol ? 'Sending the claim through the relayer' : `Swapping it into ${o.symbol} on the way in`)
+    // The output note is completed on chain from the public amount, and this account finds it from the address.
+    body = { kind: 'swap', partial: g.partial.toString(), tokenOut: o.address, tokenIn: t.address, amount: raw.toString(), minOut: ((q * 980n) / 1000n).toString(), encryptedNote: '0x' }
+    out = { symbol: o.symbol, amount: fromUnits(q, o.decimals) }
+  } else {
+    step('Sending the claim through the relayer')
+    body = { partial: g.partial.toString(), token: t.address, amount: raw.toString(), encryptedNote: encryptNote({ amount: net, token: BigInt(t.address), blinding: g.blinding }, keys.encPublic) }
+  }
   let res: Response
   try { res = await fetch(CFG.relayerUrl.replace(/relay$/, 'ghost'), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }) }
   catch { throw new Error('The relayer couldn’t be reached. Your deposit is safe at the Ghost Address. Try again in a minute.') }
@@ -326,8 +355,11 @@ export async function claimGhost(d: GhostDeposit, step: Step): Promise<number> {
     if (j.error === 'TokenNotAllowed') throw new Error('Hagi doesn’t list this token, so it can’t be claimed.')
     throw new Error((j.error ?? 'The claim didn’t go through.') + ' Your deposit is safe at the Ghost Address.')
   }
+  const before = shielded()[out.symbol] ?? 0
   await sync(await waitFor(j.hash, step))
-  return fromUnits(net, t.decimals)
+  await readPools().catch(() => {})
+  const got = (shielded()[out.symbol] ?? 0) - before
+  return { symbol: out.symbol, amount: got > 0 ? got : out.amount }
 }
 
 // ---------- sending transactions ----------
@@ -351,11 +383,12 @@ async function waitFor(hash: Hex, step: Step): Promise<bigint> {
   return rc.blockNumber
 }
 
-async function privately(req: Omit<TxRequest, 'keys' | 'tree'>, step: Step) {
+/** `spender` signs for notes that belong to another key this account holds, such as a Hagi Drop's. */
+async function privately(req: Omit<TxRequest, 'keys' | 'tree'>, step: Step, spender?: Keys) {
   if (!keys || !account) throw new Error('Unlock your Hagi account first')
   step('Building your private proof')
   const { buildTransaction } = await import('./zk/prove')
-  const tx = await buildTransaction({ ...req, keys, tree }, ART)
+  const tx = await buildTransaction({ ...req, keys: spender ?? keys, tree }, ART)
   req.outputs.forEach((o, i) => { if (o.own) known?.add(commitment(tx.outNotes[i]).toString()) })
   saveKnown()
   step('Sending through the relayer')
@@ -572,6 +605,114 @@ export async function createBasket(name: string, items: { symbol: string; weight
   step(local ? 'Creating your basket' : 'Confirm in your wallet')
   const hash = await wal().writeContract({ address: CFG.contracts.basketRegistry, abi: registryAbi, functionName: 'createBasket', args: [name, items.map(i => token(i.symbol).address), items.map(i => Math.round(i.weight * 100))], account: acct() })
   await waitFor(hash, step)
+}
+
+// ---------- Hagi Drops ----------
+// A drop is a pot of one token split into random slices and parked under a throwaway key. The key comes from a
+// secret that lives only in the drop's link, so whoever opens the link can take one slice into their own private
+// balance. The vault's nullifiers stop two people taking the same slice. Nothing on chain says who made the drop
+// or who claimed from it: creating it is a run of private sends, and each claim is one more.
+
+export const DROP_MAX = 10
+export type Drop = { secret: Hex; symbol: string; total: number; count: number; created: number; msg?: string }
+export type DropState = { symbol: string | null; slices: number; left: number; leftAmount: number; notes: Note[] }
+
+export const dropKeys = (secret: Hex) => deriveKeys(keccak256(concat([secret, toHex('hagi.drop')])))
+const dropsSlot = () => 'hagi-drops-' + keys!.publicKey.toString(16).slice(0, 24)
+export const myDrops = (): Drop[] => { try { return keys ? JSON.parse(localStorage.getItem(dropsSlot()) || '[]') : [] } catch { return [] } }
+const saveDrops = (d: Drop[]) => { try { localStorage.setItem(dropsSlot(), JSON.stringify(d.slice(0, 50))) } catch { /* optional */ } }
+const claimedSlot = (secret: Hex) => 'hagi-drop-got-' + keccak256(secret).slice(2, 18)
+export const claimedFromDrop = (secret: Hex): { symbol: string; amount: number } | null => { try { return JSON.parse(localStorage.getItem(claimedSlot(secret)) || 'null') } catch { return null } }
+
+/** Random slices that add up to exactly `total`, none smaller than a third of an even share. */
+function slices(total: bigint, n: number): bigint[] {
+  const w = Array.from({ length: n }, () => 1 + Math.random() * 2)
+  const sum = w.reduce((a, b) => a + b, 0)
+  const out = w.map(x => (total * BigInt(Math.round((x / sum) * 1e9))) / 1_000_000_000n)
+  out[n - 1] = total - out.slice(0, -1).reduce((a, b) => a + b, 0n)
+  return out
+}
+
+/** Every slice ever put in a drop, and which are still there. */
+export async function readDrop(secret: Hex): Promise<DropState> {
+  await sync()
+  const dk = dropKeys(secret)
+  const logs = await loadLogs()
+  const all: Note[] = []
+  for (const [index, c, , amount, enc] of logs) {
+    const d = decryptNote(enc, dk)
+    if (!d) continue
+    const n: Note = { ...d, amount: BigInt(amount) > 0n ? BigInt(amount) : d.amount, publicKey: dk.publicKey, index }
+    if (n.amount > 0n && commitment(n) === BigInt(c)) all.push(n)
+  }
+  const spent = await Promise.all(all.map(n => pub.readContract({ ...V, functionName: 'nullifierSpent', args: [nullifier(n, dk.privateKey)] })))
+  const notes = all.filter((_, i) => !spent[i])
+  const tk = all[0] ? tokenByAddress(all[0].token) : undefined
+  return { symbol: tk?.symbol ?? null, slices: all.length, left: notes.length, leftAmount: tk ? fromUnits(notes.reduce((t, n) => t + n.amount, 0n), tk.decimals) : 0, notes }
+}
+
+/** Makes a drop of `n` of `sym` split into `count` random slices, and returns its link. */
+export async function createDrop(sym: string, n: number, count: number, msg: string, step: Step): Promise<{ link: string; drop: Drop }> {
+  if (!keys || !account) throw new Error('Unlock your Hagi account first')
+  if (count < 2 || count > DROP_MAX) throw new Error(`A drop has 2 to ${DROP_MAX} slices`)
+  const t = token(sym)
+  const total = amountOf(sym, n, rawShielded(sym))
+  if (total <= 0n || total > rawShielded(sym)) throw new Error('Not enough shielded ' + sym)
+  const secret = bytesToHex(crypto.getRandomValues(new Uint8Array(32)))
+  const dk = dropKeys(secret)
+  const drop: Drop = { secret, symbol: sym, total: fromUnits(total, t.decimals), count, created: Date.now(), msg: msg.trim().slice(0, 80) || undefined }
+  // Saved first, so a drop that stops part way can still be taken back.
+  saveDrops([drop, ...myDrops()])
+  await inputsFor(sym, total, m => step('Getting ready · ' + m))
+  for (const [i, amount] of slices(total, count).entries()) {
+    const sub: Step = m => step(`Slice ${i + 1} of ${count} · ${m}`)
+    const inputs = await inputsFor(sym, amount, sub)
+    await privately({ token: t.address, inputs, outputs: [{ amount, publicKey: dk.publicKey, encPublic: dk.encPublic, own: true }, ...change(inputs, amount)] }, sub)
+  }
+  return { link: dropLink(drop), drop }
+}
+
+export const dropLink = (d: Pick<Drop, 'secret' | 'msg'>) => `${location.origin}${location.pathname}#/drop/${d.secret.slice(2)}${d.msg ? '?m=' + encodeURIComponent(d.msg) : ''}`
+
+/** Takes one random slice of a drop into this account's private balance. */
+export async function claimDrop(secret: Hex, step: Step): Promise<{ symbol: string; amount: number }> {
+  if (!keys || !account) throw new Error('Unlock your Hagi account first')
+  if (claimedFromDrop(secret)) throw new Error('You already grabbed a slice of this drop.')
+  const dk = dropKeys(secret)
+  for (let attempt = 0; attempt < 3; attempt++) {
+    step('Looking for a slice')
+    const st = await readDrop(secret)
+    if (!st.left) throw new Error(st.slices ? 'Too late. Every slice of this drop has been taken.' : 'This drop doesn’t exist, or it’s still being made.')
+    const note = st.notes[Math.floor(Math.random() * st.notes.length)]
+    const tk = tokenByAddress(note.token)!
+    try {
+      await privately({ token: tk.address, inputs: [note], outputs: [{ amount: note.amount, publicKey: keys.publicKey, encPublic: keys.encPublic, own: true }] }, step, dk)
+      const got = { symbol: tk.symbol, amount: fromUnits(note.amount, tk.decimals) }
+      try { localStorage.setItem(claimedSlot(secret), JSON.stringify(got)) } catch { /* optional */ }
+      return got
+    } catch (e) {
+      // Someone else took that slice first: try another one.
+      if (!/NullifierSpent/.test(String((e as Error)?.message))) throw e
+    }
+  }
+  throw new Error('Lots of people are grabbing at once. Try again in a moment.')
+}
+
+/** Brings every slice nobody took back to the creator, two at a time. */
+export async function reclaimDrop(secret: Hex, step: Step): Promise<number> {
+  if (!keys || !account) throw new Error('Unlock your Hagi account first')
+  const dk = dropKeys(secret)
+  let total = 0
+  for (;;) {
+    const st = await readDrop(secret)
+    if (!st.left) break
+    const two = st.notes.slice(0, 2)
+    const tk = tokenByAddress(two[0].token)!
+    const amount = two.reduce((t, n) => t + n.amount, 0n)
+    await privately({ token: tk.address, inputs: two, outputs: [{ amount, publicKey: keys.publicKey, encPublic: keys.encPublic, own: true }] }, m => step(`Taking back ${st.left} left · ${m}`), dk)
+    total += fromUnits(amount, tk.decimals)
+  }
+  return total
 }
 
 /** Turns wallet and contract errors into a sentence a person can act on. */

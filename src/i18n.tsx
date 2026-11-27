@@ -39,6 +39,18 @@ const PAT: [RegExp, (m: RegExpMatchArray) => Record<L3, string>][] = [
   [/^(\d+) days ago$/, m => ({ zh: `${m[1]} 天前`, es: `hace ${m[1]} días`, fr: `il y a ${m[1]} jours` })],
   [/^Up to (\d+) people( at a time\.)?$/, m => ({ zh: `每次最多 ${m[1]} 人`, es: `Hasta ${m[1]} personas${m[2] ? ' a la vez.' : ''}`, fr: `Jusqu’à ${m[1]} personnes${m[2] ? ' à la fois.' : ''}` })],
   [/^Weights must total 100% \(now (\d+)%\)$/, m => ({ zh: `权重合计必须为 100%（当前 ${m[1]}%）`, es: `Los pesos deben sumar 100% (ahora ${m[1]}%)`, fr: `Les poids doivent totaliser 100 % (actuellement ${m[1]} %)` })],
+  [/^Make a drop of ([\d.,]+) (\w+)$/, m => ({ zh: `发起 ${m[1]} ${m[2]} 的空投`, es: `Hacer un drop de ${m[1]} ${m[2]}`, fr: `Faire un drop de ${m[1]} ${m[2]}` })],
+  [/^(\d+) of (\d+) slices of (\w+) left\. Each one is a random size\.$/, m => ({ zh: `${m[3]} 还剩 ${m[1]}/${m[2]} 份，每份金额随机。`, es: `Quedan ${m[1]} de ${m[2]} partes de ${m[3]}. Cada una es de tamaño aleatorio.`, fr: `Il reste ${m[1]} parts de ${m[3]} sur ${m[2]}. Chacune a une taille aléatoire.` })],
+  [/^(\d+) of (\d+) slices left$/, m => ({ zh: `还剩 ${m[1]}/${m[2]} 份`, es: `Quedan ${m[1]} de ${m[2]} partes`, fr: `${m[1]} parts sur ${m[2]} restantes` })],
+  [/^(\d+) random slices of ([\d.,]+) (\w+)\. Whoever opens the link first gets one\.$/, m => ({ zh: `${m[2]} ${m[3]} 拆成 ${m[1]} 份随机金额，先打开链接的人先得。`, es: `${m[1]} partes aleatorias de ${m[2]} ${m[3]}. Quien abra el enlace primero se lleva una.`, fr: `${m[1]} parts aléatoires de ${m[2]} ${m[3]}. Les premiers à ouvrir le lien en ont une.` })],
+  [/^Made a drop · (\d+) slices$/, m => ({ zh: `发起空投 · ${m[1]} 份`, es: `Drop creado · ${m[1]} partes`, fr: `Drop créé · ${m[1]} parts` })],
+  [/^Arrives as (\w+)$/, m => ({ zh: `到账为 ${m[1]}`, es: `Llega como ${m[1]}`, fr: `Arrive en ${m[1]}` })],
+  [/^Claim as (\w+)$/, m => ({ zh: `领取为 ${m[1]}`, es: `Reclamar como ${m[1]}`, fr: `Réclamer en ${m[1]}` })],
+  [/^Your Ghost Swap address\. Whatever is sent here arrives as (\w+)$/, m => ({ zh: `你的幽灵兑换地址。转到这里的资产都会以 ${m[1]} 到账`, es: `Tu dirección Ghost Swap. Lo que se envíe aquí llega como ${m[1]}`, fr: `Votre adresse Ghost Swap. Tout ce qui est envoyé ici arrive en ${m[1]}` })],
+  [/^Ghost Swap · (\w+) to (\w+)$/, m => ({ zh: `幽灵兑换 · ${m[1]} 换成 ${m[2]}`, es: `Ghost Swap · ${m[1]} a ${m[2]}`, fr: `Ghost Swap · ${m[1]} en ${m[2]}` })],
+  [/^Swapping it into (\w+) on the way in$/, m => ({ zh: `到账途中换成 ${m[1]}`, es: `Convirtiéndolo en ${m[1]} al entrar`, fr: `Conversion en ${m[1]} à l’arrivée` })],
+  [/^Slice (\d+) of (\d+) · (.+)$/, m => ({ zh: `第 ${m[1]}/${m[2]} 份 · ${tr(m[3], 'zh')}`, es: `Parte ${m[1]} de ${m[2]} · ${tr(m[3], 'es')}`, fr: `Part ${m[1]} sur ${m[2]} · ${tr(m[3], 'fr')}` })],
+  [/^Taking back (\d+) left · (.+)$/, m => ({ zh: `正在收回剩余 ${m[1]} 份 · ${tr(m[2], 'zh')}`, es: `Recuperando ${m[1]} restantes · ${tr(m[2], 'es')}`, fr: `Récupération des ${m[1]} restantes · ${tr(m[2], 'fr')}` })],
   [/^(\$[\d.,]+) waiting at your Ghost Address$/, m => ({ zh: `${m[1]} 在你的幽灵地址等待领取`, es: `${m[1]} esperando en tu dirección fantasma`, fr: `${m[1]} en attente à votre adresse fantôme` })],
 ]
 const ATTRS = ['placeholder', 'aria-label', 'title']

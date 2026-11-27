@@ -918,3 +918,32 @@ body.busy .overlay .btn{pointer-events:auto;opacity:1}
 
 .lang{position:relative;margin-right:10px}.lang-b{display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid rgba(201,211,255,.28);color:inherit;border-radius:999px;padding:8px 13px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
 .lang-m{position:absolute;right:0;top:calc(100% + 8px);background:#fff;border-radius:16px;box-shadow:0 14px 40px rgba(10,14,40,.25);padding:6px;display:flex;flex-direction:column;min-width:110px;z-index:50}.lang-m button{background:none;border:0;text-align:left;padding:10px 14px;border-radius:10px;font:inherit;font-size:15px;color:#1b2140;cursor:pointer}.lang-m button:hover,.lang-m button.on{background:#eef0f8}
+
+/* ---------- Ghost Swaps ---------- */
+.gas{max-width:440px;margin:0 auto 18px}
+.gas .fl{display:block;margin-bottom:10px}
+.gas-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.gas-row .chip{padding:6px 14px 6px 6px;font-size:13.5px}.gas-row .chip:first-child{padding:6px 14px}
+.gas-row .chip .ti{flex:none}
+.gqr-tag{position:absolute;left:50%;top:110px;transform:translate(-50%,-50%);background:#fff;border-radius:50%;padding:5px;box-shadow:0 4px 14px rgba(27,33,64,.18)}
+.gqr-tag .ti{display:block}
+
+/* ---------- Hagi Drops ---------- */
+.dcount{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.dcount .chip{width:42px;height:42px;padding:0;justify-content:center;font-size:20px}
+.dcount .chip:disabled{opacity:.4}
+.dcount b{font-size:26px;min-width:30px;text-align:center}
+.dcount .muted{font-size:13.5px}
+.dmine{margin-top:24px}.dmine .fl{display:block;margin-bottom:8px}
+.drow{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid rgba(27,33,64,.06)}
+.drow .g{display:flex;flex-direction:column;flex:1;min-width:0}.drow .g b{font-size:15px}.drow .g span{font-size:12.5px;color:var(--mute)}
+.drow .chip{padding:7px 14px;font-size:13px}
+.dmade .rcv-acts .btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:0}
+.dmade .rcv-acts a.btn.o{flex:1;padding:17px;font-size:16px}
+.dpage .card.dcard{max-width:520px;margin:20px auto 0;text-align:center;padding:40px 34px}
+.dhero{width:76px;height:76px;margin:0 auto 18px;border-radius:24px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center}
+.dtitle{font-family:'Inter Display',Inter,sans-serif;font-weight:500;letter-spacing:-.03em;font-size:34px}
+.dmsg{margin-top:10px;color:var(--mute);font-size:16px}
+.dgot{display:flex;flex-direction:column;align-items:center;gap:12px;margin:26px 0 6px}
+.dgot b{font-size:34px;font-weight:600}
+.dgot span:last-child{color:var(--mute);font-size:14.5px;line-height:1.5;max-width:360px}

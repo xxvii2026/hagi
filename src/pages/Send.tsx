@@ -9,6 +9,7 @@ import { parseAddress } from '../zk/core'
 import { getAddress, isAddress } from 'viem'
 import { AmountField, Card, NeedAccount, TokenPicker, type Run } from '../ui'
 import { GhostPanel } from './Ghost'
+import { DropMaker } from './Drop'
 
 export function Send({ run }: { run: Run }) {
   const { s, api } = useStore()
@@ -22,6 +23,7 @@ export function Send({ run }: { run: Run }) {
   const [qr, setQr] = useState('')
   const [copied, setCopied] = useState(false)
   const [many, setMany] = useState(hashParam('mode') === 'burst')
+  const [drop, setDrop] = useState(hashParam('mode') === 'drop')
   // Receive shows the hagi1 address, or a Ghost Address that any wallet or exchange can pay.
   const [rmode, setRmode] = useState<'hagi' | 'ghost'>(hashParam('r') === 'ghost' && engine.ghostEnabled() ? 'ghost' : 'hagi')
   const [list, setList] = useState('')
@@ -47,8 +49,8 @@ export function Send({ run }: { run: Run }) {
       <Card>
         <div className="tabs"><button className={tab === 'send' ? 'on' : ''} onClick={() => setTab('send')}>Send</button><button className={tab === 'receive' ? 'on' : ''} onClick={() => setTab('receive')}>Receive</button></div>
         {tab === 'send' ? <>
-          <div className="seg" role="tablist" aria-label="Send mode"><button className={!many ? 'on' : ''} onClick={() => setMany(false)}>Single</button><button className={many ? 'on' : ''} onClick={() => setMany(true)}>Burst</button></div>
-          {many ? <>
+          <div className="seg" role="tablist" aria-label="Send mode"><button className={!many && !drop ? 'on' : ''} onClick={() => { setMany(false); setDrop(false) }}>Single</button><button className={many && !drop ? 'on' : ''} onClick={() => { setMany(true); setDrop(false) }}>Burst</button><button className={drop ? 'on' : ''} onClick={() => setDrop(true)}>Drop</button></div>
+          {drop ? <DropMaker run={run} /> : many ? <>
             <div className="fld"><span className="fl">People and amounts</span>
               <textarea className="txt burst-in" rows={6} placeholder={'Paste addresses, or address and amount pairs.\nHagi lines them up for you.'} value={list} onChange={e => { setList(e.target.value); setPaid(-1) }}
                 onPaste={e => { const t = e.clipboardData.getData('text'); if (!/(hagi1|0x)/i.test(t)) return; e.preventDefault(); const el = e.currentTarget; setList(tidyList(el.value.slice(0, el.selectionStart) + '\n' + t + '\n' + el.value.slice(el.selectionEnd))); setPaid(-1) }} aria-label="Recipients and amounts" />
@@ -96,7 +98,8 @@ export function Send({ run }: { run: Run }) {
         </>}
       </Card>
       <div className="col n">
-        {tab === 'receive' && rmode === 'ghost' ? <Card title="How Ghost Addresses work"><p className="muted">A Ghost Address is a normal 0x address, so any wallet or exchange can pay it. Nothing links it to you or your wallet. When you claim, the money goes straight into your private balance, and only your Hagi account can ever claim from it.</p><p className="muted">The deposit itself is public, like any transfer. If you don’t want two deposits tied to each other, make a new address for each sender. Old addresses keep working.</p></Card>
+        {tab === 'receive' && rmode === 'ghost' ? <Card title="How Ghost Addresses work"><p className="muted">A Ghost Address is a normal 0x address, so any wallet or exchange can pay it. Nothing links it to you or your wallet. When you claim, the money goes straight into your private balance, and only your Hagi account can ever claim from it.</p><p className="muted">The deposit itself is public, like any transfer. If you don’t want two deposits tied to each other, make a new address for each sender. Old addresses keep working.</p>{engine.ghostSwapEnabled() && <p className="muted">Pick a stock under Arrives as and you get a Ghost Swap address: whatever lands there turns into that stock when you claim, at the pool price at that moment.</p>}</Card>
+        : tab === 'send' && drop ? <Card title="How drops work"><p className="muted">A drop splits what you put in into random slices behind one link. Whoever opens the link takes one slice straight into their private balance, first come, first served.</p><p className="muted">Nobody can see who made the drop or who took from it. Anyone with the link can grab, so share it where you mean to. You can take back whatever is left at any time.</p></Card>
         : <Card title="Good to know"><p className="muted">Sending to a hagi1 address stays fully inside Hagi. Sending to a 0x wallet pays it straight from the vault: they see the amount arrive from Hagi, but not your wallet. One Hagi address receives USDG and all five stocks.</p></Card>}
       </div>
     </div>
