@@ -729,3 +729,55 @@ export function friendly(e: unknown): string {
   return m.length > 160 ? m.slice(0, 160) + '…' : m
 }
 export { toHex }
+
+// ---------- Hagi names ----------
+// name.hagi points to a hagi1 address. Names are public, like a phone number; balances stay in the vault.
+const namesAbi = [
+  { type: 'function', name: 'addrOf', stateMutability: 'view', inputs: [{ type: 'string' }], outputs: [{ type: 'bytes' }] },
+  { type: 'function', name: 'nameOf', stateMutability: 'view', inputs: [{ type: 'bytes' }], outputs: [{ type: 'string' }] },
+  { type: 'function', name: 'available', stateMutability: 'view', inputs: [{ type: 'string' }], outputs: [{ type: 'bool' }] },
+] as const
+export const namesEnabled = () => !!CFG.contracts.names
+export const NAME_RE = /^[a-z0-9](?:[a-z0-9]|-(?=[a-z0-9])){3,19}$/
+/** "Eric.hagi", "eric" or "@eric" -> "eric", or null if it can't be a name. */
+export function cleanName(s: string): string | null {
+  const n = s.trim().toLowerCase().replace(/^@/, '').replace(/\.hagi$/, '')
+  return NAME_RE.test(n) ? n : null
+}
+export const looksLikeName = (s: string) => /\.hagi$/i.test(s.trim()) && !!cleanName(s)
+const nameCache = new Map<string, string | null>()
+/** The hagi1 address a name points to, or null if nobody has it. */
+export async function lookupName(s: string): Promise<string | null> {
+  const n = cleanName(s); if (!n || !namesEnabled()) return null
+  if (nameCache.has(n)) return nameCache.get(n)!
+  const b = await pub.readContract({ address: CFG.contracts.names!, abi: namesAbi, functionName: 'addrOf', args: [n] })
+  const a = b && b.length === 130 ? 'hagi1' + b.slice(2).toLowerCase() : null
+  if (a) nameCache.set(n, a)
+  return a
+}
+/** The name this hagi1 address owns, or '' if none. */
+export async function nameOf(hagi: string): Promise<string> {
+  if (!namesEnabled()) return ''
+  const m = /^hagi1([0-9a-f]{128})$/.exec(hagi.toLowerCase()); if (!m) return ''
+  return pub.readContract({ address: CFG.contracts.names!, abi: namesAbi, functionName: 'nameOf', args: [('0x' + m[1]) as Hex] })
+}
+export async function nameAvailable(n: string): Promise<boolean> {
+  return pub.readContract({ address: CFG.contracts.names!, abi: namesAbi, functionName: 'available', args: [n] })
+}
+const NAME_ERR: Record<string, string> = {
+  Taken: 'Someone already has that name.', Reserved: 'That name is reserved.', BadName: 'Names are 4 to 20 letters, numbers or single hyphens.',
+  AddressHasName: 'Your account already has a name.', BadAddress: 'That account address isn’t valid.',
+}
+/** Claims a name for the signed-in account, free, through the relayer. */
+export async function claimName(name: string, hagi: string, step: Step): Promise<string> {
+  const n = cleanName(name); if (!n) throw new Error(NAME_ERR.BadName)
+  step('Claiming ' + n + '.hagi')
+  let res: Response
+  try { res = await fetch(CFG.relayerUrl.replace(/relay$/, 'names'), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: n, address: hagi }) }) }
+  catch { throw new Error('The relayer couldn’t be reached. Try again in a minute.') }
+  const j: { hash?: Hex; error?: string } = await res.json().catch(() => ({}))
+  if (!res.ok || !j.hash) throw new Error(NAME_ERR[j.error ?? ''] ?? j.error ?? 'The claim didn’t go through.')
+  await waitFor(j.hash, step)
+  nameCache.set(n, hagi.toLowerCase())
+  return n
+}

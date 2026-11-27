@@ -947,3 +947,11 @@ body.busy .overlay .btn{pointer-events:auto;opacity:1}
 .dgot{display:flex;flex-direction:column;align-items:center;gap:12px;margin:26px 0 6px}
 .dgot b{font-size:34px;font-weight:600}
 .dgot span:last-child{color:var(--mute);font-size:14.5px;line-height:1.5;max-width:360px}
+
+.namecard .nc-hd{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}.namecard .nc-hd b{font-size:17px}.namecard .nc-hd span{color:var(--mute);font-size:14px}
+.nc-in{display:flex;align-items:center;border:1px solid var(--line,#e3e6f0);border-radius:14px;padding:0 16px;background:#fff}.nc-in .txt{border:0;flex:1;padding:14px 0;font-size:17px;background:transparent;outline:none}.nc-in em{font-style:normal;color:var(--mute);font-weight:600}
+.nc-hint{margin:8px 2px 14px}.nc-hint.free span{color:#2f9e7a}.nc-hint.taken span,.nc-hint.bad span{color:#c0567a}
+.nc-note{display:flex;align-items:center;gap:6px;margin-top:12px}
+.namecard.has .nc-row{display:flex;align-items:center;gap:14px}.namecard.has .g{flex:1;display:flex;flex-direction:column}.namecard.has .g b{font-size:18px}.namecard.has .g span{color:var(--mute);font-size:13px}
+.nc-ic{width:34px;height:34px;border-radius:50%;background:#566eba;color:#fff;display:grid;place-items:center;flex-shrink:0}
+.rcv-name{font-size:24px;font-weight:700;letter-spacing:-.02em;margin:4px 0 2px}

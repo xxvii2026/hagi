@@ -1818,5 +1818,90 @@
 "zh": "准备中",
 "es": "Preparando",
 "fr": "Préparation"
+},
+"Claim your name": {
+"zh": "领取你的名字",
+"es": "Reclama tu nombre",
+"fr": "Réclamez votre nom"
+},
+"Get paid at a name instead of a long address.": {
+"zh": "用名字收款，不用再发长地址。",
+"es": "Cobra con un nombre en lugar de una dirección larga.",
+"fr": "Recevez des paiements avec un nom plutôt qu’une longue adresse."
+},
+"Claim name": {
+"zh": "领取名字",
+"es": "Reclamar nombre",
+"fr": "Réclamer le nom"
+},
+"Names are public, like a phone number. Your balance and history stay private.": {
+"zh": "名字是公开的，就像电话号码。你的余额和记录依然私密。",
+"es": "Los nombres son públicos, como un número de teléfono. Tu saldo e historial siguen privados.",
+"fr": "Les noms sont publics, comme un numéro de téléphone. Votre solde et votre historique restent privés."
+},
+"Use 4 to 20 letters, numbers or single hyphens.": {
+"zh": "使用 4 到 20 个字母、数字或单个连字符。",
+"es": "Usa de 4 a 20 letras, números o guiones simples.",
+"fr": "Utilisez 4 à 20 lettres, chiffres ou tirets simples."
+},
+"That one’s taken or reserved.": {
+"zh": "这个名字已被占用或保留。",
+"es": "Ese ya está tomado o reservado.",
+"fr": "Celui-ci est déjà pris ou réservé."
+},
+"It’s free. Claim it before someone else does.": {
+"zh": "这个名字可用。赶在别人之前领取吧。",
+"es": "Está libre. Reclámalo antes que otro.",
+"fr": "Il est libre. Réclamez-le avant quelqu’un d’autre."
+},
+"Free on testnet, and yours to keep on mainnet.": {
+"zh": "测试网免费领取，主网上依然归你。",
+"es": "Gratis en testnet, y tuyo para siempre en mainnet.",
+"fr": "Gratuit sur testnet, et à vous sur mainnet."
+},
+"People can send to this name instead of your long address.": {
+"zh": "别人可以直接发到这个名字，不用你的长地址。",
+"es": "La gente puede enviar a este nombre en lugar de tu dirección larga.",
+"fr": "On peut vous envoyer de l’argent à ce nom plutôt qu’à votre longue adresse."
+},
+"Claiming your name": {
+"zh": "正在领取你的名字",
+"es": "Reclamando tu nombre",
+"fr": "Réclamation de votre nom"
+},
+"Looking up the name…": {
+"zh": "正在查找名字…",
+"es": "Buscando el nombre…",
+"fr": "Recherche du nom…"
+},
+"Nobody has that name yet.": {
+"zh": "还没有人使用这个名字。",
+"es": "Nadie tiene ese nombre todavía.",
+"fr": "Personne n’a encore ce nom."
+},
+"Pick a name": {
+"zh": "选一个名字",
+"es": "Elige un nombre",
+"fr": "Choisissez un nom"
+},
+"Someone already has that name.": {
+"zh": "这个名字已有人使用。",
+"es": "Alguien ya tiene ese nombre.",
+"fr": "Quelqu’un a déjà ce nom."
+},
+"That name is reserved.": {
+"zh": "这个名字已被保留。",
+"es": "Ese nombre está reservado.",
+"fr": "Ce nom est réservé."
+},
+"Names are 4 to 20 letters, numbers or single hyphens.": {
+"zh": "名字由 4 到 20 个字母、数字或单个连字符组成。",
+"es": "Los nombres tienen de 4 a 20 letras, números o guiones simples.",
+"fr": "Les noms font de 4 à 20 lettres, chiffres ou tirets simples."
+},
+"Your account already has a name.": {
+"zh": "你的账户已经有名字了。",
+"es": "Tu cuenta ya tiene un nombre.",
+"fr": "Votre compte a déjà un nom."
 }
 }

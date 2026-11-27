@@ -8,7 +8,7 @@ export type Config = {
   relayerUrl: string
   deployBlock: number // the block the vault was deployed in; note scanning starts here
   // `ghost` is the Ghost Address factory. Without it the app hides Ghost Addresses.
-  contracts: { usdg: Hex; swap: Hex; basketRegistry: Hex; vault: Hex; ghost?: Hex; ghostSwap?: Hex }
+  contracts: { usdg: Hex; swap: Hex; basketRegistry: Hex; vault: Hex; ghost?: Hex; ghostSwap?: Hex; names?: Hex }
   tokens: Record<string, Hex>
 }
 
