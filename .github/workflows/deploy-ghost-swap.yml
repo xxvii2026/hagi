@@ -1,0 +1,45 @@
+name: Deploy Ghost Swaps to testnet
+# Runs only when contracts/deployments/request-ghost-swap changes on the contracts branch.
+# Deploys HagiGhostSwap next to the live vault and pools (neither changes), then records the address.
+on:
+  push:
+    branches: [contracts]
+    paths: ['contracts/deployments/request-ghost-swap']
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      RPC: ${{ secrets.RPC_URL || 'https://rpc.testnet.chain.robinhood.com' }}
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+      HAGI_VAULT: '0x0C3C8c6929851818d6a15A4c57D68F9342B81798'
+      HAGI_SWAP: '0xA81738A148743645EB46Ff579CE6E81c63896BE6'
+      HAGI_RELAYER: '0x56077D89f3179f061C9F436d2dF7623625898891'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci
+      - name: Unit tests
+        run: forge test
+      - name: Deploy HagiGhostSwap
+        run: |
+          export DEPLOYER_PRIVATE_KEY="0x${DEPLOYER_PRIVATE_KEY#0x}"
+          forge script script/DeployGhostSwap.s.sol:DeployGhostSwap --rpc-url "$RPC" --broadcast --slow --gas-estimate-multiplier 150 | tee deploy.log
+          GS=$(grep -oE 'DEPLOYED ghostswap 0x[0-9a-fA-F]{40}' deploy.log | awk '{print $3}')
+          BLOCK=$(grep -oE 'DEPLOYED block [0-9]+' deploy.log | awk '{print $3}')
+          printf '{\n  "chainId": 46630,\n  "HagiGhostSwap": "%s",\n  "block": %s\n}\n' "$GS" "$BLOCK" > deployments/ghost-swap-testnet.json
+          cat deployments/ghost-swap-testnet.json
+      - name: Record the address
+        run: |
+          git config user.name "hagi-deploy"
+          git config user.email "hagi-deploy@users.noreply.github.com"
+          git add deployments/ghost-swap-testnet.json
+          git commit -m "Record the HagiGhostSwap testnet deployment"
+          git push
