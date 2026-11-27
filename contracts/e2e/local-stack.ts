@@ -27,8 +27,9 @@ async function main() {
   const v = forge('DeployVault.s.sol:DeployVault', { HAGI_USDG: base.usdg, HAGI_SWAP: base.swap, HAGI_TOKENS: symbols.map(s => base[s]).join(',') })
 
   const g = forge('DeployGhost.s.sol:DeployGhost', { HAGI_VAULT: v.vault })
+  const gs = forge('DeployGhostSwap.s.sol:DeployGhostSwap', { HAGI_VAULT: v.vault, HAGI_SWAP: base.swap, HAGI_RELAYER: privateKeyToAccount(K2).address })
 
-  Object.assign(process.env, { VAULT_ADDRESS: v.vault, GHOST_ADDRESS: g.ghost, RPC_URL: RPC, CHAIN_ID: '31337', RELAYER_PRIVATE_KEY: K2 })
+  Object.assign(process.env, { VAULT_ADDRESS: v.vault, GHOST_ADDRESS: g.ghost, GHOST_SWAP_ADDRESS: gs.ghostswap, RPC_URL: RPC, CHAIN_ID: '31337', RELAYER_PRIVATE_KEY: K2 })
   const { default: relay } = await import('../../api/relay')
   const { default: drip } = await import('../../api/drip')
   const { default: ghost } = await import('../../api/ghost')
@@ -36,7 +37,7 @@ async function main() {
 
   const config = {
     chainId: 31337, name: 'Local', rpc: RPC, explorer: 'http://localhost', relayerUrl: `http://127.0.0.1:${RELAY_PORT}/api/relay`, deployBlock: 0,
-    contracts: { usdg: base.usdg, swap: base.swap, basketRegistry: v.registry, vault: v.vault, ghost: g.ghost },
+    contracts: { usdg: base.usdg, swap: base.swap, basketRegistry: v.registry, vault: v.vault, ghost: g.ghost, ghostSwap: gs.ghostswap },
     tokens: Object.fromEntries(symbols.map(s => [s, base[s]])),
   }
   writeFileSync('/tmp/hagi-local.json', JSON.stringify({ config, user, userKey: K1 }))

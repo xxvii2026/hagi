@@ -3,7 +3,7 @@
 import { execSync, spawn } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import assert from 'node:assert/strict'
-import { createPublicClient, createWalletClient, http, parseAbiItem, type Hex } from 'viem'
+import { createPublicClient, createWalletClient, encodeAbiParameters, http, keccak256, parseAbiItem, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { foundry } from 'viem/chains'
 import { MerkleTree, commitment, decryptNote, deriveKeys, encryptNote, ghostAddress, ghostBlinding, ghostPartial, matchGhost, nullifier, parseAddress, partialCommitment, randomField, toAddress, type Keys, type Note } from '../../src/zk/core'
@@ -197,6 +197,23 @@ async function main() {
     assert.equal(await bal(stocks[1], fresh) - f0, amdNote!.amount)
     await assert.rejects(pub.simulateContract({ ...factory, functionName: 'claim', args: [ghosts[0].partial, base.usdg, 1n, '0x'], account: relayer.account }))
     console.log('ok  ghost spend: the claimed note was spent with a proof; an empty Ghost Address cannot be claimed')
+
+    // 10. Ghost Swaps: USDG sent to an AMZN Ghost Swap address arrives as an AMZN note
+    const gsd = forge('DeployGhostSwap.s.sol:DeployGhostSwap', { HAGI_VAULT: v.vault, HAGI_SWAP: base.swap, HAGI_RELAYER: relayer.account.address })
+    const gsw = { address: gsd.ghostswap, abi: abi('HagiGhostSwap') } as const
+    const amzn = stocks[2]
+    const gsHash = await pub.readContract({ ...gsw, functionName: 'walletCodeHash' }) as Hex
+    const salt = BigInt(keccak256(encodeAbiParameters([{ type: 'uint256' }, { type: 'address' }], [ghosts[0].partial, amzn])))
+    const gsAddr = ghostAddress(gsd.ghostswap, gsHash, salt)
+    assert.equal(gsAddr, await pub.readContract({ ...gsw, functionName: 'ghostAddress', args: [ghosts[0].partial, amzn] }))
+    await send(alice, { address: base.usdg, abi: erc20, functionName: 'transfer', args: [gsAddr, 300_000000n] })
+    const gNet = await pub.readContract({ ...gsw, functionName: 'netOf', args: [300_000000n] }) as bigint
+    const gq = await pub.readContract({ address: base.swap, abi: swapAbi, functionName: 'quoteExactIn', args: [base.usdg, amzn, gNet] }) as bigint
+    await assert.rejects(pub.simulateContract({ ...gsw, functionName: 'claimSwap', args: [ghosts[0].partial, amzn, base.usdg, 300_000000n, 0n, '0x'], account: alice.account }), /NotClaimer/)
+    rc = await send(relayer, { ...gsw, functionName: 'claimSwap', args: [ghosts[0].partial, amzn, base.usdg, 300_000000n, gq * 98n / 100n, '0x'] })
+    a = await scan(aKeys, ghosts)
+    assert.ok(find(a.notes, amzn).some(n => n.amount === gq), 'the AMZN note is found from the Ghost Address it came through')
+    console.log(`ok  ghost swap: 300 USDG sent to an AMZN Ghost Swap address became ${Number(gq) / 1e18} AMZN in Alice's balance (gas ${rc.gasUsed})`)
 
     // 8. The vault holds exactly what the unspent notes say it holds
     a = await scan(aKeys, ghosts)
