@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
 import type { Hex } from 'viem'
 import * as engine from '../engine'
-import { TOKENS, asInput, fmt } from '../data'
+import { STOCKS, asInput, fmt } from '../data'
 import { confirmSpend } from '../confirm'
 import { hashParam } from '../nav'
 import { useStore } from '../store'
@@ -14,8 +14,9 @@ const tweet = (link: string) => 'https://x.com/intent/post?text=' + encodeURICom
 /** The Drop mode of Send: split a pot into random slices behind one link. */
 export function DropMaker({ run }: { run: Run }) {
   const { s, api } = useStore()
-  const options = TOKENS.map(t => t.symbol)
-  const [sym, setSym] = useState('USDG')
+  // Drops are stocks only. Start on the stock you hold the most of.
+  const options = STOCKS.map(t => t.symbol)
+  const [sym, setSym] = useState(() => options.slice().sort((a, b) => (s.shielded[b] ?? 0) - (s.shielded[a] ?? 0))[0])
   const [amtS, setAmt] = useState('')
   const [count, setCount] = useState(5)
   const [msg, setMsg] = useState('')

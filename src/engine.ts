@@ -655,6 +655,7 @@ export async function readDrop(secret: Hex): Promise<DropState> {
 export async function createDrop(sym: string, n: number, count: number, msg: string, step: Step): Promise<{ link: string; drop: Drop }> {
   if (!keys || !account) throw new Error('Unlock your Hagi account first')
   if (count < 2 || count > DROP_MAX) throw new Error(`A drop has 2 to ${DROP_MAX} slices`)
+  if (!STOCKS.some(x => x.symbol === sym)) throw new Error('Drops are for stocks only')
   const t = token(sym)
   const total = amountOf(sym, n, rawShielded(sym))
   if (total <= 0n || total > rawShielded(sym)) throw new Error('Not enough shielded ' + sym)
