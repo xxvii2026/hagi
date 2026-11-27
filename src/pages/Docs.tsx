@@ -245,6 +245,33 @@ const PAGES: Page[] = [
       <H>How it works</H>
       <P>A Ghost Address is the CREATE2 address of a tiny wallet contract, salted with a partial receipt that only your keys can make. Funds can be sent to it before anything is deployed. A claim deploys the wallet if needed and shields what it holds into a receipt completed from that same partial receipt, so whoever sends the claim can only ever put the money into your balance. Your addresses are numbered from your spending key, so any device you sign in on finds them again.</P>
       <Note kind="warn" title="Only listed tokens">Send only USDG, TSLA, AMD, AMZN, NFLX or PLTR on Robinhood Chain. Anything else, including ETH, can’t be claimed and stays stuck at the address.</Note>
+      <H>Ghost Swaps: arrive as a stock</H>
+      <P>Under <b>Arrives as</b>, pick a stock. You get a different address, a Ghost Swap address, tied to that stock. Whatever is sent there turns into that stock when you claim, so USDG withdrawn from an exchange can land in your private balance as AMZN in one step.</P>
+      <List items={[
+        <>The swap runs through Hagi’s pools at the price when you claim, with the same 0.5% fee. Each stock has its own address, so nobody can change what your money turns into.</>,
+        <>Only the Hagi relayer can make the swap, so a stranger can’t claim it at a bad price. If the relayer is ever down, anyone can still bring the deposit in as the token that was sent, so it can’t get stuck.</>,
+      ]} />
+    </>,
+  },
+  {
+    slug: 'drops', group: 'Guides', title: 'Hagi Drops',
+    lede: 'Split a pot of stocks into random slices behind one link. Whoever opens it first takes a slice, straight into their private balance.',
+    body: <>
+      <H>Make a drop</H>
+      <Steps items={[
+        <>Open <b>Send</b> and pick <b>Drop</b>.</>,
+        <>Choose the token, the total, and how many people can grab a slice (up to 10). Add a message if you like.</>,
+        <>Confirm, then copy the link or post it on X. Each slice is a random size.</>,
+      ]} />
+      <H>Grab a slice</H>
+      <P>Open the link and tap <b>Grab my slice</b>. You need a Hagi account, but no wallet and no gas: the relayer sends it. Each device can grab one slice from a drop.</P>
+      <H>What others can see</H>
+      <List items={[
+        <>Hidden: who made the drop, who grabbed from it, and how much each slice was. On chain it looks like ordinary private sends.</>,
+        <>The link is the key. Anyone who has it can grab a slice, so only share it where you mean to. Bots can grab from links posted in public.</>,
+        <>Slices nobody takes stay in the drop. Open <b>Your drops</b> on the Drop tab and tap <b>Take back</b> to bring them home.</>,
+      ]} />
+      <Note kind="info" title="How it works">The link holds a secret that becomes a throwaway Hagi key. Making a drop sends a private receipt for each slice to that key. Grabbing proves you know the key and moves one receipt into your own balance. The vault’s nullifiers stop two people taking the same slice.</Note>
     </>,
   },
   {
@@ -322,6 +349,7 @@ const PAGES: Page[] = [
         ['BasketRegistry', 'Stores baskets and their recipes', <Addr value={CFG.contracts.basketRegistry} />],
         ['TestUSDG', 'The test dollar token, with a faucet', <Addr value={CFG.contracts.usdg} />],
         ...(CFG.contracts.ghost ? [['HagiGhost', 'Makes Ghost Addresses and claims them into the vault', <Addr value={CFG.contracts.ghost} />]] : []),
+        ...(CFG.contracts.ghostSwap ? [['HagiGhostSwap', 'Ghost Swap addresses: swaps a deposit into a stock on the way in', <Addr value={CFG.contracts.ghostSwap} />]] : []),
       ]} />
       <H>Stock tokens</H>
       <Table head={['Token', 'Address']} rows={Object.entries(CFG.tokens).map(([k, v]) => [k, <Addr value={v} />])} />

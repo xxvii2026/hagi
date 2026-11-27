@@ -1583,5 +1583,240 @@
 "zh": "Palantir",
 "es": "Palantir",
 "fr": "Palantir"
+},
+"Arrives as": {
+"zh": "到账为",
+"es": "Llega como",
+"fr": "Arrive en"
+},
+"As sent": {
+"zh": "原样到账",
+"es": "Tal cual",
+"fr": "Tel quel"
+},
+"Drop": {
+"zh": "空投",
+"es": "Drop",
+"fr": "Drop"
+},
+"Total in the drop": {
+"zh": "空投总额",
+"es": "Total del drop",
+"fr": "Total du drop"
+},
+"How many people can grab a slice": {
+"zh": "多少人可以抢一份",
+"es": "Cuántas personas pueden llevarse una parte",
+"fr": "Combien de personnes peuvent prendre une part"
+},
+"Slices are random sizes. Up to 10.": {
+"zh": "每份金额随机，最多 10 份。",
+"es": "Las partes tienen tamaños aleatorios. Hasta 10.",
+"fr": "Les parts ont des tailles aléatoires. Jusqu’à 10."
+},
+"Message (optional)": {
+"zh": "留言（可选）",
+"es": "Mensaje (opcional)",
+"fr": "Message (facultatif)"
+},
+"Message": {
+"zh": "留言",
+"es": "Mensaje",
+"fr": "Message"
+},
+"gm. first come, first served": {
+"zh": "gm，先到先得",
+"es": "gm. el primero que llega se lo lleva",
+"fr": "gm. premier arrivé, premier servi"
+},
+"Fewer": {
+"zh": "减少",
+"es": "Menos",
+"fr": "Moins"
+},
+"More": {
+"zh": "增加",
+"es": "Más",
+"fr": "Plus"
+},
+"Your drops": {
+"zh": "你的空投",
+"es": "Tus drops",
+"fr": "Vos drops"
+},
+"Copy link": {
+"zh": "复制链接",
+"es": "Copiar enlace",
+"fr": "Copier le lien"
+},
+"Take back": {
+"zh": "收回",
+"es": "Recuperar",
+"fr": "Récupérer"
+},
+"Checking…": {
+"zh": "检查中…",
+"es": "Comprobando…",
+"fr": "Vérification…"
+},
+"All taken": {
+"zh": "已被抢完",
+"es": "Todo tomado",
+"fr": "Tout est pris"
+},
+"Being made": {
+"zh": "创建中",
+"es": "En creación",
+"fr": "En cours de création"
+},
+"Post on X": {
+"zh": "发到 X",
+"es": "Publicar en X",
+"fr": "Publier sur X"
+},
+"Make another drop": {
+"zh": "再发一个空投",
+"es": "Hacer otro drop",
+"fr": "Faire un autre drop"
+},
+"Anyone with the link can grab a slice, so share it where you want. Slices nobody takes can be taken back from Your drops.": {
+"zh": "有链接的人都能抢一份，想发哪里就发哪里。没人领的份额可以在“你的空投”里收回。",
+"es": "Cualquiera con el enlace puede llevarse una parte, así que compártelo donde quieras. Las partes que nadie tome se pueden recuperar desde Tus drops.",
+"fr": "Toute personne ayant le lien peut prendre une part, alors partagez-le où vous voulez. Les parts non prises peuvent être récupérées depuis Vos drops."
+},
+"You got a slice": {
+"zh": "你抢到了一份",
+"es": "Te llevaste una parte",
+"fr": "Vous avez eu une part"
+},
+"Someone dropped you stocks": {
+"zh": "有人给你空投了股票",
+"es": "Alguien te dejó acciones",
+"fr": "Quelqu’un vous a laissé des actions"
+},
+"It’s in your private balance. Nobody can see who sent it or who took it.": {
+"zh": "已进入你的私密余额。没人能看到是谁发的、谁领的。",
+"es": "Está en tu saldo privado. Nadie puede ver quién lo envió ni quién lo tomó.",
+"fr": "C’est dans votre solde privé. Personne ne peut voir qui l’a envoyé ni qui l’a pris."
+},
+"See my balance": {
+"zh": "查看我的余额",
+"es": "Ver mi saldo",
+"fr": "Voir mon solde"
+},
+"Grab my slice": {
+"zh": "抢我的一份",
+"es": "Llevarme mi parte",
+"fr": "Prendre ma part"
+},
+"All gone": {
+"zh": "已抢完",
+"es": "Se acabó",
+"fr": "Plus rien"
+},
+"Sign in to grab your slice. It takes a few seconds.": {
+"zh": "登录即可抢一份，只需几秒。",
+"es": "Inicia sesión para llevarte tu parte. Tarda unos segundos.",
+"fr": "Connectez-vous pour prendre votre part. Cela prend quelques secondes."
+},
+"Checking the drop…": {
+"zh": "正在检查空投…",
+"es": "Comprobando el drop…",
+"fr": "Vérification du drop…"
+},
+"Every slice has been taken.": {
+"zh": "所有份额都已被领走。",
+"es": "Ya se tomaron todas las partes.",
+"fr": "Toutes les parts ont été prises."
+},
+"This drop is still being made, or it doesn’t exist.": {
+"zh": "这个空投还在创建中，或者不存在。",
+"es": "Este drop aún se está creando, o no existe.",
+"fr": "Ce drop est encore en cours de création, ou n’existe pas."
+},
+"This drop link is broken": {
+"zh": "这个空投链接无效",
+"es": "Este enlace de drop está roto",
+"fr": "Ce lien de drop est cassé"
+},
+"Ask whoever shared it for the full link.": {
+"zh": "请向分享者要完整链接。",
+"es": "Pide el enlace completo a quien lo compartió.",
+"fr": "Demandez le lien complet à la personne qui l’a partagé."
+},
+"How drops work": {
+"zh": "空投如何运作",
+"es": "Cómo funcionan los drops",
+"fr": "Comment fonctionnent les drops"
+},
+"A drop splits what you put in into random slices behind one link. Whoever opens the link takes one slice straight into their private balance, first come, first served.": {
+"zh": "空投会把你放入的金额拆成随机份额，藏在一个链接后面。打开链接的人会把一份直接领进自己的私密余额，先到先得。",
+"es": "Un drop divide lo que pones en partes aleatorias detrás de un enlace. Quien abre el enlace se lleva una parte directo a su saldo privado, el primero que llega se la lleva.",
+"fr": "Un drop découpe ce que vous y mettez en parts aléatoires derrière un seul lien. Qui ouvre le lien prend une part directement dans son solde privé, premier arrivé, premier servi."
+},
+"Nobody can see who made the drop or who took from it. Anyone with the link can grab, so share it where you mean to. You can take back whatever is left at any time.": {
+"zh": "没人能看到谁发的空投、谁领了。有链接的人都能抢，所以请发到你想发的地方。剩下的随时可以收回。",
+"es": "Nadie puede ver quién hizo el drop ni quién tomó de él. Cualquiera con el enlace puede tomar, así que compártelo donde quieras. Puedes recuperar lo que quede cuando quieras.",
+"fr": "Personne ne peut voir qui a fait le drop ni qui en a pris. Toute personne ayant le lien peut prendre, alors partagez-le où vous le souhaitez. Vous pouvez récupérer le reste à tout moment."
+},
+"Pick a stock under Arrives as and you get a Ghost Swap address: whatever lands there turns into that stock when you claim, at the pool price at that moment.": {
+"zh": "在“到账为”里选一只股票，就会得到一个幽灵兑换地址：转到这里的任何资产，在你领取时都会按当时的池价换成这只股票。",
+"es": "Elige una acción en Llega como y obtienes una dirección Ghost Swap: lo que llegue ahí se convierte en esa acción al reclamar, al precio del pool en ese momento.",
+"fr": "Choisissez une action sous Arrive en et vous obtenez une adresse Ghost Swap : tout ce qui y arrive devient cette action quand vous réclamez, au prix du pool à ce moment-là."
+},
+"The swap uses Hagi’s pools at the price when you claim.": {
+"zh": "兑换使用 Hagi 的池子，按领取时的价格成交。",
+"es": "El intercambio usa los pools de Hagi al precio del momento en que reclamas.",
+"fr": "L’échange passe par les pools de Hagi au prix du moment où vous réclamez."
+},
+"Making your drop": {
+"zh": "正在创建空投",
+"es": "Creando tu drop",
+"fr": "Création de votre drop"
+},
+"Your drop is ready. Share the link.": {
+"zh": "空投已就绪，分享链接吧。",
+"es": "Tu drop está listo. Comparte el enlace.",
+"fr": "Votre drop est prêt. Partagez le lien."
+},
+"Grabbing your slice": {
+"zh": "正在抢你的一份",
+"es": "Llevándote tu parte",
+"fr": "Prise de votre part"
+},
+"Got it. It’s in your private balance.": {
+"zh": "抢到了，已进入你的私密余额。",
+"es": "Listo. Está en tu saldo privado.",
+"fr": "C’est fait. C’est dans votre solde privé."
+},
+"Taking back what’s left": {
+"zh": "正在收回剩余部分",
+"es": "Recuperando lo que queda",
+"fr": "Récupération du reste"
+},
+"Back in your private balance.": {
+"zh": "已回到你的私密余额。",
+"es": "De vuelta en tu saldo privado.",
+"fr": "De retour dans votre solde privé."
+},
+"Looking for a slice": {
+"zh": "正在找一份",
+"es": "Buscando una parte",
+"fr": "Recherche d’une part"
+},
+"Grabbed a drop": {
+"zh": "领取了空投",
+"es": "Tomaste un drop",
+"fr": "Drop récupéré"
+},
+"Took back a drop": {
+"zh": "收回了空投",
+"es": "Recuperaste un drop",
+"fr": "Drop repris"
+},
+"Getting ready": {
+"zh": "准备中",
+"es": "Preparando",
+"fr": "Préparation"
 }
 }
