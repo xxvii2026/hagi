@@ -260,7 +260,7 @@ const PAGES: Page[] = [
       <H>Make a drop</H>
       <Steps items={[
         <>Open <b>Send</b> and pick <b>Drop</b>.</>,
-        <>Choose the token, the total, and how many people can grab a slice (up to 10). Add a message if you like.</>,
+        <>Choose a stock (drops are stocks only), the total, and how many people can grab a slice (up to 10). Add a message if you like.</>,
         <>Confirm, then copy the link or post it on X. Each slice is a random size.</>,
       ]} />
       <H>Grab a slice</H>
