@@ -3,7 +3,7 @@
 import { createPublicClient, createWalletClient, http, isAddress, parseAbi, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
-const NAMES = (process.env.NAMES_ADDRESS || '') as Hex
+const NAMES = (process.env.NAMES_ADDRESS || '0x3cF6213fa37D19c1Db4492B942A8B53Fc8F3e193') as Hex
 const RPC = process.env.RPC_URL || 'https://rpc.testnet.chain.robinhood.com'
 const CHAIN_ID = Number(process.env.CHAIN_ID || 46630)
 const abi = parseAbi([
