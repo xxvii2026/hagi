@@ -1,0 +1,43 @@
+name: Deploy Hagi names to testnet
+# Runs only when contracts/deployments/request-names changes on the contracts branch.
+# Deploys the name.hagi registry, then records the address.
+on:
+  push:
+    branches: [contracts]
+    paths: ['contracts/deployments/request-names']
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      RPC: ${{ secrets.RPC_URL || 'https://rpc.testnet.chain.robinhood.com' }}
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+      HAGI_VAULT: '0x0C3C8c6929851818d6a15A4c57D68F9342B81798'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci
+      - name: Unit tests
+        run: forge test
+      - name: Deploy HagiNames
+        run: |
+          export DEPLOYER_PRIVATE_KEY="0x${DEPLOYER_PRIVATE_KEY#0x}"
+          forge script script/DeployNames.s.sol:DeployNames --rpc-url "$RPC" --broadcast --slow --gas-estimate-multiplier 150 | tee deploy.log
+          NAMES=$(grep -oE 'DEPLOYED names 0x[0-9a-fA-F]{40}' deploy.log | awk '{print $3}')
+          BLOCK=$(grep -oE 'DEPLOYED block [0-9]+' deploy.log | awk '{print $3}')
+          printf '{\n  "chainId": 46630,\n  "HagiNames": "%s",\n  "block": %s\n}\n' "$NAMES" "$BLOCK" > deployments/names-testnet.json
+          cat deployments/names-testnet.json
+      - name: Record the address
+        run: |
+          git config user.name "hagi-deploy"
+          git config user.email "hagi-deploy@users.noreply.github.com"
+          git add deployments/names-testnet.json
+          git commit -m "Record the HagiNames testnet deployment"
+          git push
