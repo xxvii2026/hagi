@@ -9,10 +9,12 @@ import { parseAddress } from '../zk/core'
 import { getAddress, isAddress } from 'viem'
 import { AmountField, Card, NeedAccount, TokenPicker, type Run } from '../ui'
 import { GhostPanel } from './Ghost'
+import { useMyName } from './Names'
 import { DropMaker } from './Drop'
 
 export function Send({ run }: { run: Run }) {
   const { s, api } = useStore()
+  const [myName] = useMyName()
   const [tab, setTab] = useState<'send' | 'receive'>(hashParam('tab') === 'receive' ? 'receive' : 'send')
   // USDG and every stock can be sent privately.
   const options = TOKENS.map(t => t.symbol)
@@ -37,7 +39,17 @@ export function Send({ run }: { run: Run }) {
   const [each, setEach] = useState('')
   const n = parseFloat(amt) || 0
   const have = s.shielded[cur] ?? 0
-  const toHagi = !!parseAddress(to.trim())
+  // name.hagi resolves to a hagi1 address before sending.
+  const isName = engine.looksLikeName(to)
+  const [named, setNamed] = useState<{ q: string; a: string | null } | null>(null)
+  useEffect(() => {
+    if (!isName) { setNamed(null); return }
+    const q = to.trim().toLowerCase(); let live = true
+    const t = setTimeout(() => { engine.lookupName(q).then(a => { if (live) setNamed({ q, a }) }).catch(() => { if (live) setNamed({ q, a: null }) }) }, 300)
+    return () => { live = false; clearTimeout(t) }
+  }, [to, isName])
+  const nameAddr = isName && named?.q === to.trim().toLowerCase() ? named.a : null
+  const toHagi = !!parseAddress(to.trim()) || !!nameAddr
   // A normal 0x wallet works too: the money leaves the vault straight to it, and your own wallet stays off the transaction.
   const toWallet = !toHagi && isAddress(to.trim())
   const validTo = toHagi || toWallet
@@ -67,20 +79,22 @@ export function Send({ run }: { run: Run }) {
             {!(s.wallet && s.hagiAddress) ? <NeedAccount /> : <button className="btn" disabled={allPaid || !rows.length || bad > 0 || rows.length > engine.BURST_MAX || total <= 0 || total > have} onClick={() => run('Paying everyone privately', async step => {
               await confirmSpend(step)
               setPaid(-1)
-              const done = await engine.burst(cur, rows.map(r => ({ to: r.to, n: r.n })), step, i => setPaid(i))
+              const plan = await Promise.all(rows.map(async r => ({ to: engine.looksLikeName(r.to) ? await engine.lookupName(r.to) : r.to, n: r.n, name: r.to })))
+              const missingName = plan.find(p => !p.to); if (missingName) throw new Error('Nobody has the name ' + missingName.name + ' yet.')
+              const done = await engine.burst(cur, plan.map(p => ({ to: p.to!, n: p.n })), step, i => setPaid(i))
               api.log({ kind: 'send', title: `Paid ${done} people`, detail: fmt(total, cur === 'USDG' ? 2 : 4) + ' ' + cur, isPrivate: true })
               setPaid(rows.length - 1); await api.refresh()
             }, `Paid ${rows.length} people. Nobody saw who sent it.`)}>{allPaid ? `All ${rows.length} paid` : !rows.length ? 'Add people' : bad ? 'Fix the list' : rows.length > engine.BURST_MAX ? `Up to ${engine.BURST_MAX} people` : total > have ? 'Not enough ' + cur : `Send to ${rows.length} ${rows.length === 1 ? 'person' : 'people'}`}</button>}
           </> : <>
-          <div className="fld"><span className="fl">To</span><input className="txt" placeholder="hagi1… or 0x…" value={to} onChange={e => setTo(e.target.value)} aria-label="Recipient address" />
-            <div className="hint"><span>{to && !validTo ? 'That doesn’t look like a Hagi or 0x address.' : toWallet ? 'They get it from the Hagi vault. Your wallet stays out of it.' : 'Paste a Hagi address, or any 0x wallet.'}</span></div></div>
+          <div className="fld"><span className="fl">To</span><input className="txt" placeholder={engine.namesEnabled() ? 'name.hagi, hagi1… or 0x…' : 'hagi1… or 0x…'} value={to} onChange={e => setTo(e.target.value)} aria-label="Recipient address" />
+            <div className="hint"><span>{isName ? (named?.q !== to.trim().toLowerCase() ? 'Looking up the name…' : nameAddr ? 'Goes to ' + to.trim().toLowerCase() + '. Private, like any Hagi send.' : 'Nobody has that name yet.') : to && !validTo ? 'That doesn’t look like a Hagi or 0x address.' : toWallet ? 'They get it from the Hagi vault. Your wallet stays out of it.' : 'Paste a Hagi address, or any 0x wallet.'}</span></div></div>
           <AmountField label="Amount" value={amt} onChange={setAmt} hint={<>You have {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))} right={<TokenPicker value={cur} onChange={setSym} options={options} balances={s.shielded} />} />
           {!(s.wallet && s.hagiAddress) ? <NeedAccount /> : <button className="btn" disabled={!validTo || n <= 0 || n > have} onClick={() => run('Sending privately', async step => {
             await confirmSpend(step)
-            const dest = to.trim()
+            const dest = nameAddr ?? to.trim()
             if (toWallet) await engine.unshield(cur, n, step, getAddress(dest))
             else await engine.send(cur, n, dest, step)
-            api.log({ kind: 'send', title: toWallet ? `Sent ${cur} to ${dest.slice(0, 6)}…${dest.slice(-4)}` : 'Sent ' + cur, detail: fmt(n, cur === 'USDG' ? 2 : 4) + ' ' + cur, isPrivate: true })
+            api.log({ kind: 'send', title: toWallet ? `Sent ${cur} to ${dest.slice(0, 6)}…${dest.slice(-4)}` : isName ? `Sent ${cur} to ${to.trim().toLowerCase()}` : 'Sent ' + cur, detail: fmt(n, cur === 'USDG' ? 2 : 4) + ' ' + cur, isPrivate: true })
             setAmt(''); setTo(''); await api.refresh()
           }, toWallet ? 'Sent. Your wallet stayed out of it.' : 'Sent. Nobody saw.')}>{!validTo ? 'Enter an address' : n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : 'Send privately'}</button>}
           </>}
@@ -91,6 +105,7 @@ export function Send({ run }: { run: Run }) {
           <NeedAccount />
         </div> : <div className="recv">
           {qr && <img src={qr} alt="QR code of your Hagi address" width={220} height={220} />}
+          {myName && <div className="rcv-name">{myName}.hagi</div>}
           <span className="fl">Your Hagi address. It receives USDG and every stock</span>
           <div className="rcv-addr"><code>{s.hagiAddress.slice(0, 10)}…{s.hagiAddress.slice(-8)}</code></div>
           <div className="rcv-acts"><button className="btn" onClick={copy}>{copied ? 'Copied' : 'Copy address'}</button></div>
@@ -112,14 +127,14 @@ function parseBurst(text: string): BurstRow[] {
   return text.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
     const parts = line.split(/[\s,;\t]+/).filter(Boolean)
     const to = parts[0] ?? '', n = parseFloat((parts[1] ?? '').replace(/[^0-9.]/g, ''))
-    const kind = parseAddress(to) ? 'hagi' as const : isAddress(to) ? 'wallet' as const : undefined
+    const kind = parseAddress(to) || engine.looksLikeName(to) ? 'hagi' as const : isAddress(to) ? 'wallet' as const : undefined
     if (!kind) return { to, n: 0, ok: false, why: 'Bad address' }
     if (!(n > 0)) return { to, n: 0, ok: false, kind, why: 'No amount' }
     return { to, n, ok: true, kind }
   })
 }
 
-const ADDR = /^(hagi1[0-9a-f]{128}|0x[0-9a-f]{40})$/i
+const ADDR = /^(hagi1[0-9a-f]{128}|0x[0-9a-f]{40}|[a-z0-9-]{4,20}\.hagi)$/i
 const NUM = /^\$?\d[\d,]*(\.\d+)?$|^\$?\.\d+$/
 /** Lines up any messy list into one "address, amount" per line: commas, spaces, tabs, CSV rows,
  *  quotes and header rows all work, and addresses without an amount get an empty slot to fill. */

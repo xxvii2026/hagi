@@ -7,6 +7,7 @@ import { go } from '../nav'
 import { total, useStore } from '../store'
 import { Amount, AmountField, Card, Icon, Mark, NeedAccount, TokenIcon, TokenPicker, useCountUp, type Run } from '../ui'
 import { ActivityList } from './Activity'
+import { NameCard } from './Names'
 import { basis, costsOf, drift, held, loadPositions, updatePosition, valueOf, type Position } from '../positions'
 
 const MIX = ['#1b2140', '#566eba', '#8696cf', '#b0a7b8', '#3a4a8a', '#c9d1ee', '#7f86ad', '#d9def0']
@@ -106,6 +107,7 @@ export function Portfolio({ run }: { run: Run }) {
         </Card>
 
         {ready && s.loaded && <Checklist onClaim={faucet} onPrivate={() => (Object.keys(s.walletBal).length ? shieldAll() : openAdd('shield'))} />}
+        {ready && s.loaded && <NameCard run={run} />}
 
         <Card title="Your stocks and cash">
           {!ready ? (
