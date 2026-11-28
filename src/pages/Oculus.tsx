@@ -3,12 +3,15 @@ import { useEffect, useRef, useState } from 'react'
 import { Mark } from '../ui'
 import './oculus.css'
 
-const SCAN = 'https://robin.etherscan.io'
 const CA = '0x4643d8eaa4adc2ce361331b831ea6335742a29a1'
 type Feed = { start: number; supply: number; burned: number; circulating: number; burns: { tx: string; amount: number; at: string }[]; at: number }
 
+// Runes cut around the rim. Drawn as strokes so they look the same on every device.
+const RUNES = ['M2 18V0M2 4L8 0M2 9L8 5', 'M2 18V0L8 6V18', 'M3 18V0M3 5L8 9L3 13', 'M2 18V0L8 5M2 6L8 11', 'M2 18V0L8 4L2 9L8 18', 'M8 2L2 9L8 16', 'M2 0V18M8 0V18M2 6L8 11', 'M5 0V18M1 6L9 11',
+  'M5 18V0M5 8L1 2M5 8L9 2', 'M5 18V0M1 5L5 0L9 5', 'M1 18V0L9 8M9 18V0L1 8', 'M2 18L8 8L5 2L2 8L8 18', 'M1 2V16L9 2V16Z', 'M5 0V18M5 0L9 4M5 18L1 14', 'M5 0V18', 'M1 4L5 9L1 14M9 4L5 9L9 14']
+const RING = Array.from({ length: 44 }, (_, i) => (i * 7 + ((i * i) % 5) * 3) % RUNES.length)
+
 const full = (v: number) => Math.round(v).toLocaleString('en-US')
-const day = (s: string) => new Date(s).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
 function useCount(target: number) {
   const [v, setV] = useState(0)
@@ -20,27 +23,35 @@ function useCount(target: number) {
   return v
 }
 
-// Looking down the pit: fire runs along the walls and falls toward a dark centre.
+// A real fire seen through the window: flames climb from the bottom, and a few tongues lick out past the rim.
+// The canvas is 1.5x the window so the fire has room to leak. RI is the inner edge of the steel rim.
 const FRAG = `precision highp float;uniform vec2 R;uniform float T;
 float h(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
 float n(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
  return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),
             mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z);}
-float fbm(vec3 p){float a=.5,s=0.;for(int i=0;i<5;i++){s+=a*n(p);p=p*2.03+7.1;a*=.5;}return s;}
-void main(){vec2 p=(gl_FragCoord.xy*2.-R)/min(R.x,R.y);float r=length(p),a=atan(p.y,p.x);
- float d=.42/(r+.07);vec3 q=vec3(cos(a)*1.7,sin(a)*1.7,d*1.3-T*.42);
- float w=fbm(q*1.5+vec3(0,0,T*.12));float f=fbm(q*1.25+w*1.1);float g=fbm(q*3.1-w*.7);
- float wall=smoothstep(.2,.7,r);
- f=smoothstep(.34,.82,f*.72+g*.28);f=f*f*(.35+.95*wall)+.16*smoothstep(.72,1.,r)*w;
- vec3 c=mix(vec3(.02,.014,.06),vec3(.3,.02,.07),smoothstep(.0,.2,f));
- c=mix(c,vec3(.86,.16,.04),smoothstep(.16,.5,f));c=mix(c,vec3(1.,.5,.1),smoothstep(.46,.8,f));c=mix(c,vec3(1.,.84,.5),smoothstep(.85,1.15,f));
- c+=vec3(.04,.05,.17)*(1.-wall)*(.4+.6*w);c*=smoothstep(.0,.3,r)*.6+.4;
- c*=1.-smoothstep(.88,1.,r)*.8;gl_FragColor=vec4(c,1.);}`
+float fbm(vec3 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*n(p);p=p*2.07+5.3;a*=.5;}return s;}
+vec3 fire(float f){f=clamp(f,0.,1.);return vec3(min(1.,f*2.3),pow(f,2.1)*1.05,pow(f,7.)*.7);}
+void main(){vec2 p=(gl_FragCoord.xy*2.-R)/R*1.5;float r=length(p);const float RI=.948;
+ float wx=(fbm(vec3(p*1.7,T*.35))-.5);
+ vec2 q=vec2(p.x*2.3+wx*1.1,p.y*.95-T*1.55);
+ float a=fbm(vec3(q,T*.4));float d=fbm(vec3(q*2.7+3.,T*.75));
+ float hgt=(p.y+1.)*.5;
+ float fr=a*1.35+(d-.5)*.62-hgt*1.02+.3;
+ float f=smoothstep(.04,1.08,fr);
+ vec3 c=fire(f)+vec3(.06,.014,.0)*(1.-hgt);
+ c*=1.-smoothstep(.84,RI,r)*.35;
+ float in_=1.-smoothstep(RI-.006,RI+.006,r);
+ float up=smoothstep(-.5,.9,p.y/max(r,.001));
+ float lf=smoothstep(.1,.8,fr+.2-(r-RI)*mix(10.,3.2,up))*step(RI-.01,r);
+ vec3 lc=fire(lf*.9);
+ float al=max(in_,lf*smoothstep(1.48,1.15,r));
+ vec3 col=mix(lc,c,in_);gl_FragColor=vec4(col*al,al);}`
 
 function Pit() {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
-    const cv = ref.current!; const gl = cv.getContext('webgl', { antialias: false, alpha: false }); if (!gl) return
+    const cv = ref.current!; const gl = cv.getContext('webgl', { antialias: false, alpha: true, premultipliedAlpha: true }); if (!gl) return
     const sh = (t: number, src: string) => { const s = gl.createShader(t)!; gl.shaderSource(s, src); gl.compileShader(s); return s }
     const pr = gl.createProgram()!
     gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}')); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FRAG)); gl.linkProgram(pr)
@@ -54,7 +65,7 @@ function Pit() {
     const io = new IntersectionObserver(e => { seen = e[0].isIntersecting }); io.observe(cv)
     const draw = (t: number) => {
       raf = requestAnimationFrame(draw); if (!seen) return
-      const s = Math.round(cv.clientWidth * Math.min(1.25, devicePixelRatio || 1))
+      const s = Math.min(960, Math.round(cv.clientWidth * Math.min(1.25, devicePixelRatio || 1)))
       if (cv.width !== s) { cv.width = cv.height = s; gl.viewport(0, 0, s, s) }
       gl.uniform2f(uR, s, s); gl.uniform1f(uT, still ? 3 : t / 1000); gl.drawArrays(gl.TRIANGLES, 0, 3)
     }
@@ -96,13 +107,11 @@ export default function Oculus() {
   const [f, setF] = useState<Feed | null>(null)
   const [err, setErr] = useState(false)
   useEffect(() => {
-    document.title = 'The Oculus · Hagi'; document.body.style.background = '#05060f'; document.documentElement.style.overflowX = document.body.style.overflowX = 'hidden'
+    document.title = 'The Oculus · Hagi'; document.body.style.background = '#05060f'; document.documentElement.style.zoom = '1'; document.documentElement.style.overflow = document.body.style.overflow = 'hidden'
     const load = () => fetch('/api/hell').then(r => r.ok ? r.json() : Promise.reject()).then(j => { setF(j); setErr(false) }).catch(() => setErr(true))
     load(); const t = setInterval(load, 30000); return () => clearInterval(t)
   }, [])
   const burned = useCount(f?.burned ?? 0)
-  const pct = f ? (f.burned / f.start) * 100 : 0
-  const ring = f ? `${pct.toFixed(2)}% OF ALL $HAGI IS GONE  ✦  ${full(f.circulating)} REMAIN  ✦  WHAT FALLS IN NEVER COMES BACK  ✦  ` : 'WHAT FALLS IN NEVER COMES BACK  ✦  WHAT FALLS IN NEVER COMES BACK  ✦  '
 
   return (
     <div className="oc">
@@ -112,36 +121,19 @@ export default function Oculus() {
         <Embers />
         <div className="oc-rays" />
         <div className="oc-eye">
-          <svg className="oc-ring" viewBox="0 0 1000 1000" aria-hidden="true"><defs><path id="oc-c" d="M500 500 m-468 0 a468 468 0 1 1 936 0 a468 468 0 1 1 -936 0" /></defs>
-            <text><textPath href="#oc-c" textLength="2920" lengthAdjust="spacing">{ring}</textPath></text></svg>
-          <div className="oc-rim"><Pit />
+          <svg className="oc-ring" viewBox="0 0 1000 1000" aria-hidden="true">
+            {RING.map((k, i) => <path key={i} d={RUNES[k]} style={{ animationDelay: `${-((i * 37) % 90) / 10}s` }} transform={`rotate(${(i * 360) / RING.length} 500 500) translate(${500 - 5 * 2.9} ${34 - 9 * 2.9}) scale(2.9)`} />)}
+          </svg>
+          <div className="oc-rim" /><Pit />
             <div className="oc-coin"><i><Mark leaf="#e9ecf7" block="#8f9fdc" size={34} /></i></div>
             <div className="oc-mid">
               <div className="oc-num">{f ? full(burned) : err ? '–' : ''}</div>
               <div className="oc-unit">$HAGI burned</div>
             </div>
-          </div>
         </div>
         <h1>The Oculus</h1>
         <p>A window into HELL. Every $HAGI that falls in is gone for good.</p>
       </section>
-
-      <section className="oc-fuse">
-        <div className="oc-line"><i style={{ width: `${f ? Math.max(1.2, pct) : 0}%` }} /><b style={{ right: `${f ? Math.max(1.2, pct) : 0}%` }} /></div>
-        <div className="oc-ends"><div><b>1,000,000,000</b><span>at launch</span></div><div><b>{f ? pct.toFixed(2) + '%' : '–'}</b><span>burned away</span></div></div>
-      </section>
-
-      <section className="oc-log">
-        <h2>What fell in</h2>
-        {f?.burns.map((b, i) => (
-          <a className="oc-row" key={b.tx} href={`${SCAN}/tx/${b.tx}`} target="_blank" rel="noopener noreferrer" style={{ animationDelay: `${i * 80}ms` }}>
-            <b>{full(b.amount)}</b><span>{b.at ? day(b.at) : ''}</span><em>View tx ↗</em></a>
-        ))}
-        {f && f.burns.length === 0 && <p className="oc-empty">The fire is lit. Each burn will be listed here.</p>}
-        {err && <p className="oc-empty">Can’t reach Robinhood Chain right now. Trying again in a bit.</p>}
-      </section>
-
-      <footer>Read live from the $HAGI contract <a href={`${SCAN}/token/${CA}`} target="_blank" rel="noopener noreferrer">{CA.slice(0, 6)}…{CA.slice(-4)}</a></footer>
     </div>
   )
 }
