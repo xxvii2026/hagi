@@ -50,6 +50,7 @@ contract HagiUniV3Adapter is ISwapAdapter, Ownable {
     error OnlyVault();
     error NoRoute(address token);
     error SameToken();
+    error BadLengths();
 
     constructor(ISwapRouter02 router_, address usdg_, address vault_, address owner_) Ownable(owner_) {
         router = router_;
@@ -60,6 +61,14 @@ contract HagiUniV3Adapter is ISwapAdapter, Ownable {
     function setFee(address token, uint24 fee) external onlyOwner {
         feeOf[token] = fee;
         emit FeeSet(token, fee);
+    }
+
+    function setFees(address[] calldata tokens, uint24[] calldata fees) external onlyOwner {
+        if (tokens.length != fees.length) revert BadLengths();
+        for (uint256 i; i < tokens.length; ++i) {
+            feeOf[tokens[i]] = fees[i];
+            emit FeeSet(tokens[i], fees[i]);
+        }
     }
 
     function swap(address tokenIn, address tokenOut, uint256 amountIn, uint256 minOut) external returns (uint256 out) {

@@ -269,6 +269,15 @@ contract HagiVault is Ownable, ReentrancyGuard {
         emit TokenAllowed(token, allowed);
     }
 
+    /// @notice Allows many tokens at once, for listing every stock in a few transactions.
+    function allowTokens(address[] calldata tokens) external onlyOwner {
+        for (uint256 i; i < tokens.length; ++i) {
+            allowedToken[tokens[i]] = true;
+            everAllowed[tokens[i]] = true;
+            emit TokenAllowed(tokens[i], true);
+        }
+    }
+
     function setPaused(bool paused_) external onlyOwner {
         paused = paused_;
         emit PausedSet(paused_);

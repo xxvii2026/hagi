@@ -155,6 +155,20 @@ contract HagiVaultGuardsTest is Test {
         _shield(alice, address(usdg), 400e6);
     }
 
+    function test_allow_many_tokens_at_once() public {
+        address[] memory ts = new address[](3);
+        for (uint160 i; i < 3; ++i) ts[i] = address(0x1000 + i);
+        vm.prank(alice);
+        vm.expectRevert();
+        vault.allowTokens(ts);
+        vm.prank(owner);
+        vault.allowTokens(ts);
+        for (uint256 i; i < 3; ++i) {
+            assertTrue(vault.allowedToken(ts[i]));
+            assertTrue(vault.everAllowed(ts[i]));
+        }
+    }
+
     // ---------- pause ----------
 
     function test_pause_blocks_shield_and_swap_but_never_withdrawals() public {
