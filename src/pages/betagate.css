@@ -1,12 +1,12 @@
-.bg8{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse 70% 60% at 50% 42%,#232b5e 0%,#0e1231 55%,#070818 100%);color:#fff;font-family:"Inter Variable",Inter,system-ui,sans-serif;overflow:hidden;padding:24px}
-.bg8-glow{position:absolute;left:50%;top:44%;width:min(1100px,150vw);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(143,159,236,.42),rgba(143,159,236,0) 62%);animation:bg8-breathe 7s ease-in-out infinite;pointer-events:none}
-@keyframes bg8-breathe{0%,100%{opacity:.75;scale:1}50%{opacity:1;scale:1.06}}
+.bg8{--blue:#566eba;position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(1200px 620px at 18% -8%,#e4e9fb 0,rgba(228,233,251,0) 70%),radial-gradient(900px 560px at 100% 0,#efeaf3 0,rgba(239,234,243,0) 70%),#f6f7fc;color:var(--blue);font-family:'Inter Display',"Inter Variable",Inter,system-ui,sans-serif;font-variation-settings:"opsz" 32;overflow:hidden;padding:24px}
+.bg8-glow{position:absolute;left:50%;top:46%;width:min(1100px,150vw);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(143,159,236,.3),rgba(143,159,236,0) 62%);animation:bg8-breathe 7s ease-in-out infinite;pointer-events:none}
+@keyframes bg8-breathe{0%,100%{opacity:.7;scale:1}50%{opacity:1;scale:1.06}}
 .bg8-in{position:relative;text-align:center;max-width:100%}
-.bg8-lg{display:inline-flex;align-items:center;gap:12px;font-weight:600;font-size:28px;letter-spacing:-.03em;margin-bottom:clamp(28px,6vh,60px)}
-.bg8 h1{font:400 clamp(64px,15vw,190px)/.95 'Inter Display',"Inter Variable",Inter,sans-serif;font-variation-settings:"opsz" 32;letter-spacing:-.05em;margin:0;white-space:nowrap}
-.bg8-sub{font:400 clamp(18px,2.4vw,28px)/1.3 'Inter Display',"Inter Variable",Inter,sans-serif;color:#c9cfe8;margin:clamp(18px,3vh,30px) 0 0}
-.bg8-wl{font-size:14.5px;color:#8a92b8;margin:clamp(40px,9vh,90px) 0 0;min-height:22px}
-.bg8-wl button{color:#b4c2ff;font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer;background:none;border:0;padding:0}
-.bg8-wl button:hover{color:#fff}
-.bg8-err{font-size:14px;color:#ffb27a;margin:12px auto 0;max-width:420px;line-height:1.45}
+.bg8-lg{display:inline-flex;align-items:center;gap:12px;font-weight:500;font-size:28px;letter-spacing:-.03em;margin-bottom:clamp(28px,6vh,60px)}
+.bg8 h1{font-weight:400;font-size:clamp(64px,15vw,190px);line-height:.95;letter-spacing:-.05em;margin:0;white-space:nowrap}
+.bg8-wl{font-weight:400;font-size:clamp(16px,1.5vw,19px);letter-spacing:-.01em;color:var(--blue);opacity:.8;margin:clamp(36px,8vh,80px) 0 0;min-height:24px}
+/* The link is part of the sentence: same font, size, weight and colour. */
+.bg8-wl button{all:unset;cursor:pointer;color:inherit;font:inherit;letter-spacing:inherit}
+.bg8-wl button:hover,.bg8-wl button:focus-visible{text-decoration:underline;text-underline-offset:4px}
+.bg8-err{font-size:15px;color:#b4552a;margin:12px auto 0;max-width:420px;line-height:1.45}
 @media (prefers-reduced-motion:reduce){.bg8-glow{animation:none}}
