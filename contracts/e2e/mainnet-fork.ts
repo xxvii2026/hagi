@@ -17,7 +17,7 @@ const K1 = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d'
 const K2 = '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a'
 const ART = { wasm: 'public/zk/main/transaction.wasm', zkey: 'public/zk/main/transaction.zkey' }
 const USDG = '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168' as Hex
-const QUOTER = '0x33e885eD0Ec9bf04EcfB19341582AaDCB4C8A9e7' as Hex
+const QUOTER = '0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7' as Hex
 const WHALE = '0x52e65B17fB6E5BA00Ed806f37Afcd2DaA50271Ca' // a Uniswap pool that holds plenty of USDG
 const tokens: { symbol: string; address: Hex; fee: number }[] = JSON.parse(readFileSync('contracts/deployments/mainnet-tokens.json', 'utf8'))
 const T = (s: string) => tokens.find(t => t.symbol === s)!
