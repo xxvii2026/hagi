@@ -1,0 +1,73 @@
+name: Deploy mainnet beta
+# Deploys the mainnet beta vault, verifier and Uniswap adapter to Robinhood Chain mainnet. REAL funds.
+# Runs only when contracts/deployments/request-mainnet changes on the contracts branch.
+on:
+  push:
+    branches: [contracts]
+    paths: ['contracts/deployments/request-mainnet']
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    env:
+      RPC: https://rpc.mainnet.chain.robinhood.com
+      EXPECT_DEPLOYER: '0x595D766DBD9c72DFE66D55104e8Bef60F1983799'
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.MAINNET_DEPLOYER_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci
+        working-directory: contracts
+      - name: Unit tests
+        run: forge test
+        working-directory: contracts
+      - name: Checks before spending anything
+        working-directory: contracts
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYER_PRIVATE_KEY" || { echo "MAINNET_DEPLOYER_PRIVATE_KEY is not set"; exit 1; }
+          export DEPLOYER_PRIVATE_KEY="0x${DEPLOYER_PRIVATE_KEY#0x}"
+          WHO=$(cast wallet address --private-key "$DEPLOYER_PRIVATE_KEY")
+          [ "${WHO,,}" = "${EXPECT_DEPLOYER,,}" ] || { echo "The key belongs to $WHO, not the expected deployer $EXPECT_DEPLOYER"; exit 1; }
+          [ "$(cast chain-id --rpc-url $RPC)" = "4663" ] || { echo "Not Robinhood Chain mainnet"; exit 1; }
+          BAL=$(cast balance $WHO --rpc-url $RPC); PRICE=$(cast gas-price --rpc-url $RPC)
+          NEED=$(( PRICE * 9000000 * 2 ))
+          echo "deployer $WHO has $(cast from-wei $BAL) ETH, gas price $PRICE wei, the deploy needs about $(cast from-wei $NEED) ETH with a 2x margin"
+          [ "$BAL" -gt "$NEED" ] || { echo "Not enough ETH to deploy safely"; exit 1; }
+          test ! -f deployments/mainnet.json || { echo "deployments/mainnet.json already exists. Delete it first if you really mean to deploy again."; exit 1; }
+          # A dry run against the real chain: nothing is sent.
+          forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url "$RPC" | grep -E "DEPLOYED|LISTED"
+      - name: Deploy
+        working-directory: contracts
+        run: |
+          set -euo pipefail
+          export DEPLOYER_PRIVATE_KEY="0x${DEPLOYER_PRIVATE_KEY#0x}"
+          forge script script/DeployMainnet.s.sol:DeployMainnet --rpc-url "$RPC" --broadcast --slow --gas-estimate-multiplier 150 | tee deploy.log | grep -E "DEPLOYED|LISTED|ONCHAIN|Paid|Error" || true
+          get() { grep -oE "DEPLOYED $1 0x[0-9a-fA-F]{40}" deploy.log | tail -1 | awk '{print $3}'; }
+          VAULT=$(get vault); ADAPTER=$(get adapter); VERIFIER=$(get verifier)
+          test -n "$VAULT" && test -n "$ADAPTER" && test -n "$VERIFIER"
+          # The block the vault was created in, so the app knows where to start reading.
+          BLOCK=$(jq -r '[.receipts[] | select(.contractAddress != null) | .blockNumber] | map(ltrimstr("0x")) | .[0]' broadcast/DeployMainnet.s.sol/4663/run-latest.json)
+          BLOCK=$((16#$BLOCK))
+          printf '{\n  "chainId": 4663,\n  "HagiVault": "%s",\n  "HagiUniV3Adapter": "%s",\n  "Groth16VerifierMainnet": "%s",\n  "block": %s\n}\n' "$VAULT" "$ADAPTER" "$VERIFIER" "$BLOCK" > deployments/mainnet.json
+          cat deployments/mainnet.json
+      - name: Check what was deployed
+        working-directory: contracts
+        run: |
+          V=$(jq -r .HagiVault deployments/mainnet.json); A=$(jq -r .HagiUniV3Adapter deployments/mainnet.json)
+          echo "owner: $(cast call $V 'owner()(address)' --rpc-url $RPC)"
+          echo "adapter set: $(cast call $V 'adapter()(address)' --rpc-url $RPC)"
+          echo "USDG limit (per address, total): $(cast call $V 'shieldLimit(address)(uint128,uint128)' 0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168 --rpc-url $RPC | tr '\n' ' ')"
+          echo "TSLA allowed: $(cast call $V 'allowedToken(address)(bool)' 0x322F0929c4625eD5bAd873c95208D54E1c003b2d --rpc-url $RPC)  TSLA fee tier: $(cast call $A 'feeOf(address)(uint24)' 0x322F0929c4625eD5bAd873c95208D54E1c003b2d --rpc-url $RPC)"
+          echo "deployer ETH left: $(cast balance $EXPECT_DEPLOYER --ether --rpc-url $RPC)"
+      - name: Record the addresses
+        run: |
+          git config user.name "hagi-deploy"
+          git config user.email "hagi-deploy@users.noreply.github.com"
+          git add contracts/deployments/mainnet.json
+          git commit -m "Record the mainnet beta deployment"
+          git push

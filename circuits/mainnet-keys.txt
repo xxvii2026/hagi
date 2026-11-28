@@ -1,0 +1,7 @@
+Hagi mainnet beta proving keys
+made by GitHub Actions run 46166469829 on 2026-11-28T16:42:13Z
+single-operator setup on top of the public perpetual powers-of-tau ceremony (ppot_0080_15)
+25f9d2729c4a55a3aaabe404ee94cfeedaac5909b2e90b98c1d6b437ce7ea01b  VerifierMainnet.sol
+ad2e338255ab6d15562f3d35fe29928be0aa6d77e5993f097aebdcbd89d90678  transaction.wasm
+809f68c8d4633d960dbcd1d776837e23bd2f4f30ccf31a11f3f91634367c027d  transaction.zkey
+e9902a1ba2ba84bc585a9067076ad487198856680930a637e6b9588a50645586  verification_key.json

@@ -1,0 +1,21 @@
+name: Mainnet fork tests
+# Runs the contracts against a copy of Robinhood Chain mainnet. No keys, no transactions.
+on:
+  workflow_dispatch:
+  push:
+    branches: [mainnet-beta]
+    paths: ['contracts/**', '.github/workflows/test-mainnet-fork.yml']
+jobs:
+  fork:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci
+        working-directory: contracts
+      - run: forge test -vv
+        working-directory: contracts
+        env:
+          MAINNET_RPC: https://rpc.mainnet.chain.robinhood.com

@@ -1,0 +1,24 @@
+name: Mainnet fork end-to-end
+# Deploys the beta on a copy of mainnet and runs real private transactions through it. No keys, no real transactions.
+on:
+  workflow_dispatch:
+  push:
+    branches: [mainnet-beta]
+    paths: ['contracts/e2e/mainnet-fork.ts', 'contracts/src/**', 'contracts/script/DeployMainnet.s.sol', 'contracts/deployments/mainnet-tokens.json', 'public/zk/main/**', '.github/workflows/e2e-mainnet-fork.yml']
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci
+      - run: npm ci
+        working-directory: contracts
+      - run: forge build
+        working-directory: contracts
+      - run: npx tsx contracts/e2e/mainnet-fork.ts
+        env:
+          MAINNET_RPC: https://rpc.mainnet.chain.robinhood.com

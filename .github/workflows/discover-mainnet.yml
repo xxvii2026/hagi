@@ -1,0 +1,15 @@
+name: Discover mainnet stock tokens
+# Read-only. Lists every stock token with a usable Uniswap v3 pool against USDG.
+on:
+  workflow_dispatch:
+  push:
+    branches: [mainnet-beta]
+    paths: ['contracts/script/discover.mjs', '.github/workflows/discover-mainnet.yml']
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: mkdir /tmp/d && cd /tmp/d && npm init -y >/dev/null && npm i viem@2 >/dev/null && cp $GITHUB_WORKSPACE/contracts/script/discover.mjs . && node discover.mjs
