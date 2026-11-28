@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom/client'
 import '@fontsource-variable/inter/opsz.css'
 import './styles.css'
 import App from './App'
+import { IS_MAINNET } from './chain'
+import { useBetaGate } from './pages/BetaGate'
 import { Store } from './store'
 import { listenForInstall } from './install'
 
@@ -18,12 +20,19 @@ const isAdmin = () => location.hash.split('?')[0] === '#/admin'
 const Hell = lazy(() => import('./pages/Oculus'))
 const isHell = () => /^(oculus|hellwindow)\./.test(location.hostname) || ['#/oculus', '#/hell'].includes(location.hash.split('?')[0])
 
+// The mainnet beta is invite-only for now: everyone sees "coming soon", whitelisted wallets sign in past it.
+const BetaGate = lazy(() => import('./pages/BetaGate'))
+function Gated() {
+  const { passed, pass } = useBetaGate()
+  return passed ? <App /> : <Suspense fallback={null}><BetaGate onPass={pass} /></Suspense>
+}
+
 function Root() {
   const [admin, setAdmin] = useState(isAdmin)
   const [hell, setHell] = useState(isHell)
   useEffect(() => { const f = () => { setAdmin(isAdmin()); setHell(isHell()) }; addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
   if (hell) return <Suspense fallback={null}><Hell /></Suspense>
-  return admin ? <Suspense fallback={null}><Admin /></Suspense> : <Store><App /></Store>
+  return admin ? <Suspense fallback={null}><Admin /></Suspense> : <Store>{IS_MAINNET ? <Gated /> : <App />}</Store>
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><Root /></React.StrictMode>)

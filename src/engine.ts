@@ -45,6 +45,14 @@ const saveSpent = () => { try { localStorage.setItem(spentSlot(), JSON.stringify
 export const takeReceived = () => { const r = received; received = []; return r }
 const reserves: Record<string, [bigint, bigint]> = {}
 
+/** The beta pass a whitelisted wallet gets at sign-in. The mainnet relayer asks for it while the beta is invite-only. */
+const PASS_KEY = 'hagi-beta-pass'
+export const betaPass = (): string | null => { try { const p = localStorage.getItem(PASS_KEY); return p && Number(p.split('.')[1]) > Date.now() ? p : null } catch { return null } }
+export const saveBetaPass = (p: string | null) => { try { p ? localStorage.setItem(PASS_KEY, p) : localStorage.removeItem(PASS_KEY) } catch { /* asked again next visit */ } }
+const passHeader = (): Record<string, string> => { const p = CFG.mainnet ? betaPass() : null; return p ? { 'x-hagi-pass': p } : {} }
+/** Signs a plain message with the connected wallet. Used for the beta sign-in, never for anything on chain. */
+export const signText = (message: string) => wal().signMessage({ account: acct(), message })
+
 export const session = { get account() { return account }, get address() { return keys ? toAddress(keys) : null } }
 
 /** Makes sure the wallet is on Robinhood Chain Testnet before it is asked to send anything. */
@@ -415,7 +423,7 @@ async function privately(req: Omit<TxRequest, 'keys' | 'tree'>, step: Step, spen
   step('Sending through the relayer')
   let hash: Hex | undefined
   let res: Response | undefined
-  try { res = await fetch(CFG.relayerUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ proof: tx.proof, ext: tx.ext }, jsonBig) }) } catch { /* relayer unreachable */ }
+  try { res = await fetch(CFG.relayerUrl, { method: 'POST', headers: { 'content-type': 'application/json', ...passHeader() }, body: JSON.stringify({ proof: tx.proof, ext: tx.ext }, jsonBig) }) } catch { /* relayer unreachable */ }
   const body: { hash?: Hex; error?: string } = res ? await res.json().catch(() => ({})) : {}
   if (res?.ok && body.hash) hash = body.hash
   else if (res?.status === 400) throw new Error('The vault rejected this transaction: ' + (body.error ?? 'unknown reason'))
@@ -457,7 +465,7 @@ const pay = (f: Fee) => (f.fee > 0n ? { relayer: f.relayer, fee: f.fee } : {})
 async function relayFee(sym: string, legs = 0): Promise<Fee> {
   if (!CFG.mainnet) return { fee: 0n, relayer: '0x0000000000000000000000000000000000000000' }
   let r: Response | undefined
-  try { r = await fetch(`${CFG.relayerUrl}&fee=${token(sym).address}&legs=${legs}`) } catch { /* reported below */ }
+  try { r = await fetch(`${CFG.relayerUrl}&fee=${token(sym).address}&legs=${legs}`, { headers: passHeader() }) } catch { /* reported below */ }
   const j = r?.ok ? await r.json().catch(() => null) : null
   if (!j?.fee || !j.relayer) throw new Error('Could not get the network fee right now. Try again in a moment.')
   return { fee: BigInt(j.fee), relayer: j.relayer }
