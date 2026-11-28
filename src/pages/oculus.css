@@ -5,9 +5,6 @@
 .oc-buy{background:#fff;color:#1b2140!important;font-weight:600;font-size:15px;padding:11px 20px;border-radius:999px}
 .oc-hero{position:relative;text-align:center;flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:4vh}
 .oc-embers{position:absolute;left:50%;top:-90px;width:100vw;height:calc(100% + 90px);transform:translateX(-50%);pointer-events:none;z-index:3}
-.oc-rays{position:absolute;left:50%;top:0;width:min(1500px,190vw);aspect-ratio:1;transform:translate(-50%,-22%);pointer-events:none;
-  background:conic-gradient(from 0deg,rgba(255,120,50,0) 0 4%,rgba(255,130,60,.13) 6%,rgba(255,120,50,0) 9% 17%,rgba(255,150,80,.1) 20%,rgba(255,120,50,0) 24% 33%,rgba(255,120,50,.14) 36%,rgba(255,120,50,0) 40% 52%,rgba(255,150,80,.1) 55%,rgba(255,120,50,0) 59% 68%,rgba(255,120,50,.13) 71%,rgba(255,120,50,0) 75% 86%,rgba(255,150,80,.1) 89%,rgba(255,120,50,0) 93%);
-  -webkit-mask:radial-gradient(circle,#000 18%,transparent 62%);mask:radial-gradient(circle,#000 18%,transparent 62%);animation:oc-spin 90s linear infinite;filter:blur(6px)}
 .oc-eye{position:relative;width:min(52vh,78vw,600px);aspect-ratio:1;margin:0 auto;z-index:2}
 .oc-eye::before{content:"";position:absolute;inset:-28%;border-radius:50%;background:radial-gradient(circle,rgba(255,110,40,.34),rgba(255,90,40,.08) 45%,transparent 66%);animation:oc-breathe 5.5s ease-in-out infinite}
 .oc-ring{position:absolute;inset:-13%;width:126%;height:126%;animation:oc-spin 120s linear infinite}

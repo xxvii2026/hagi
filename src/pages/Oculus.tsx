@@ -119,7 +119,6 @@ export default function Oculus() {
 
       <section className="oc-hero">
         <Embers />
-        <div className="oc-rays" />
         <div className="oc-eye">
           <svg className="oc-ring" viewBox="0 0 1000 1000" aria-hidden="true">
             {RING.map((k, i) => <path key={i} d={RUNES[k]} style={{ animationDelay: `${-((i * 37) % 90) / 10}s` }} transform={`rotate(${(i * 360) / RING.length} 500 500) translate(${500 - 5 * 2.9} ${34 - 9 * 2.9}) scale(2.9)`} />)}
