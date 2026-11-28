@@ -4,7 +4,7 @@ import { Mark } from '../ui'
 import BUYBACKS from '../buybacks.json'
 import './hell.css'
 
-const SCAN = 'https://robinhoodchain.blockscout.com'
+const SCAN = 'https://robin.etherscan.io'
 const CA = '0x4643d8eaa4adc2ce361331b831ea6335742a29a1'
 type Feed = { start: number; supply: number; burned: number; circulating: number; burns: { tx: string; amount: number; at: string }[]; at: number }
 
