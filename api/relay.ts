@@ -38,7 +38,7 @@ function parse(body: any) {
 // ---------- mainnet: network fee and gas top-up ----------
 const USDG = '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168' as Hex
 const WETH = '0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73' as Hex
-const QUOTER = '0x33e885eD0Ec9bf04EcfB19341582AaDCB4C8A9e7' as Hex
+const QUOTER = '0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7' as Hex
 const ROUTER = '0xCaf681a66D020601342297493863E78C959E5cb2' as Hex
 const uni = parseAbi([
   'struct QuoteParams { address tokenIn; address tokenOut; uint256 amountIn; uint24 fee; uint160 sqrtPriceLimitX96; }',

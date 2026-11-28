@@ -61,7 +61,7 @@ const MAINNET: Config = {
   deployBlock: 0,
   mainnet: true,
   contracts: { usdg: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168', swap: ZERO, basketRegistry: ZERO, vault: ZERO },
-  uni: { quoter: '0x33e885eD0Ec9bf04EcfB19341582AaDCB4C8A9e7', fees: Object.fromEntries(LIST.map(t => [t.symbol, t.fee])), pools: Object.fromEntries(LIST.map(t => [t.symbol, t.pool as Hex])) },
+  uni: { quoter: '0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7', fees: Object.fromEntries(LIST.map(t => [t.symbol, t.fee])), pools: Object.fromEntries(LIST.map(t => [t.symbol, t.pool as Hex])) },
   limits: { perAddress: 100, total: 10_000 },
   // Every stock token with a deep enough Uniswap pool against USDG. The list is built by contracts/script/discover.mjs.
   tokens: Object.fromEntries(LIST.map(t => [t.symbol, t.address as Hex])),
