@@ -1,0 +1,410 @@
+[
+ {
+  "symbol": "ANT",
+  "name": "Anthropic, PBC Class A Common Stock \u2022 Robinhood Token",
+  "address": "0xbbB6c29bCc3a1028A2B54310DF73F4F7A3bcB373",
+  "fee": 500,
+  "pool": "0x75aE79FD767A7cC410AB4EED13f8d3498e878d6A",
+  "usdg": 840614
+ },
+ {
+  "symbol": "USO",
+  "name": "United States Oil Fund \u2022 Robinhood Token",
+  "address": "0xa30FA36Db767ad9eD3f7a60fC79526fB4d56D344",
+  "fee": 3000,
+  "pool": "0x02175608F1b5E6b5ed221cCFdC7Be197D111D915",
+  "usdg": 587175
+ },
+ {
+  "symbol": "TSLA",
+  "name": "Tesla \u2022 Robinhood Token",
+  "address": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d",
+  "fee": 3000,
+  "pool": "0xf4ACdAEEB7022862A763C9B1B885e11191c889E3",
+  "usdg": 379936
+ },
+ {
+  "symbol": "SPCX",
+  "name": "Space Exploration Technologies Corp. Class A Common Stock \u2022 Robinhood Token",
+  "address": "0x4a0E65A3EcceC6dBe60AE065F2e7bb85Fae35eEa",
+  "fee": 500,
+  "pool": "0xc61284332117c3FB23A2A56cceFFD07F7aF60029",
+  "usdg": 324945
+ },
+ {
+  "symbol": "GME",
+  "name": "GameStop \u2022 Robinhood Token",
+  "address": "0x1b0E319c6A659F002271B69dB8A7df2F911c153E",
+  "fee": 10000,
+  "pool": "0xE9713f453aDB9245B19559790c96F470a18F2fDF",
+  "usdg": 251048
+ },
+ {
+  "symbol": "TTWO",
+  "name": "Take-Two Interactive Software \u2022 Robinhood Token",
+  "address": "0x5e81213613b6B86EaB4c6c50d718d34359459786",
+  "fee": 3000,
+  "pool": "0xD9Ab4b7fAe6DC2f7020134Ec744A8F53Ef3E5E24",
+  "usdg": 248491
+ },
+ {
+  "symbol": "GLD",
+  "name": "SPDR Gold Trust \u2022 Robinhood Token",
+  "address": "0xC9a981FEE1F9DEc688bb123ccDeCc63D0deBFC4e",
+  "fee": 3000,
+  "pool": "0x7A6A053eCCf1446A2633E05aA6D40D09381997ec",
+  "usdg": 246743
+ },
+ {
+  "symbol": "AMZN",
+  "name": "Amazon \u2022 Robinhood Token",
+  "address": "0x12f190a9F9d7D37a250758b26824B97CE941bF54",
+  "fee": 3000,
+  "pool": "0x8AC92DA74AB5F3b1d024Dc1943Ad7e15Dc4179Ef",
+  "usdg": 238556
+ },
+ {
+  "symbol": "NVDA",
+  "name": "NVIDIA \u2022 Robinhood Token",
+  "address": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
+  "fee": 500,
+  "pool": "0xd4EB21209C4D6093f80B5b84f5C45cc093EA14a3",
+  "usdg": 219812
+ },
+ {
+  "symbol": "COIN",
+  "name": "Coinbase \u2022 Robinhood Token",
+  "address": "0x6330D8C3178a418788dF01a47479c0ce7CCF450b",
+  "fee": 500,
+  "pool": "0x3a6eC0aa6C702323414d449B5F60f4B742A82dED",
+  "usdg": 215604
+ },
+ {
+  "symbol": "CRCL",
+  "name": "Circle Internet Group \u2022 Robinhood Token",
+  "address": "0xdF0992E440dD0be65BD8439b609d6D4366bf1CB5",
+  "fee": 3000,
+  "pool": "0x654E4143e82a5824445Ade0824351C2A9ACD95a8",
+  "usdg": 194969
+ },
+ {
+  "symbol": "COST",
+  "name": "Costco \u2022 Robinhood Token",
+  "address": "0x4EA005168D7F09a7A0Ba9D1DEf21a479950E44C2",
+  "fee": 3000,
+  "pool": "0x0a2121A50A09eD0796ae81F9c53fF9398355a398",
+  "usdg": 146316
+ },
+ {
+  "symbol": "SGOV",
+  "name": "iShares 0-3 Month Treasury Bond \u2022 Robinhood Token",
+  "address": "0x92FD66527192E3e61d4DDd13322Aa222DE86F9B5",
+  "fee": 3000,
+  "pool": "0xfAb520051f96F4D2a32c22B6a3dD7fFfdf231bFe",
+  "usdg": 127583
+ },
+ {
+  "symbol": "QQQ",
+  "name": "Invesco QQQ \u2022 Robinhood Token",
+  "address": "0xD5f3879160bc7c32ebb4dC785F8a4F505888de68",
+  "fee": 500,
+  "pool": "0xD60A5d14dB690B7Afad71F76B108071D7175597d",
+  "usdg": 109251
+ },
+ {
+  "symbol": "AAPL",
+  "name": "Apple \u2022 Robinhood Token",
+  "address": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9",
+  "fee": 500,
+  "pool": "0xAae0d815EE56e4092a5E5C2911E676Fea50B2d6D",
+  "usdg": 96957
+ },
+ {
+  "symbol": "MU",
+  "name": "Micron Technology \u2022 Robinhood Token",
+  "address": "0xfF080c8ce2E5feadaCa0Da81314Ae59D232d4afD",
+  "fee": 3000,
+  "pool": "0xd057B1Bc54917855BBee58eAd58647f47caB35E5",
+  "usdg": 92339
+ },
+ {
+  "symbol": "LLY",
+  "name": "Eli Lilly \u2022 Robinhood Token",
+  "address": "0x8005d266423c7ea827372c9c864491e5786600ea",
+  "fee": 10000,
+  "pool": "0xF4274130137eeE20bAD928B593d992716516CEB9",
+  "usdg": 82722
+ },
+ {
+  "symbol": "AVGO",
+  "name": "Broadcom \u2022 Robinhood Token",
+  "address": "0x156E175DD063a8cE274C50654eF40e0032b3fbcF",
+  "fee": 3000,
+  "pool": "0x5B7C404f1d7d77F9f3885aB13d7764F8a173028c",
+  "usdg": 67539
+ },
+ {
+  "symbol": "MSFT",
+  "name": "Microsoft \u2022 Robinhood Token",
+  "address": "0xe93237C50D904957Cf27E7B1133b510C669c2e74",
+  "fee": 3000,
+  "pool": "0xeb60bCD1D920ad6E102690CCFC6fB488899E1510",
+  "usdg": 67049
+ },
+ {
+  "symbol": "META",
+  "name": "Meta Platforms \u2022 Robinhood Token",
+  "address": "0xc0D6457C16Cc70d6790Dd43521C899C87ce02f35",
+  "fee": 3000,
+  "pool": "0x107a7Cb40d8665360ba10E59471Af06150A50922",
+  "usdg": 64268
+ },
+ {
+  "symbol": "RDDT",
+  "name": "Reddit \u2022 Robinhood Token",
+  "address": "0x05b37Fb53A299a1b874A619e1c4C404D52C36F4C",
+  "fee": 10000,
+  "pool": "0xa8744E76aED23B05F0126335E7BD38f7935D19fe",
+  "usdg": 61706
+ },
+ {
+  "symbol": "INTC",
+  "name": "Intel \u2022 Robinhood Token",
+  "address": "0xc72b96e0E48ecd4DC75E1e45396e26300BC39681",
+  "fee": 3000,
+  "pool": "0x2e5a92f5013a64661A49312111be2e8aBd33F56a",
+  "usdg": 61420
+ },
+ {
+  "symbol": "MRNA",
+  "name": "Moderna \u2022 Robinhood Token",
+  "address": "0x43B07D15cE533bEc5476d70C22a78a1B2B662155",
+  "fee": 3000,
+  "pool": "0xB40196272A6d2EB5edF6d93bc4DC39856AD95E0E",
+  "usdg": 60222
+ },
+ {
+  "symbol": "SLV",
+  "name": "iShares Silver Trust \u2022 Robinhood Token",
+  "address": "0x411eFb0E7f985935DAec3D4C3ebaEa0d0AD7D89f",
+  "fee": 3000,
+  "pool": "0x8cB787e6c315D464775289BaD00FDD67d53Ecb3D",
+  "usdg": 59641
+ },
+ {
+  "symbol": "RBLX",
+  "name": "Roblox \u2022 Robinhood Token",
+  "address": "0xF0C4BF4C582cb3836e98394b1d4e7B7281101bE8",
+  "fee": 10000,
+  "pool": "0x2ef5945cd5664876b6481FdacFaA2942995a4DA8",
+  "usdg": 56430
+ },
+ {
+  "symbol": "GOOGL",
+  "name": "Alphabet Class A \u2022 Robinhood Token",
+  "address": "0x2e0847E8910a9732eB3fb1bb4b70a580ADAD4FE3",
+  "fee": 500,
+  "pool": "0x34D0dC122CF9A8Eb296fC5e0D3A233625D7d19b7",
+  "usdg": 55829
+ },
+ {
+  "symbol": "AMD",
+  "name": "AMD \u2022 Robinhood Token",
+  "address": "0x86923f96303D656E4aa86D9d42D1e57ad2023fdC",
+  "fee": 3000,
+  "pool": "0x48D284A2A4d3DC1b3Da08231Fe44317e7e7Aa51f",
+  "usdg": 55466
+ },
+ {
+  "symbol": "DELL",
+  "name": "Dell \u2022 Robinhood Token",
+  "address": "0x941AE714EC6D8130c7B75d67160Ca08f1e7d11Dd",
+  "fee": 10000,
+  "pool": "0xc30c89cB7815A1488b7998D15eEC73961707Fc5a",
+  "usdg": 53604
+ },
+ {
+  "symbol": "AMC",
+  "name": "AMC Entertainment \u2022 Robinhood Token",
+  "address": "0x05a3d1Cd21d0C88145E82600E62e7E496e0F222B",
+  "fee": 3000,
+  "pool": "0xaA34feA710a1A737840329051D81D3B0B7C564d5",
+  "usdg": 53564
+ },
+ {
+  "symbol": "MSTR",
+  "name": "Strategy Inc. \u2022 Robinhood Token",
+  "address": "0xec262a75e413fAfD0dF80480274532C79D42da09",
+  "fee": 10000,
+  "pool": "0x17578C0e0D15da44f31677263114F71aE76653EA",
+  "usdg": 46229
+ },
+ {
+  "symbol": "PLTR",
+  "name": "Palantir Technologies \u2022 Robinhood Token",
+  "address": "0x894E1EC2D74FFE5AEF8Dc8A9e84686acCB964F2A",
+  "fee": 3000,
+  "pool": "0x851680416A4f4E1c463d45171d61ACDdBc8554c0",
+  "usdg": 46075
+ },
+ {
+  "symbol": "BE",
+  "name": "Bloom Energy \u2022 Robinhood Token",
+  "address": "0x822CC93fFD030293E9842c30BBD678F530701867",
+  "fee": 3000,
+  "pool": "0x1baD145C8F06444E0dF81c28257cd20231Bd1f16",
+  "usdg": 40433
+ },
+ {
+  "symbol": "MCD",
+  "name": "McDonald's \u2022 Robinhood Token",
+  "address": "0x2fdaa4604F10F4AE7f66fa48A174bCd25b1ece20",
+  "fee": 3000,
+  "pool": "0x2e97F9Ec9C6BAC972aB5BC1b8a1A7973B701dd97",
+  "usdg": 30598
+ },
+ {
+  "symbol": "NU",
+  "name": "Nu \u2022 Robinhood Token",
+  "address": "0x408c14038a04f7bD235329E26d2bf569ee20e250",
+  "fee": 10000,
+  "pool": "0xb6d047637151f6De1d02028acdd187Aa9cb7AFE3",
+  "usdg": 26011
+ },
+ {
+  "symbol": "SPY",
+  "name": "SPDR S&P 500 ETF Trust \u2022 Robinhood Token",
+  "address": "0x117cc2133c37B721F49dE2A7a74833232B3B4C0C",
+  "fee": 500,
+  "pool": "0xa7Bb1AC63BBaB0C44316E6c8C455213441689167",
+  "usdg": 25653
+ },
+ {
+  "symbol": "NFLX",
+  "name": "Netflix \u2022 Robinhood Token",
+  "address": "0xE0444EF8BF4eD74f74FD73686e2ddF4C1c5591E8",
+  "fee": 3000,
+  "pool": "0x59895C0302F41aEaa129D2fa2442CEc01E7eF45E",
+  "usdg": 25357
+ },
+ {
+  "symbol": "IBM",
+  "name": "IBM \u2022 Robinhood Token",
+  "address": "0x980dcf6766FA79f5Cf0c4AAdb3ab477ff15a9619",
+  "fee": 3000,
+  "pool": "0x8cD848ce18b829C5c769AFf27164078bB52e0E97",
+  "usdg": 18178
+ },
+ {
+  "symbol": "TSM",
+  "name": "Taiwan Semiconductor Manufacturing \u2022 Robinhood Token",
+  "address": "0x58FfE4a942d3885bAa22D7520691F611EF09e7AA",
+  "fee": 10000,
+  "pool": "0x07e8Ea83D4C1340774c8965125e26e12bf943bf1",
+  "usdg": 16400
+ },
+ {
+  "symbol": "TTEQ",
+  "name": "T. Rowe Price Exchange-Traded Funds, Inc. T. Rowe Price Technology ETF \u2022 Robinhood Token",
+  "address": "0x80E10255A83B257F5A8674D363F547842aa53b8e",
+  "fee": 500,
+  "pool": "0x59848647Aff854D7ea97A9FF955653dA178E8677",
+  "usdg": 13787
+ },
+ {
+  "symbol": "F",
+  "name": "Ford Motor \u2022 Robinhood Token",
+  "address": "0x25C288E6D899b9BC30160965aD9644c67e73bE0C",
+  "fee": 3000,
+  "pool": "0x4dbAC19E895322ac5b93abad9008691632bFFC05",
+  "usdg": 13510
+ },
+ {
+  "symbol": "VTI",
+  "name": "Vanguard Morningstar Total Stock Market ETF \u2022 Robinhood Token",
+  "address": "0x0594134DF3f171a354D9C85eBD65b7A6148F6D09",
+  "fee": 10000,
+  "pool": "0xb78DD1A97fa544c65d7D1f12453EcaAF1e05c36d",
+  "usdg": 11805
+ },
+ {
+  "symbol": "HIMS",
+  "name": "Hims & Hers Health \u2022 Robinhood Token",
+  "address": "0xCceE82fE024c36fA15E1005edE3E9e4787e23D09",
+  "fee": 3000,
+  "pool": "0xC8C90d3a1c1a24967E773ac2aD0d456BA3E31F64",
+  "usdg": 10328
+ },
+ {
+  "symbol": "LULU",
+  "name": "Lululemon \u2022 Robinhood Token",
+  "address": "0x4e62068525Ab11FE768e29dfD00ef909B9803016",
+  "fee": 3000,
+  "pool": "0x0F4227D27082B3BCA6818381b9ea6460275e49f4",
+  "usdg": 9846
+ },
+ {
+  "symbol": "NET",
+  "name": "Cloudflare, Inc. Class A common stock \u2022 Robinhood Token",
+  "address": "0x116F00968269B7bfbaD4109cE591d6E74c0601d4",
+  "fee": 3000,
+  "pool": "0xA9Caebb1b2fB2b954F192572b309aEf1cAf6a330",
+  "usdg": 9441
+ },
+ {
+  "symbol": "DJT",
+  "name": "Trump Media & Technology Group \u2022 Robinhood Token",
+  "address": "0x1D11f0496982706C5e14A514D4E79F2e6BdE4516",
+  "fee": 10000,
+  "pool": "0x31a89afd92F9397465649AD03226c52292fc1ae5",
+  "usdg": 8357
+ },
+ {
+  "symbol": "SKHY",
+  "name": "SK hynix Inc. American Depositary Shares \u2022 Robinhood Token",
+  "address": "0x84CAb63bc87912E71ad199ff14A0bA45de68FeF8",
+  "fee": 3000,
+  "pool": "0x5F2a5025feb93a4C44DA4E3B37e4fD3Fb0ab5171",
+  "usdg": 7849
+ },
+ {
+  "symbol": "DIS",
+  "name": "Disney \u2022 Robinhood Token",
+  "address": "0x501B1B3B79750313AD2C4CcCD08586c4C17d7283",
+  "fee": 3000,
+  "pool": "0x75F7109Eb00Eab50426f19b00Fb05783bD1a0501",
+  "usdg": 7796
+ },
+ {
+  "symbol": "JNJ",
+  "name": "Johnson & Johnson \u2022 Robinhood Token",
+  "address": "0x03DfbBE0AC4E7bCDaFd08eD41A400326B77D8c80",
+  "fee": 10000,
+  "pool": "0x8d39388EF11Bb78843130Bd74AB0e5d89fA76b30",
+  "usdg": 7407
+ },
+ {
+  "symbol": "PFE",
+  "name": "Pfizer \u2022 Robinhood Token",
+  "address": "0x7066A64c24e4206CD62E83bf198c1E7EB361F51e",
+  "fee": 3000,
+  "pool": "0xC7d573Fcda6D2107C97fb582ae18411F9Db32E7f",
+  "usdg": 5887
+ },
+ {
+  "symbol": "LMT",
+  "name": "Lockheed \u2022 Robinhood Token",
+  "address": "0x329fcACEb9AD6F9580DD5F643fed0646900D043c",
+  "fee": 3000,
+  "pool": "0x54f160Bea60EC5207918C539d86E0b906b4DA297",
+  "usdg": 5600
+ },
+ {
+  "symbol": "USAR",
+  "name": "USA Rare Earth \u2022 Robinhood Token",
+  "address": "0xd917B029C761D264c6A312BBbcDA868658eF86a6",
+  "fee": 3000,
+  "pool": "0x04391780F519B7d3ba59c9590459D76e23d225C4",
+  "usdg": 5443
+ }
+]
