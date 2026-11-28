@@ -17,9 +17,10 @@ contract DeployMainnet is Script {
     function run() external {
         uint256 pk = vm.envUint("DEPLOYER_PRIVATE_KEY");
         address deployer = vm.addr(pk);
-        string memory json = vm.readFile("deployments/mainnet-tokens.json");
-        address[] memory tokens = vm.parseJsonAddressArray(json, "$[*].address");
-        uint256[] memory rawFees = vm.parseJsonUintArray(json, "$[*].fee");
+        // mainnet-list.json is the same list as mainnet-tokens.json, as two plain arrays the script can read.
+        string memory json = vm.readFile("deployments/mainnet-list.json");
+        address[] memory tokens = vm.parseJsonAddressArray(json, ".tokens");
+        uint256[] memory rawFees = vm.parseJsonUintArray(json, ".fees");
         require(tokens.length == rawFees.length && tokens.length > 0, "bad token list");
         uint24[] memory fees = new uint24[](rawFees.length);
         for (uint256 i; i < rawFees.length; ++i) fees[i] = uint24(rawFees[i]);
