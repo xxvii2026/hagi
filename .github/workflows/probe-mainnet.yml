@@ -1,0 +1,76 @@
+name: Probe mainnet
+# Read-only look at Robinhood Chain mainnet before the beta. Sends no transactions and uses no keys.
+on:
+  workflow_dispatch:
+  push:
+    branches: [contracts]
+    paths: ['.github/workflows/probe-mainnet.yml']
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    env:
+      RPC: https://rpc.mainnet.chain.robinhood.com
+      EXP: https://robinhoodchain.blockscout.com/api/v2
+      USDG: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168'
+      WETH: '0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73'
+      V3F: '0x1f7d7550b1b028f7571e69a784071f0205fd2efa'
+      PM: '0x8366a39cc670b4001a1121b8f6a443a643e40951'
+      DEPLOYER: '0x595D766DBD9c72DFE66D55104e8Bef60F1983799'
+      RELAYER: '0x1bc86294cDFCc30A966feFEF5A3bEc512eE67D23'
+    steps:
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Chain, gas and wallets
+        run: |
+          echo "chain id: $(cast chain-id --rpc-url $RPC)"
+          echo "gas price (wei): $(cast gas-price --rpc-url $RPC)"
+          echo "base fee (wei): $(cast base-fee --rpc-url $RPC || true)"
+          echo "deployer ETH: $(cast balance $DEPLOYER --ether --rpc-url $RPC)"
+          echo "relayer ETH: $(cast balance $RELAYER --ether --rpc-url $RPC)"
+      - name: Official stock token list
+        run: |
+          curl -sS -m 30 https://api.robinhood.com/rhj/assets -o assets.json || true
+          for s in TSLA AMZN PLTR NFLX AMD NVDA AAPL; do
+            jq -r --arg s "$s" '[.. | objects | select(.tokenSymbol? == $s)][0] | "\(.tokenSymbol) \([.deployments[]? | select(.chainId == 4663 or .chainId == "4663") | .contractAddress][0]) status=\(.status) mult=\(.currentMultiplier)"' assets.json || true
+          done | tee tokens.txt
+      - name: Token contracts (can a vault hold them, who controls them)
+        run: |
+          SLOT_IMPL=0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc
+          SLOT_ADMIN=0xb53127684a568b3173ae13b9f8a6016e243e63b53dbbdd6a7bd0b8f0f0e2d0e3
+          look() {
+            n=$1; a=$2
+            echo "== $n $a"
+            echo "code bytes: $(( ($(cast code $a --rpc-url $RPC | wc -c) - 3) / 2 ))"
+            echo "symbol: $(cast call $a 'symbol()(string)' --rpc-url $RPC || true)  decimals: $(cast call $a 'decimals()(uint8)' --rpc-url $RPC || true)"
+            echo "totalSupply: $(cast call $a 'totalSupply()(uint256)' --rpc-url $RPC || true)"
+            impl=$(cast storage $a $SLOT_IMPL --rpc-url $RPC || true); echo "proxy impl slot: $impl"
+            echo "proxy admin slot: $(cast storage $a $SLOT_ADMIN --rpc-url $RPC || true)"
+            echo "owner: $(cast call $a 'owner()(address)' --rpc-url $RPC 2>/dev/null || echo none)  paused: $(cast call $a 'paused()(bool)' --rpc-url $RPC 2>/dev/null || echo n/a)"
+            for t in $a "0x${impl: -40}"; do
+              echo "-- explorer ABI for $t: control-type functions"
+              curl -sS -m 20 "$EXP/smart-contracts/$t" | jq -r '"verified=\(.is_verified // false) name=\(.name // "-")", (.abi[]? | select(.type=="function") | .name)' 2>/dev/null \
+                | grep -iE 'verified=|freez|block|black|deny|pause|allow|white|seiz|wipe|restrict|complian|sanction|forc|burn|mint|upgrade|role|recover' | sort -u | tr '\n' ' '
+              echo
+            done
+          }
+          look USDG $USDG
+          while read s a rest; do [ "${a:0:2}" = "0x" ] && look $s $a; done < tokens.txt
+      - name: Uniswap v3 pools against USDG and WETH
+        run: |
+          pool() {
+            n=$1; t=$2; q=$3; qn=$4
+            for fee in 100 500 3000 10000; do
+              p=$(cast call $V3F 'getPool(address,address,uint24)(address)' $t $q $fee --rpc-url $RPC || true)
+              [ "$p" = "0x0000000000000000000000000000000000000000" ] || [ -z "$p" ] && continue
+              echo "$n/$qn fee=$fee pool=$p liquidity=$(cast call $p 'liquidity()(uint128)' --rpc-url $RPC) $qn held=$(cast call $q 'balanceOf(address)(uint256)' $p --rpc-url $RPC) $n held=$(cast call $t 'balanceOf(address)(uint256)' $p --rpc-url $RPC)"
+            done
+          }
+          pool WETH $WETH $USDG USDG
+          while read s a rest; do [ "${a:0:2}" = "0x" ] && { pool $s $a $USDG USDG; pool $s $a $WETH WETH; }; done < tokens.txt
+      - name: Uniswap v4 (all pools live inside one PoolManager)
+        run: |
+          echo "PoolManager code bytes: $(( ($(cast code $PM --rpc-url $RPC | wc -c) - 3) / 2 ))"
+          echo "USDG held by PoolManager: $(cast call $USDG 'balanceOf(address)(uint256)' $PM --rpc-url $RPC)"
+          echo "WETH held: $(cast call $WETH 'balanceOf(address)(uint256)' $PM --rpc-url $RPC)  native ETH held: $(cast balance $PM --ether --rpc-url $RPC)"
+          while read s a rest; do [ "${a:0:2}" = "0x" ] && echo "$s held by PoolManager: $(cast call $a 'balanceOf(address)(uint256)' $PM --rpc-url $RPC)"; done < tokens.txt
+          echo "== Uniswap's own address list for chain 4663"
+          curl -sS -m 30 https://developers.uniswap.org/deployments.json | jq -c '[.. | objects | select((.chainId? // .chain_id? // .id?) == 4663 or (.chainId? // "") == "4663")] | .[0:3]' | head -c 6000 || true
