@@ -7,6 +7,7 @@
   <a href="https://hagitrade.xyz">App</a> ·
   <a href="https://hagitrade.xyz/#/docs/overview">Docs</a> ·
   <a href="#deployed-contracts">Contracts</a> ·
+  <a href="#hagi">$HAGI</a> ·
   <a href="SECURITY.md">Security</a>
 </p>
 
@@ -21,6 +22,16 @@
 Anyone can read a wallet. Paste an address into an explorer and you get every stock it holds, every amount and every trade, timed to the minute. Hagi takes your portfolio off the record.
 
 You shield tokens into a shared vault. From then on your balance is a set of encrypted receipts that only your key can read. You can swap, send and buy baskets straight from inside the vault, and a relayer sends every transaction, so your wallet never appears on it.
+
+## $HAGI
+
+The official $HAGI token contract on Robinhood Chain:
+
+```
+0x4643d8eaa4adc2ce361331b831ea6335742a29a1
+```
+
+[Buy on Pons](https://ponsfamily.com/launchpad/0x4643d8eaa4adc2ce361331b831ea6335742a29a1) · [hagitrade.xyz](https://hagitrade.xyz). This is the only official contract. Anything else using the Hagi name is not us.
 
 <p align="center">
   <img src=".github/assets/portfolio.jpg" alt="Portfolio" width="49%">
