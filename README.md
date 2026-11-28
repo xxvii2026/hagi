@@ -169,6 +169,8 @@ Robinhood Chain mainnet, chain ID 4663. Recorded in [`contracts/deployments/main
 
 The stock tokens it lists are in [`contracts/deployments/mainnet-tokens.json`](contracts/deployments/mainnet-tokens.json).
 
+All three, and the two Poseidon libraries the vault links, are verified on Sourcify: [vault](https://repo.sourcify.dev/4663/0x4450EFCd81DC7d3DfE54f27b351E1FF498437787), [verifier](https://repo.sourcify.dev/4663/0xA58CD9eC8324B13a8755337609c767627A96CA21), [adapter](https://repo.sourcify.dev/4663/0x0196081E89D79279b0Eb2fd1f13f029f5049Fb72). Anyone can check that the deployed code was built from this source.
+
 **What the owner can and cannot do on mainnet**
 
 - It can pause new deposits and swaps. Pausing never blocks withdrawals or private transfers.
