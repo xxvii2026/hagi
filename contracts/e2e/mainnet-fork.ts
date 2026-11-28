@@ -30,7 +30,7 @@ const quoter = parseAbi([
 ])
 const NEW_COMMITMENT = parseAbiItem('event NewCommitment(uint256 indexed commitment, uint256 index, address token, uint256 amount, bytes encryptedNote)')
 
-const chain = { ...foundry, rpcUrls: { default: { http: [RPC] } } }
+const chain = { ...foundry, id: 4663, rpcUrls: { default: { http: [RPC] } } } // a fork keeps the real chain id
 const pub = createPublicClient({ chain, transport: http(RPC, { timeout: 120_000 }) })
 const wallet = (k: string) => createWalletClient({ chain, transport: http(RPC, { timeout: 120_000 }), account: privateKeyToAccount(k as Hex) })
 const alice = wallet(K1), relayer = wallet(K2)
