@@ -27,8 +27,10 @@ contract DeployVault is Script {
 
         vault.setAdapter(ISwapAdapter(address(adapter)));
         vault.setTokenAllowed(usdg, true);
+        vault.setShieldLimit(usdg, type(uint128).max, type(uint128).max); // testnet: no cap
         for (uint256 i; i < tokens.length; ++i) {
             vault.setTokenAllowed(tokens[i], true);
+            vault.setShieldLimit(tokens[i], type(uint128).max, type(uint128).max);
         }
         registry.setRecorder(address(vault));
 

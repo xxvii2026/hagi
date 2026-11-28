@@ -78,6 +78,25 @@ contract HagiVault is Ownable, ReentrancyGuard {
     ISwapAdapter public adapter;
 
     mapping(address token => bool) public allowedToken;
+    /// @dev Once a token has been allowed it can always be withdrawn, even if it is later disallowed.
+    mapping(address token => bool) public everAllowed;
+
+    // ---------- beta guards ----------
+    // While the vault is unaudited, deposits are capped and can be paused. Withdrawals and private
+    // transfers are never blocked by these, so users can always get out.
+
+    /// @notice Stops new shields and swaps. Withdrawals and private transfers keep working.
+    bool public paused;
+
+    struct ShieldLimit {
+        uint128 perAddress; // most one address can ever shield of this token
+        uint128 total; // most of this token the vault holds on users' behalf (shielded minus withdrawn)
+    }
+
+    /// @notice A token with no limit set cannot be shielded directly. It can still arrive through swaps.
+    mapping(address token => ShieldLimit) public shieldLimit;
+    mapping(address token => mapping(address from => uint256)) public shieldedBy;
+    mapping(address token => uint256) public netShielded;
     mapping(uint256 nullifier => bool) public nullifierSpent;
 
     // Incremental Merkle tree
@@ -92,6 +111,8 @@ contract HagiVault is Ownable, ReentrancyGuard {
     event NewNullifier(uint256 indexed nullifier);
     event TokenAllowed(address indexed token, bool allowed);
     event AdapterSet(address adapter);
+    event PausedSet(bool paused);
+    event ShieldLimitSet(address indexed token, uint128 perAddress, uint128 total);
 
     error TokenNotAllowed(address token);
     error BadAmount();
@@ -104,6 +125,9 @@ contract HagiVault is Ownable, ReentrancyGuard {
     error TreeFull();
     error SwapOutputTooLow(uint256 got, uint256 minOut);
     error BasketMismatch();
+    error Paused();
+    error OverAddressLimit(uint256 wouldBe, uint256 limit);
+    error OverTotalLimit(uint256 wouldBe, uint256 limit);
 
     constructor(IVerifier verifier_, BasketRegistry registry_, address owner_) Ownable(owner_) {
         verifier = verifier_;
@@ -121,9 +145,18 @@ contract HagiVault is Ownable, ReentrancyGuard {
 
     /// @notice Deposit `amount` of `token` into a new note owned by whoever knows the partial commitment's key.
     function shield(address token, uint256 amount, uint256 partialCommitment, bytes calldata encryptedNote) external nonReentrant {
+        if (paused) revert Paused();
         if (!allowedToken[token]) revert TokenNotAllowed(token);
         if (amount == 0 || amount > MAX_AMOUNT) revert BadAmount();
         if (partialCommitment >= FIELD) revert BadFieldElement();
+
+        ShieldLimit memory lim = shieldLimit[token];
+        uint256 mine = shieldedBy[token][msg.sender] + amount;
+        if (mine > lim.perAddress) revert OverAddressLimit(mine, lim.perAddress);
+        uint256 all = netShielded[token] + amount;
+        if (all > lim.total) revert OverTotalLimit(all, lim.total);
+        shieldedBy[token][msg.sender] = mine;
+        netShielded[token] = all;
 
         uint256 before = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
@@ -145,7 +178,9 @@ contract HagiVault is Ownable, ReentrancyGuard {
         uint256 publicAmount;
         uint256 publicToken;
         if (leaving != 0) {
-            if (!allowedToken[ext.token]) revert TokenNotAllowed(ext.token);
+            // Withdrawals only need the token to have been allowed at some point, so disallowing a token
+            // can never trap funds. Spending it into a swap needs it to be allowed right now.
+            if (!everAllowed[ext.token]) revert TokenNotAllowed(ext.token);
             publicAmount = FIELD - leaving;
             publicToken = uint256(uint160(ext.token));
         }
@@ -171,14 +206,18 @@ contract HagiVault is Ownable, ReentrancyGuard {
             if (ext.basketId != NO_BASKET) revert BadExtData();
             if (ext.amount != 0) {
                 if (ext.recipient == address(0)) revert BadExtData();
+                _left(ext.token, ext.amount);
                 IERC20(ext.token).safeTransfer(ext.recipient, ext.amount);
             }
         } else {
+            if (paused) revert Paused();
+            if (!allowedToken[ext.token]) revert TokenNotAllowed(ext.token);
             _swapLegs(ext);
         }
 
         if (ext.fee != 0) {
             if (ext.relayer == address(0)) revert BadExtData();
+            _left(ext.token, ext.fee);
             IERC20(ext.token).safeTransfer(ext.relayer, ext.fee);
         }
     }
@@ -226,7 +265,28 @@ contract HagiVault is Ownable, ReentrancyGuard {
 
     function setTokenAllowed(address token, bool allowed) external onlyOwner {
         allowedToken[token] = allowed;
+        if (allowed) everAllowed[token] = true;
         emit TokenAllowed(token, allowed);
+    }
+
+    /// @notice Allows many tokens at once, for listing every stock in a few transactions.
+    function allowTokens(address[] calldata tokens) external onlyOwner {
+        for (uint256 i; i < tokens.length; ++i) {
+            allowedToken[tokens[i]] = true;
+            everAllowed[tokens[i]] = true;
+            emit TokenAllowed(tokens[i], true);
+        }
+    }
+
+    function setPaused(bool paused_) external onlyOwner {
+        paused = paused_;
+        emit PausedSet(paused_);
+    }
+
+    /// @notice Sets how much of `token` one address, and the vault as a whole, can shield. Zero closes shielding.
+    function setShieldLimit(address token, uint128 perAddress, uint128 total) external onlyOwner {
+        shieldLimit[token] = ShieldLimit(perAddress, total);
+        emit ShieldLimitSet(token, perAddress, total);
     }
 
     function setAdapter(ISwapAdapter adapter_) external onlyOwner {
@@ -251,6 +311,13 @@ contract HagiVault is Ownable, ReentrancyGuard {
     }
 
     // ---------- internals ----------
+
+    /// @dev Frees room under the total limit when a token leaves the vault. Never underflows: more can leave
+    ///      than was shielded when it arrived through swaps.
+    function _left(address token, uint256 amount) private {
+        uint256 n = netShielded[token];
+        netShielded[token] = amount >= n ? 0 : n - amount;
+    }
 
     function _addNote(uint256 amount, address token, uint256 partialCommitment, bytes calldata encryptedNote) private {
         uint256 commitment = PoseidonT4.hash([amount, uint256(uint160(token)), partialCommitment]);

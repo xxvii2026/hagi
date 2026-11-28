@@ -37,7 +37,9 @@ contract HagiGhostTest is Test {
         unlisted = new GhostToken("NOPE");
         vm.startPrank(owner);
         vault.setTokenAllowed(address(usdg), true);
+        vault.setShieldLimit(address(usdg), type(uint128).max, type(uint128).max);
         vault.setTokenAllowed(address(tsla), true);
+        vault.setShieldLimit(address(tsla), type(uint128).max, type(uint128).max);
         vm.stopPrank();
         usdg.mint(exchange, 1_000_000e6);
         tsla.mint(exchange, 100e18);

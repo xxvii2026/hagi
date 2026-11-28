@@ -157,18 +157,41 @@ Robinhood Chain testnet, chain ID 46630. Full list in [`contracts/deployments/te
 | HagiGhostSwap (Ghost Swaps) | [`0xEF419424Cd5f73612FbF0212799529052813ec05`](https://explorer.testnet.chain.robinhood.com/address/0xEF419424Cd5f73612FbF0212799529052813ec05) |
 | HagiNames (name.hagi) | [`0x3cF6213fa37D19c1Db4492B942A8B53Fc8F3e193`](https://explorer.testnet.chain.robinhood.com/address/0x3cF6213fa37D19c1Db4492B942A8B53Fc8F3e193) |
 
+### Mainnet beta
+
+Robinhood Chain mainnet, chain ID 4663. Recorded in [`contracts/deployments/mainnet.json`](contracts/deployments/mainnet.json). The source for these exact contracts is in [`contracts/src`](contracts/src).
+
+| Contract | Address |
+|---|---|
+| HagiVault | `0x4450EFCd81DC7d3DfE54f27b351E1FF498437787` |
+| Groth16VerifierMainnet | `0xA58CD9eC8324B13a8755337609c767627A96CA21` |
+| HagiUniV3Adapter (swaps through Uniswap v3) | `0x0196081E89D79279b0Eb2fd1f13f029f5049Fb72` |
+
+The stock tokens it lists are in [`contracts/deployments/mainnet-tokens.json`](contracts/deployments/mainnet-tokens.json).
+
+All three, and the two Poseidon libraries the vault links, are verified on Sourcify: [vault](https://repo.sourcify.dev/4663/0x4450EFCd81DC7d3DfE54f27b351E1FF498437787), [verifier](https://repo.sourcify.dev/4663/0xA58CD9eC8324B13a8755337609c767627A96CA21), [adapter](https://repo.sourcify.dev/4663/0x0196081E89D79279b0Eb2fd1f13f029f5049Fb72). Anyone can check that the deployed code was built from this source.
+
+**What the owner can and cannot do on mainnet**
+
+- It can pause new deposits and swaps. Pausing never blocks withdrawals or private transfers.
+- It can change the deposit limits and which tokens are allowed. A token that was ever allowed can always be withdrawn, even after it is removed.
+- It can change the swap adapter. A swap only goes through if the vault receives at least the minimum the user set in their own proof, so a bad adapter can make swaps fail or cost up to the slippage limit, but it cannot take a user's balance.
+- It has no function that moves user funds.
+
+**Proving keys.** The mainnet keys were made on a clean CI runner on top of the public perpetual powers-of-tau ceremony, with two rounds of discarded randomness and a public drand beacon. The file hashes are in [`circuits/mainnet-keys.txt`](circuits/mainnet-keys.txt). This is a single-operator setup, not a public ceremony. A multi-party ceremony is planned before the limits are raised.
+
 ## Status
 
-**Testnet: live.** Everything above runs on Robinhood Chain testnet with test USDG and test pools. Prices come from Hagi's own test pools, not live markets.
+**Testnet: live.** Everything in the testnet table runs on Robinhood Chain testnet with test USDG and test pools. Prices come from Hagi's own test pools, not live markets.
 
-**Mainnet beta: in progress.** We're building it now, carefully:
+**Mainnet beta: deployed, invite-only.**
 
 - Real USDG and stock tokens on Robinhood Chain mainnet
-- Core features first: shield, private send, private swap, unshield
-- Deposit caps per user and in total while the beta runs
-- Open to everyone from day one
+- Core features only: shield, private send, private swap, unshield
+- USDG deposits only, capped per wallet and in total
+- Access is by whitelist while we test
 
-Hagi has **not been audited** yet, and the proving key comes from a single-party setup. Don't put in anything you can't afford to lose. Found a problem? See [SECURITY.md](SECURITY.md).
+Hagi has **not been audited** yet, and the proving keys come from a single-operator setup. Don't put in anything you can't afford to lose. Found a problem? See [SECURITY.md](SECURITY.md).
 
 ## Roadmap
 
