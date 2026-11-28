@@ -57,7 +57,7 @@ const quoteOne = async (pub: any, tokenIn: Hex, tokenOut: Hex, fee: number, amou
   (await pub.simulateContract({ address: QUOTER, abi: uni, functionName: 'quoteExactInputSingle', args: [{ tokenIn, tokenOut, amountIn, fee, sqrtPriceLimitX96: 0n }] })).result[0]
 
 // Gas a private transaction uses, measured on a copy of mainnet, with headroom.
-const GAS_BASE = 2_600_000n, GAS_PER_LEG = 1_200_000n
+const GAS_BASE = 2_000_000n, GAS_PER_LEG = 1_000_000n
 const FLOOR_USDG = 20_000n // 2 cents
 const feeCache = new Map<string, { at: number; fee: bigint }>()
 
