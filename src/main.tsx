@@ -14,9 +14,15 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) addEventListener('load
 const Admin = lazy(() => import('./pages/AdminGate'))
 const isAdmin = () => location.hash.split('?')[0] === '#/admin'
 
+// The HELL window lives on its own subdomain (hellwindow.hagitrade.xyz). #/hell opens it anywhere for previews.
+const Hell = lazy(() => import('./pages/HellWindow'))
+const isHell = () => location.hostname.startsWith('hellwindow.') || location.hash.split('?')[0] === '#/hell'
+
 function Root() {
   const [admin, setAdmin] = useState(isAdmin)
-  useEffect(() => { const f = () => setAdmin(isAdmin()); addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
+  const [hell, setHell] = useState(isHell)
+  useEffect(() => { const f = () => { setAdmin(isAdmin()); setHell(isHell()) }; addEventListener('hashchange', f); return () => removeEventListener('hashchange', f) }, [])
+  if (hell) return <Suspense fallback={null}><Hell /></Suspense>
   return admin ? <Suspense fallback={null}><Admin /></Suspense> : <Store><App /></Store>
 }
 
