@@ -1,0 +1,63 @@
+name: Verify mainnet contracts
+# Publishes the mainnet beta's source on the block explorers so anyone can check it matches what is deployed.
+# Read-only on chain: no keys, no transactions.
+on:
+  workflow_dispatch:
+  push:
+    branches: [verify-mainnet, contracts]
+    paths: ['.github/workflows/verify-mainnet.yml']
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      RPC: https://rpc.mainnet.chain.robinhood.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci
+        working-directory: contracts
+      - run: forge build
+        working-directory: contracts
+      - name: Does the deployed code match this source?
+        working-directory: contracts
+        run: |
+          V=$(jq -r .HagiVault deployments/mainnet.json); A=$(jq -r .HagiUniV3Adapter deployments/mainnet.json); G=$(jq -r .Groth16VerifierMainnet deployments/mainnet.json)
+          # Compare with the compiler's output, ignoring the metadata hash at the end, immutables and linked library addresses.
+          cmp() { n=$1; addr=$2; art=$3
+            on=$(cast code $addr --rpc-url $RPC); built=$(jq -r .deployedBytecode.object $art)
+            echo "$n $addr: on chain $(( (${#on} - 2) / 2 )) bytes, built $(( (${#built} - 2) / 2 )) bytes"
+            node -e '
+              const [on, built] = process.argv.slice(1).map(x => x.replace(/^0x/, "").toLowerCase());
+              if (on.length !== built.length) { console.log("  LENGTH DIFFERS"); process.exit(0) }
+              let diff = 0; for (let i = 0; i < on.length; i += 2) if (on.slice(i, i + 2) !== built.slice(i, i + 2) && !/[^0-9a-f]/.test(built.slice(i, i + 2)) ) diff++
+              let holes = 0; for (let i = 0; i < built.length; i += 2) if (/[^0-9a-f]/.test(built.slice(i, i + 2))) holes++
+              console.log("  bytes that differ outside library placeholders: " + diff + " (immutables and the metadata hash account for a small number), library placeholder bytes: " + holes)
+            ' "$on" "$built"
+          }
+          cmp HagiVault $V out/HagiVault.sol/HagiVault.json
+          cmp HagiUniV3Adapter $A out/HagiUniV3Adapter.sol/HagiUniV3Adapter.json
+          cmp Groth16VerifierMainnet $G out/VerifierMainnet.sol/Groth16VerifierMainnet.json
+          # The vault links two Poseidon libraries. Read their addresses out of the deployed code.
+          jq -r '.deployedBytecode.linkReferences | to_entries[] | .key as $f | .value | to_entries[] | "\($f):\(.key) \(.value[0].start)"' out/HagiVault.sol/HagiVault.json > links.txt
+          cat links.txt
+          on=$(cast code $V --rpc-url $RPC); on=${on#0x}; : > libs.txt
+          while read name start; do echo "$name:0x${on:$((start*2)):40}" >> libs.txt; done < links.txt
+          cat libs.txt
+      - name: Verify on the explorers
+        working-directory: contracts
+        run: |
+          V=$(jq -r .HagiVault deployments/mainnet.json); A=$(jq -r .HagiUniV3Adapter deployments/mainnet.json); G=$(jq -r .Groth16VerifierMainnet deployments/mainnet.json)
+          OWNER=$(cast call $V 'owner()(address)' --rpc-url $RPC)
+          LIBS=""; while read l; do LIBS="$LIBS --libraries $l"; done < libs.txt
+          VARGS=$(cast abi-encode "c(address,address,address)" $G 0x0000000000000000000000000000000000000000 $OWNER)
+          AARGS=$(cast abi-encode "c(address,address,address,address)" 0xCaf681a66D020601342297493863E78C959E5cb2 0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168 $V $OWNER)
+          try() { echo "== $*"; "$@" 2>&1 | tail -6 || true; }
+          for how in "--verifier sourcify" "--verifier blockscout --verifier-url https://robinhoodchain.blockscout.com/api/"; do
+            try forge verify-contract $G src/VerifierMainnet.sol:Groth16VerifierMainnet --chain 4663 --rpc-url $RPC $how --watch
+            try forge verify-contract $V src/HagiVault.sol:HagiVault --chain 4663 --rpc-url $RPC $how --constructor-args $VARGS $LIBS --watch
+            try forge verify-contract $A src/HagiUniV3Adapter.sol:HagiUniV3Adapter --chain 4663 --rpc-url $RPC $how --constructor-args $AARGS --watch
+            while read l; do f=${l%%:0x*}; try forge verify-contract ${l##*:} "$f" --chain 4663 --rpc-url $RPC $how --watch; done < libs.txt
+          done
