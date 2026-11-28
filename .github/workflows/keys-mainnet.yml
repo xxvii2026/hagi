@@ -12,6 +12,8 @@ jobs:
   keys:
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -46,5 +48,14 @@ jobs:
           cp build/transaction.zkey out/transaction.zkey
           cp build/transaction_js/transaction.wasm out/transaction.wasm
           sha256sum out/*
-      - uses: actions/upload-artifact@v4
-        with: { name: mainnet-keys, path: circuits/out, retention-days: 14 }
+      - name: Save the keys to the branch
+        run: |
+          mkdir -p public/zk/main
+          cp circuits/out/transaction.zkey circuits/out/transaction.wasm circuits/out/verification_key.json public/zk/main/
+          cp circuits/out/VerifierMainnet.sol contracts/src/VerifierMainnet.sol
+          { echo "Hagi mainnet beta proving keys"; echo "made by GitHub Actions run $GITHUB_RUN_ID on $(date -u +%Y-%m-%dT%H:%M:%SZ)"; echo "single-operator setup on top of the public perpetual powers-of-tau ceremony (ppot_0080_15)"; (cd circuits/out && sha256sum *); } > circuits/mainnet-keys.txt
+          git config user.name "hagi-keys"
+          git config user.email "hagi-keys@users.noreply.github.com"
+          git add public/zk/main contracts/src/VerifierMainnet.sol circuits/mainnet-keys.txt
+          git commit -m "Mainnet beta proving keys and verifier (run $GITHUB_RUN_ID)"
+          git push
