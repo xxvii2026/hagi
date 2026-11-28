@@ -74,3 +74,5 @@ export const guardAbi = parseAbi([
   'function shieldedBy(address token, address from) view returns (uint256)',
   'function netShielded(address token) view returns (uint256)',
 ])
+
+export const slot0Abi = parseAbi(['function slot0() view returns (uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, uint8 feeProtocol, bool unlocked)'])

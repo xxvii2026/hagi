@@ -1,7 +1,7 @@
 // Talks to the chain: balances, pools, baskets, vault notes, and every action the app can take.
 import { bytesToHex, concat, createPublicClient, createWalletClient, custom, encodeAbiParameters, encodePacked, getAddress, http, isAddress, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
 import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
-import { erc20Abi, ghostAbi, guardAbi, quoterAbi, registryAbi, swapAbi, vaultAbi } from './abi'
+import { erc20Abi, ghostAbi, guardAbi, quoterAbi, registryAbi, slot0Abi, swapAbi, vaultAbi } from './abi'
 import { CFG, chain } from './chain'
 import { STOCKS, TOKENS, fromUnits, toUnits, token, tokenByAddress, type Basket } from './data'
 import { SIGN_MESSAGE, MerkleTree, commitment, decryptNote, deriveKeys, encryptNote, ghostAddress, ghostBlinding, ghostPartial, matchGhost, nullifier, parseAddress, partialCommitment, randomField, toAddress, type Keys, type Note } from './zk/core'
@@ -22,7 +22,8 @@ const wal = () => local ? createWalletClient({ chain, account: local, transport:
 const acct = () => local ?? account!
 export const isPasskey = () => !!local
 const V = { address: CFG.contracts.vault, abi: vaultAbi } as const
-const ART = { wasm: `${import.meta.env.BASE_URL}zk/transaction.wasm`, zkey: `${import.meta.env.BASE_URL}zk/transaction.zkey` }
+const ZK = import.meta.env.BASE_URL + (CFG.zk ?? 'zk/')
+const ART = { wasm: ZK + 'transaction.wasm', zkey: ZK + 'transaction.zkey' }
 const NEW_COMMITMENT = parseAbiItem('event NewCommitment(uint256 indexed commitment, uint256 index, address token, uint256 amount, bytes encryptedNote)')
 
 // ---------- session ----------
@@ -134,10 +135,14 @@ export async function readWallet(): Promise<{ balances: Record<string, number>; 
 /** Reads every pool's reserves and updates each stock's price. */
 export async function readPools() {
   if (CFG.uni) {
-    // Mainnet: price each stock by asking Uniswap what a small sale (0.01 of a share) would return.
-    const probe = 10n ** 16n
-    const qs = await Promise.all(STOCKS.map(t => uniQuote(t.address, CFG.contracts.usdg, probe).catch(() => 0n)))
-    STOCKS.forEach((t, i) => { if (qs[i] > 0n) t.price = Number(qs[i]) / 1e4 / (1 - (CFG.uni!.fees[t.symbol] ?? 3000) / 1e6) })
+    // Mainnet: read every stock's Uniswap pool price in one batched call.
+    const res = await pub.multicall({ contracts: STOCKS.map(t => ({ address: CFG.uni!.pools[t.symbol], abi: slot0Abi, functionName: 'slot0' as const })), multicallAddress: '0xcA11bde05977b3631167028862bE2a173976CA11', allowFailure: true })
+    const usdg = BigInt(CFG.contracts.usdg)
+    STOCKS.forEach((t, i) => {
+      const r = res[i]; if (r.status !== 'success') return
+      const p = Number(r.result[0]) / 2 ** 96, raw = p * p // token1 per token0, in smallest units
+      t.price = BigInt(t.address) < usdg ? raw * 1e12 : 1 / raw * 1e12
+    })
     return
   }
   const rs = await Promise.all(STOCKS.map(t => pub.readContract({ address: CFG.contracts.swap, abi: swapAbi, functionName: 'pools', args: [t.address] })))

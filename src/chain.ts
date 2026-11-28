@@ -1,4 +1,5 @@
 import { defineChain, type Hex } from 'viem'
+import LIST from './mainnet-tokens.json'
 
 export type Config = {
   chainId: number
@@ -13,7 +14,11 @@ export type Config = {
   /** Mainnet only: real money, so the app shows the beta limits and the risk notice. */
   mainnet?: boolean
   /** Swaps go through Uniswap v3: the quoter to price them, and each stock's USDG pool fee tier. */
-  uni?: { quoter: Hex; fees: Record<string, number> }
+  uni?: { quoter: Hex; fees: Record<string, number>; pools: Record<string, Hex> }
+  /** Display names for tokens that are not in the built-in list. */
+  names?: Record<string, string>
+  /** Where the proving files live. Mainnet has its own keys. */
+  zk?: string
   /** Beta deposit limits in USDG, shown in the app. The vault enforces the real ones. */
   limits?: { perAddress: number; total: number }
 }
@@ -56,16 +61,12 @@ const MAINNET: Config = {
   deployBlock: 0,
   mainnet: true,
   contracts: { usdg: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168', swap: ZERO, basketRegistry: ZERO, vault: ZERO },
-  uni: { quoter: '0x33e885eD0Ec9bf04EcfB19341582AaDCB4C8A9e7', fees: { TSLA: 3000, AMZN: 3000, PLTR: 3000, NFLX: 3000, AMD: 3000, NVDA: 500 } },
+  uni: { quoter: '0x33e885eD0Ec9bf04EcfB19341582AaDCB4C8A9e7', fees: Object.fromEntries(LIST.map(t => [t.symbol, t.fee])), pools: Object.fromEntries(LIST.map(t => [t.symbol, t.pool as Hex])) },
   limits: { perAddress: 100, total: 10_000 },
-  tokens: {
-    TSLA: '0x322F0929c4625eD5bAd873c95208D54E1c003b2d',
-    AMD: '0x86923f96303D656E4aa86D9d42D1e57ad2023fdC',
-    AMZN: '0x12f190a9F9d7D37a250758b26824B97CE941bF54',
-    NFLX: '0xE0444EF8BF4eD74f74FD73686e2ddF4C1c5591E8',
-    PLTR: '0x894E1EC2D74FFE5AEF8Dc8A9e84686acCB964F2A',
-    NVDA: '0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC',
-  },
+  // Every stock token with a deep enough Uniswap pool against USDG. The list is built by contracts/script/discover.mjs.
+  tokens: Object.fromEntries(LIST.map(t => [t.symbol, t.address as Hex])),
+  names: Object.fromEntries(LIST.map(t => [t.symbol, t.name])),
+  zk: 'zk/main/',
 }
 
 // The beta lives on its own address (beta.hagitrade.xyz). Everything else stays on testnet.
