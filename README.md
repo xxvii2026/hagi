@@ -7,12 +7,15 @@
   <a href="https://hagitrade.xyz">App</a> ·
   <a href="https://hagitrade.xyz/#/docs/overview">Docs</a> ·
   <a href="#deployed-contracts">Contracts</a> ·
+  <a href="#hagi">$HAGI</a> ·
   <a href="SECURITY.md">Security</a>
 </p>
 
 <p align="center">
   <img alt="Network" src="https://img.shields.io/badge/network-Robinhood%20Chain%20testnet-566eba">
-  <img alt="Status" src="https://img.shields.io/badge/status-testnet%2C%20not%20audited-e0a23a">
+  <img alt="Status" src="https://img.shields.io/badge/testnet-live-3fa66b">
+  <img alt="Mainnet" src="https://img.shields.io/badge/mainnet%20beta-in%20progress-e0a23a">
+  <img alt="Audit" src="https://img.shields.io/badge/audit-not%20yet-8a8fa8">
   <img alt="Proofs" src="https://img.shields.io/badge/proofs-Groth16-1b2140">
 </p>
 
@@ -22,6 +25,16 @@ Anyone can read a wallet. Paste an address into an explorer and you get every st
 
 You shield tokens into a shared vault. From then on your balance is a set of encrypted receipts that only your key can read. You can swap, send and buy baskets straight from inside the vault, and a relayer sends every transaction, so your wallet never appears on it.
 
+## $HAGI
+
+The official $HAGI token contract on Robinhood Chain:
+
+```
+0x4643d8eaa4adc2ce361331b831ea6335742a29a1
+```
+
+[Buy on Pons](https://ponsfamily.com/launchpad/0x4643d8eaa4adc2ce361331b831ea6335742a29a1) · [hagitrade.xyz](https://hagitrade.xyz) · [The Oculus](https://oculus.hagitrade.xyz), a live window on every $HAGI burned. This is the only official contract. Anything else using the Hagi name is not us.
+
 <p align="center">
   <img src=".github/assets/portfolio.jpg" alt="Portfolio" width="49%">
   <img src=".github/assets/swap.jpg" alt="Private swap" width="49%">
@@ -29,14 +42,22 @@ You shield tokens into a shared vault. From then on your balance is a set of enc
 
 ## Features
 
+Live on Robinhood Chain testnet at [hagitrade.xyz](https://hagitrade.xyz).
+
 | | |
 |---|---|
-| **Shield and unshield** | Move USDG or any listed stock token into the vault, and back out to your wallet. |
+| **Shield and unshield** | Move USDG or any listed stock token into the vault, and back out to any wallet. |
 | **Private swaps** | Trade USDG for a stock, a stock for USDG, or one stock for another, without leaving the vault. No ETH needed for gas. |
-| **Private sends** | Pay any Hagi address (`hagi1…`). The token, the amount and both sides stay private. |
-| **Baskets** | Buy a fixed mix of stocks in one private transaction, or create your own. Baskets can't be changed once made. |
+| **Private sends** | Pay a Hagi address, a `name.hagi`, or any 0x wallet. Payments to 0x wallets come from the vault, so your wallet stays off them. |
+| **Burst sends** | Pay up to 20 people in one go. Paste a list or import a CSV. |
+| **Baskets** | Buy a fixed mix of stocks in one private transaction, or create your own. Sell part of a basket or rebalance it later. |
+| **Ghost Addresses** | A plain 0x address any wallet or exchange can pay. Claim the deposit straight into your private balance, no wallet or gas needed. |
+| **Ghost Swaps** | A Ghost Address tied to a stock, so whatever is sent there arrives as that stock. |
+| **Hagi Drops** | Split a pot of stocks into random slices behind one link. First come, first served, and nobody sees who dropped it or who took it. |
+| **Hagi names** | Claim a free `name.hagi` and get paid by name instead of a long address. |
+| **Phone app and passkeys** | Add Hagi to your home screen and sign in with Face ID or a fingerprint. No wallet needed to start. |
+| **Languages** | English, 中文, Español and Français. |
 | **Wallet check** | See what anyone can already read about a wallet, straight from public data. |
-| **No wallet to look around** | The app opens without a wallet, with a guided tour. Connect when you're ready. |
 
 Listed tokens on testnet: USDG, TSLA, AMD, AMZN, NFLX, PLTR.
 
@@ -57,8 +78,6 @@ flowchart LR
 3. **Relayer.** A relayer submits the transaction and pays the gas, so your wallet is not on it.
 4. **Account.** Your Hagi keys come from one wallet signature, so the same wallet always opens the same account. Nothing is stored on a server.
 
-The design is adapted from Tornado Nova (2-in, 2-out transactions with encrypted notes), extended with swaps through a pool adapter and basket buys.
-
 ### What's private and what isn't
 
 | Always private | Always public | Never possible |
@@ -72,10 +91,11 @@ Round amounts and time between shielding and unshielding make the two much harde
 ## Repository layout
 
 ```
-api/relay.ts          Relayer, deployed as a Vercel serverless function
+api/                  Relayer and claim endpoints (Vercel serverless functions)
 circuits/             Circom transaction circuit and the Groth16 setup script
 contracts/
-  src/                HagiVault, Verifier, HagiSwap, HagiSwapAdapter, BasketRegistry, TestUSDG
+  src/                HagiVault, Verifier, HagiSwap, HagiSwapAdapter, BasketRegistry,
+                      HagiGhost, HagiGhostSwap, HagiNames, TestUSDG
   test/               Foundry tests
   script/             Deployment scripts
   e2e/                End-to-end tests and a one-command local stack
@@ -85,7 +105,7 @@ src/
   zk/                 Key derivation, note encryption, proving
   store.tsx           App state and polling
   lookup.ts           Wallet check (public data)
-  pages/              Landing, Portfolio, Swap, Send, Baskets, Activity, Docs
+  pages/              Landing, Portfolio, Swap, Send, Baskets, Drops, Activity, Docs, Oculus
 public/zk/            Circuit wasm and proving key served to the browser
 ```
 
@@ -133,23 +153,32 @@ Robinhood Chain testnet, chain ID 46630. Full list in [`contracts/deployments/te
 | HagiSwapAdapter | [`0x1eA488F23337D63EFF469Ea6230eEA4d39Dbb1a6`](https://explorer.testnet.chain.robinhood.com/address/0x1eA488F23337D63EFF469Ea6230eEA4d39Dbb1a6) |
 | BasketRegistry | [`0x66D458817B7bCA5655ffB32d5d51770F2C964738`](https://explorer.testnet.chain.robinhood.com/address/0x66D458817B7bCA5655ffB32d5d51770F2C964738) |
 | TestUSDG | [`0x48fdc557DE6Fe7efD3341e6c28A626Be021d117a`](https://explorer.testnet.chain.robinhood.com/address/0x48fdc557DE6Fe7efD3341e6c28A626Be021d117a) |
+| HagiGhost (Ghost Addresses) | [`0x722445E4a5582FF615aE7f72fc928f62C87d75EF`](https://explorer.testnet.chain.robinhood.com/address/0x722445E4a5582FF615aE7f72fc928f62C87d75EF) |
+| HagiGhostSwap (Ghost Swaps) | [`0xEF419424Cd5f73612FbF0212799529052813ec05`](https://explorer.testnet.chain.robinhood.com/address/0xEF419424Cd5f73612FbF0212799529052813ec05) |
+| HagiNames (name.hagi) | [`0x3cF6213fa37D19c1Db4492B942A8B53Fc8F3e193`](https://explorer.testnet.chain.robinhood.com/address/0x3cF6213fa37D19c1Db4492B942A8B53Fc8F3e193) |
 
 ## Status
 
-Hagi is a testnet build. Don't use it with anything you can't afford to lose.
+**Testnet: live.** Everything above runs on Robinhood Chain testnet with test USDG and test pools. Prices come from Hagi's own test pools, not live markets.
 
-- The contracts and circuit have **not been audited**.
-- The proving key comes from a **single-party setup**. A public multi-party ceremony is required before mainnet.
-- Prices come from Hagi's own test pools, seeded at rough prices. They are not live market prices.
+**Mainnet beta: in progress.** We're building it now, carefully:
 
-Found a problem? See [SECURITY.md](SECURITY.md).
+- Real USDG and stock tokens on Robinhood Chain mainnet
+- Core features first: shield, private send, private swap, unshield
+- Deposit caps per user and in total while the beta runs
+- Open to everyone from day one
+
+Hagi has **not been audited** yet, and the proving key comes from a single-party setup. Don't put in anything you can't afford to lose. Found a problem? See [SECURITY.md](SECURITY.md).
 
 ## Roadmap
 
-- Testnet season: feedback, relayer hardening, a status page
-- Mainnet build: real USDG and stock tokens, routing through Robinhood Chain's live pools, relayer fees, deposit caps
-- Security: multi-party ceremony, circuit and contract audits, bug bounty
-- Guarded mainnet beta
+- [x] Testnet launch: private swaps, sends and baskets
+- [x] Phone app, passkeys and languages
+- [x] Ghost Addresses, Ghost Swaps, Hagi Drops and Hagi names
+- [x] $HAGI live, with buybacks and burns you can watch on [The Oculus](https://oculus.hagitrade.xyz)
+- [ ] Mainnet beta with deposit caps
+- [ ] Audit and a multi-party proving key ceremony
+- [ ] Full mainnet, with the rest of the features carried over
 
 ## Contributing
 
