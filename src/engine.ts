@@ -435,8 +435,42 @@ async function inputsFor(sym: string, amount: bigint, step: Step): Promise<Note[
     if (mine[0].amount >= amount) return [mine[0]]
     if (mine[0].amount + mine[1].amount >= amount) return [mine[0], mine[1]]
     step('Combining smaller notes')
-    await privately({ token: t.address, inputs: [mine[0], mine[1]], outputs: [{ amount: mine[0].amount + mine[1].amount, publicKey: keys!.publicKey, encPublic: keys!.encPublic, own: true }] }, () => {})
+    // Combining is its own private transaction, so on mainnet it pays the network fee too.
+    const f = await relayFee(sym)
+    const sum = mine[0].amount + mine[1].amount
+    if (sum <= f.fee) throw new Error('Your ' + sym + ' is in pieces too small to combine after the network fee')
+    await privately({ token: t.address, inputs: [mine[0], mine[1]], outputs: [{ amount: sum - f.fee, publicKey: keys!.publicKey, encPublic: keys!.encPublic, own: true }], ...pay(f) }, () => {})
   }
+}
+
+// ---------- network fee (mainnet) ----------
+// On mainnet each private transaction pays back the gas the relayer spends on it, taken from the same
+// token that is being moved. The relayer quotes it. On testnet there is no fee.
+type Fee = { fee: bigint; relayer: Hex }
+const pay = (f: Fee) => (f.fee > 0n ? { relayer: f.relayer, fee: f.fee } : {})
+async function relayFee(sym: string, legs = 0): Promise<Fee> {
+  if (!CFG.mainnet) return { fee: 0n, relayer: '0x0000000000000000000000000000000000000000' }
+  let r: Response | undefined
+  try { r = await fetch(`${CFG.relayerUrl}&fee=${token(sym).address}&legs=${legs}`) } catch { /* reported below */ }
+  const j = r?.ok ? await r.json().catch(() => null) : null
+  if (!j?.fee || !j.relayer) throw new Error('Could not get the network fee right now. Try again in a moment.')
+  return { fee: BigInt(j.fee), relayer: j.relayer }
+}
+/** The network fee for one private transaction, in the token itself. For showing in the app. */
+export async function networkFee(sym: string, legs = 0): Promise<number> {
+  return fromUnits((await relayFee(sym, legs)).fee, token(sym).decimals)
+}
+/** Works out a spend: the amount, the fee on top, and the notes that cover both.
+ *  Spending the whole balance takes the fee out of the amount instead. */
+async function plan(sym: string, wanted: bigint, step: Step, legs = 0) {
+  const f = await relayFee(sym, legs)
+  let amount = wanted
+  if (amount + f.fee > rawShielded(sym)) amount = rawShielded(sym) - f.fee
+  if (amount <= 0n) throw new Error('That is too small to cover the network fee')
+  const inputs = await inputsFor(sym, amount + f.fee, step)
+  // Combining notes can pay a fee of its own, so check again what is left.
+  if (inputs.reduce((t, n) => t + n.amount, 0n) < amount + f.fee) throw new Error('Not enough shielded ' + sym + ' after the network fee')
+  return { amount, inputs, spent: amount + f.fee, pay: pay(f) }
 }
 const change = (inputs: Note[], spent: bigint) => {
   const left = inputs.reduce((s, n) => s + n.amount, 0n) - spent
@@ -480,17 +514,15 @@ export async function shield(sym: string, n: number, step: Step) {
 
 /** Takes funds out of the vault, to your own wallet or to any other 0x wallet. The relayer submits it, so your wallet isn't on the transaction. */
 export async function unshield(sym: string, n: number, step: Step, recipient?: Hex) {
-  const amount = amountOf(sym, n, rawShielded(sym))
-  const inputs = await inputsFor(sym, amount, step)
-  await privately({ token: token(sym).address, inputs, outputs: change(inputs, amount), withdraw: { recipient: recipient ?? account!, amount } }, step)
+  const { amount, inputs, spent, pay } = await plan(sym, amountOf(sym, n, rawShielded(sym)), step)
+  await privately({ token: token(sym).address, inputs, outputs: change(inputs, spent), withdraw: { recipient: recipient ?? account!, amount }, ...pay }, step)
 }
 
 export async function send(sym: string, n: number, to: string, step: Step) {
   const dest = parseAddress(to)
   if (!dest) throw new Error('That is not a Hagi address')
-  const amount = amountOf(sym, n, rawShielded(sym))
-  const inputs = await inputsFor(sym, amount, step)
-  await privately({ token: token(sym).address, inputs, outputs: [{ amount, publicKey: dest.publicKey, encPublic: dest.encPublic }, ...change(inputs, amount)] }, step)
+  const { amount, inputs, spent, pay } = await plan(sym, amountOf(sym, n, rawShielded(sym)), step)
+  await privately({ token: token(sym).address, inputs, outputs: [{ amount, publicKey: dest.publicKey, encPublic: dest.encPublic }, ...change(inputs, spent)], ...pay }, step)
 }
 
 export type BurstItem = { to: string; n: number }
@@ -559,13 +591,13 @@ export async function readLimits(): Promise<{ paused: boolean; mine: number; per
 const SLIPPAGE = 995n // accept at least 99.5% of the quoted output
 
 export async function swap(from: string, to: string, n: number, step: Step): Promise<number> {
-  const amount = amountOf(from, n, rawShielded(from))
-  const inputs = await inputsFor(from, amount, step)
+  const { amount, inputs, spent, pay } = await plan(from, amountOf(from, n, rawShielded(from)), step, 1)
   const q = await quote(token(from).address, token(to).address, amount)
   const blinding = randomField()
   await privately({
-    token: token(from).address, inputs, outputs: change(inputs, amount),
+    token: token(from).address, inputs, outputs: change(inputs, spent),
     swap: { legs: [{ tokenOut: token(to).address, amountIn: amount, minOut: (q * SLIPPAGE) / 1000n, partialCommitment: partialCommitment(keys!.publicKey, blinding) }], legNotes: [{ blinding }] },
+    ...pay,
   }, step)
   await readPools()
   return fromUnits(q, token(to).decimals)
