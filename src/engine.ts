@@ -170,6 +170,7 @@ export function estimate(from: string, to: string, amountIn: bigint): bigint {
 }
 
 export async function readBaskets(): Promise<Basket[]> {
+  if (CFG.mainnet) return [] // no baskets in the mainnet beta yet
   const raw = await pub.readContract({ address: CFG.contracts.basketRegistry, abi: registryAbi, functionName: 'getBaskets', args: [0n, 200n] })
   return raw.map((b, id) => ({
     id, name: b.name, creator: b.creator.slice(0, 6) + '…' + b.creator.slice(-4), buyers: Number(b.buyers), created: Number(b.createdAt),
@@ -501,6 +502,7 @@ export async function faucet(step: Step) {
 
 export async function shield(sym: string, n: number, step: Step) {
   if (!keys || !account) throw new Error('Unlock your Hagi account first')
+  if (CFG.mainnet && sym !== 'USDG') throw new Error('The beta takes USDG deposits only. Swap into stocks once it is shielded.')
   const t = token(sym)
   await ensureChain()
   const have = await pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'balanceOf', args: [account] })

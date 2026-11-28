@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type Ref, useMemo } from 'react'
 import { token, fmt, withCommas } from './data'
 import { friendly, onRelayerDown } from './engine'
 import { shownBalance } from './roll'
@@ -66,7 +66,16 @@ export function Card({ title, action, children, className = '' }: { title?: stri
 /** A token menu with logos, names and balances, in place of the browser's plain list. */
 export function TokenPicker({ value, onChange, options, balances }: { value: string; onChange: (s: string) => void; options: string[]; balances?: Record<string, number> }) {
   const [open, setOpen] = useState(false)
+  const [find, setFind] = useState('')
   const box = useRef<HTMLDivElement>(null)
+  // A long list (mainnet has dozens of stocks) gets a search box, with what you hold listed first.
+  const long = options.length > 8
+  const shown = useMemo(() => {
+    const q = find.trim().toLowerCase()
+    const hit = q ? options.filter(o => o.toLowerCase().includes(q) || token(o).name.toLowerCase().includes(q)) : options
+    return long && balances ? [...hit].sort((a, b) => Number((balances[b] ?? 0) > 0) - Number((balances[a] ?? 0) > 0)) : hit
+  }, [find, options, balances, long])
+  useEffect(() => { if (!open) setFind('') }, [open])
   useEffect(() => {
     if (!open) return
     const away = (e: MouseEvent) => { if (!box.current?.contains(e.target as Node)) setOpen(false) }
@@ -82,7 +91,9 @@ export function TokenPicker({ value, onChange, options, balances }: { value: str
       </button>
       {open && (
         <ul className="tpl" role="listbox">
-          {options.map(o => (
+          {long && <li className="tpf"><input autoFocus placeholder="Search stocks" value={find} onChange={e => setFind(e.target.value)} aria-label="Search stocks" /></li>}
+          {long && shown.length === 0 && <li className="tpn">No match</li>}
+          {shown.map(o => (
             <li key={o} role="option" aria-selected={o === value}>
               <button type="button" className={o === value ? 'on' : ''} onClick={() => { onChange(o); setOpen(false) }}>
                 <TokenIcon symbol={o} size={34} />

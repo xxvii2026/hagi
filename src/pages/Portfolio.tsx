@@ -7,6 +7,8 @@ import { go } from '../nav'
 import { total, useStore } from '../store'
 import { Amount, AmountField, Card, Icon, Mark, NeedAccount, TokenIcon, TokenPicker, useCountUp, type Run } from '../ui'
 import { ActivityList } from './Activity'
+import { CFG } from '../chain'
+import { BetaNotice, betaOk, useLimits } from './Beta'
 import { NameCard } from './Names'
 import { basis, costsOf, drift, held, loadPositions, updatePosition, valueOf, type Position } from '../positions'
 
@@ -23,7 +25,13 @@ export function Portfolio({ run }: { run: Run }) {
   const openAdd = (t: 'shield' | 'unshield', k?: string) => { setTab(t); if (k) setSym(k); setAmt(''); setDetail(null); setAddOpen(true) }
   const src = tab === 'shield' ? s.walletBal : s.shielded
   // Every token can be shielded and unshielded, so the picker always lists all of them.
-  const options = TOKENS.map(t => t.symbol)
+  // On mainnet only USDG can be deposited. Stocks are bought inside, and anything held can be taken out.
+  const options = CFG.mainnet ? (tab === 'shield' ? ['USDG'] : ['USDG', ...Object.keys(s.shielded).filter(k => k !== 'USDG')]) : TOKENS.map(t => t.symbol)
+  const lim = useLimits(s.wallet, s.shielded)
+  const room = lim ? Math.max(0, Math.min(lim.perAddress - lim.mine, lim.total - lim.used)) : Infinity
+  const [risk, setRisk] = useState<null | (() => void)>(null)
+  /** Runs a deposit, after the beta notice has been read once on this device. */
+  const guarded = (go: () => void) => { if (!CFG.mainnet || betaOk()) go(); else setRisk(() => go) }
   const cur = options.includes(sym) ? sym : options[0]
   const have = src[cur] ?? 0
   const n = parseFloat(amt) || 0
@@ -46,7 +54,12 @@ export function Portfolio({ run }: { run: Run }) {
   const faucet = () => run('Getting test USDG', async step => { await engine.faucet(step); await api.refresh() }, '5,000 test USDG is in your wallet.')
   // Live version: one transaction per token. The demo applies them together.
   const shieldAll = () => run('Shielding', async step => {
-    for (const [k, v] of Object.entries(s.walletBal)) { await engine.shield(k, v, step); api.log({ kind: 'shield', title: 'Shielded ' + k, detail: amt4(k, v) }) }
+    for (const [k, full] of Object.entries(s.walletBal)) {
+      if (CFG.mainnet && k !== 'USDG') continue
+      const v = CFG.mainnet ? Math.floor(Math.min(full, room) * 100) / 100 : full
+      if (v <= 0) throw new Error('This wallet has reached the beta deposit limit.')
+      await engine.shield(k, v, step); api.log({ kind: 'shield', title: 'Shielded ' + k, detail: amt4(k, v) })
+    }
     await api.refresh()
   }, 'Shielded. Off the record now.')
 
@@ -55,15 +68,16 @@ export function Portfolio({ run }: { run: Run }) {
           <AmountField label={tab === 'shield' ? 'From your wallet' : 'From your private balance'} value={amt} onChange={setAmt}
             hint={<>{tab === 'shield' ? 'Wallet balance' : 'Private balance'} {fmt(have, cur === 'USDG' ? 2 : 4)} {cur}</>} onMax={() => setAmt(asInput(have))}
             right={<TokenPicker value={cur} onChange={setSym} options={options} balances={src} />} />
-          {!ready ? <NeedAccount /> : <button className="btn" disabled={n <= 0 || n > have} onClick={() => { setAddOpen(false); setDetail(null); run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
+          {!ready ? <NeedAccount /> : <button className="btn" disabled={n <= 0 || n > have || (tab === 'shield' && n > room + 1e-9) || (tab === 'shield' && !!lim?.paused)} onClick={() => (tab === 'shield' ? guarded : (f: () => void) => f())(() => { setAddOpen(false); setDetail(null); run(tab === 'shield' ? 'Shielding' : 'Unshielding', async step => {
             if (tab === 'unshield') await confirmSpend(step)
             await engine[tab](cur, n, step)
             api.log({ kind: tab, title: (tab === 'shield' ? 'Shielded ' : 'Unshielded ') + cur, detail: amt4(cur, n) })
             setAmt(''); await api.refresh()
-          }, tab === 'shield' ? 'Shielded. Off the record now.' : 'Unshielded. Back on the record.') }}>
-            {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
+          }, tab === 'shield' ? 'Shielded. Off the record now.' : 'Unshielded. Back on the record.') })}>
+            {n <= 0 ? 'Enter an amount' : n > have ? 'Not enough ' + cur : tab === 'shield' && lim?.paused ? 'Deposits are paused' : tab === 'shield' && n > room + 1e-9 ? 'Over the beta limit' : (tab === 'shield' ? 'Shield ' : 'Unshield ') + fmt(n) + ' ' + cur}
           </button>}
-          {tab === 'shield' && !s.claimed && <button className="link center" data-tour="faucet" onClick={faucet}>Claim 5,000 test USDG (one time)</button>}
+          {tab === 'shield' && lim && <p className="limit">Beta limit: <b>${fmt(Math.max(0, lim.perAddress - lim.mine))}</b> of ${fmt(lim.perAddress, 0)} left for this wallet. The vault holds ${fmt(lim.used, 0)} of its ${fmt(lim.total, 0)} cap.</p>}
+          {tab === 'shield' && !CFG.mainnet && !s.claimed && <button className="link center" data-tour="faucet" onClick={faucet}>Claim 5,000 test USDG (one time)</button>}
   </>
 
   return (
@@ -106,8 +120,9 @@ export function Portfolio({ run }: { run: Run }) {
           {ready && <div className="hdots" aria-hidden><i className={page === 0 ? 'on' : ''} /><i className={page === 1 ? 'on' : ''} /></div>}
         </Card>
 
-        {ready && s.loaded && <Checklist onClaim={faucet} onPrivate={() => (Object.keys(s.walletBal).length ? shieldAll() : openAdd('shield'))} />}
-        {ready && s.loaded && <NameCard run={run} />}
+        {ready && s.loaded && !CFG.mainnet && <Checklist onClaim={faucet} onPrivate={() => (Object.keys(s.walletBal).length ? shieldAll() : openAdd('shield'))} />}
+        {ready && s.loaded && engine.namesEnabled() && <NameCard run={run} />}
+        {risk && <BetaNotice onClose={() => setRisk(null)} onAccept={() => { const go = risk; setRisk(null); go() }} />}
 
         <Card title="Your stocks and cash">
           {!ready ? (
@@ -121,8 +136,10 @@ export function Portfolio({ run }: { run: Run }) {
           ) : holdings.length === 0 ? (
             <div className="empty">
               <b>Nothing here yet</b>
-              <p>{Object.keys(s.walletBal).length ? 'You have test funds in your wallet. Make them private to start.' : (s.claimed ? 'Your wallet is empty. Add funds to get started.' : 'Claim free test USDG, then make it private. Nothing here is real money.')}</p>
-              {!Object.keys(s.walletBal).length && !s.claimed && <button className="btn sm" onClick={faucet}>Claim test USDG</button>}
+              <p>{CFG.mainnet ? (s.walletBal.USDG ? 'You have USDG in your wallet. Shield it to start.' : 'Send USDG and a little ETH for gas to your wallet on Robinhood Chain, then shield it. This is real money, and the beta is capped.')
+                : Object.keys(s.walletBal).length ? 'You have test funds in your wallet. Make them private to start.' : (s.claimed ? 'Your wallet is empty. Add funds to get started.' : 'Claim free test USDG, then make it private. Nothing here is real money.')}</p>
+              {CFG.mainnet && s.wallet && !s.walletBal.USDG && <p className="addr plain" style={{ wordBreak: 'break-all' }}>{s.wallet}</p>}
+              {!CFG.mainnet && !Object.keys(s.walletBal).length && !s.claimed && <button className="btn sm" onClick={faucet}>Claim test USDG</button>}
             </div>
           ) : <>
             {holdings.length > 1 && (

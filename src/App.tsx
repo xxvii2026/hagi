@@ -1,6 +1,7 @@
 import { LangRoot, LangSwitch } from './i18n'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { FAUCET_URL } from './chain'
+import { CFG, FAUCET_URL, LIVE } from './chain'
+import { BetaBar, ComingSoon } from './pages/Beta'
 import * as engine from './engine'
 import { short } from './data'
 import { useStore } from './store'
@@ -24,7 +25,10 @@ import type { IconName } from './ui'
 const PAGES = ['portfolio', 'swap', 'baskets', 'send', 'activity'] as const
 const ROUTES = ['home', 'docs', 'drop', ...PAGES] as const
 // The phone tab bar: the same pages, with icons.
-const TABS: [typeof PAGES[number], string, IconName][] = [['portfolio', 'Portfolio', 'wallet'], ['swap', 'Swap', 'swap'], ['baskets', 'Baskets', 'basket'], ['send', 'Send', 'send'], ['activity', 'Activity', 'clock']]
+const ALL_TABS: [typeof PAGES[number], string, IconName][] = [['portfolio', 'Portfolio', 'wallet'], ['swap', 'Swap', 'swap'], ['baskets', 'Baskets', 'basket'], ['send', 'Send', 'send'], ['activity', 'Activity', 'clock']]
+// The mainnet beta is core only, so it has no Baskets page yet.
+const TABS = ALL_TABS.filter(t => !(CFG.mainnet && t[0] === 'baskets'))
+const NAV = PAGES.filter(p => !(CFG.mainnet && p === 'baskets'))
 type Page = (typeof ROUTES)[number]
 const read = (): Page => { const h = location.hash.replace('#/', '').split('?')[0].split('/')[0]; return (ROUTES as readonly string[]).includes(h) ? (h as Page) : 'home' }
 
@@ -156,7 +160,7 @@ export default function App() {
   useEffect(() => {
     let seen = true; try { seen = !!localStorage.getItem(TOUR_KEY) } catch { /* show it */ }
     // The tour is for PC only. On phones it popped up over the sign-in screen and got in the way.
-    if (page === 'portfolio' && !seen && !phone) { const t = setTimeout(() => setTouring(true), 700); return () => clearTimeout(t) }
+    if (page === 'portfolio' && !seen && !phone && !CFG.mainnet) { const t = setTimeout(() => setTouring(true), 700); return () => clearTimeout(t) }
   }, [page, phone])
 
   return (
@@ -166,10 +170,10 @@ export default function App() {
         <a className="lg" href="#/home"><Mark leaf={dark ? '#ffffff' : undefined} secret />hagi</a>
         <nav className="links">{page === 'home'
           ? <>{[['check', 'Check your wallet'], ['how', 'How it works'], ['baskets', 'Baskets'], ['faq', 'Questions']].map(([id, t]) => <button key={id} onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })}>{t}</button>)}<a href="#/docs">Docs</a></>
-          : <>{PAGES.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}<a href="#/docs" className={page === 'docs' ? 'on' : ''}>Docs</a></>}</nav>
+          : <>{NAV.map(p => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''}>{p[0].toUpperCase() + p.slice(1)}</a>)}<a href="#/docs" className={page === 'docs' ? 'on' : ''}>Docs</a></>}</nav>
         <div className="rt">
-          {app && <button className="help" onClick={startTour} aria-label="Take the tour" title="Take the tour">?</button>}
-          {app && <span className={'net' + (s.offline ? ' is-off' : '')}><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : 'Testnet'}</span>}
+          {app && !CFG.mainnet && <button className="help" onClick={startTour} aria-label="Take the tour" title="Take the tour">?</button>}
+          {app && <span className={'net' + (s.offline ? ' is-off' : '')}><i className={s.offline ? 'off' : ''} />{s.offline ? 'Can’t reach the chain' : s.syncing ? 'Syncing' : CFG.mainnet ? 'Mainnet beta' : 'Testnet'}</span>}
           {page !== 'docs' && <LangSwitch />}
           {page === 'home' ? <a className="wal" href="#/portfolio" onClick={e => { e.preventDefault(); openApp() }}>Open the app</a>
             : ready ? <WalletMenu />
@@ -179,10 +183,11 @@ export default function App() {
       <PullToRefresh enabled={phone && ready && (page === 'portfolio' || page === 'activity')} onRefresh={api.refresh} />
       {page === 'portfolio' && <InstallCard />}
       {/* Remount when the query changes too, so links like Send vs Send?tab=receive open the right tab. */}
+      {app && CFG.mainnet && <BetaBar />}
       <main key={page + (location.hash.split("?")[1] ?? "")} className="pg">
-        {page === 'home' ? <Landing /> : page === 'docs' ? <Docs /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : page === 'drop' ? <DropPage run={run} /> : <Portfolio run={run} />}
+        {app && !LIVE ? <ComingSoon /> : page === 'baskets' && CFG.mainnet ? <Portfolio run={run} /> : page === 'home' ? <Landing /> : page === 'docs' ? <Docs /> : page === 'swap' ? <Swap run={run} /> : page === 'baskets' ? <Baskets run={run} /> : page === 'send' ? <Send run={run} /> : page === 'activity' ? <Activity /> : page === 'drop' ? <DropPage run={run} /> : <Portfolio run={run} />}
       </main>
-      {page !== 'home' && <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href="#/docs">Docs</a><a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a><a href="https://explorer.testnet.chain.robinhood.com" target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>}
+      {page !== 'home' && <footer className="foot"><span className="fm"><Mark size={18} /><b>hagi</b><span>Stocks, off the record.</span></span><span className="fl2"><a href="#/docs">Docs</a>{!CFG.mainnet && <a href={FAUCET_URL} target="_blank" rel="noopener noreferrer">Faucet</a>}<a href={CFG.explorer} target="_blank" rel="noopener noreferrer">Explorer</a><span>Robinhood Chain Testnet</span></span></footer>}
       {app && (
         <nav className="tabbar" aria-label="Hagi">
           {TABS.map(([p, label, icon]) => <a key={p} href={'#/' + p} className={p === page ? 'on' : ''} aria-current={p === page ? 'page' : undefined}><Icon name={icon} size={24} /><span>{label}</span></a>)}

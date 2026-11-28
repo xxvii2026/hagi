@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { token, type Basket } from './data'
+import { LIVE } from './chain'
 import * as engine from './engine'
 import { createPasskey, usePasskey } from './passkey'
 import { shownBalance } from './roll'
@@ -47,6 +48,7 @@ export function Store({ children }: { children: ReactNode }) {
 
   // Reads the Ghost Address, and says so once when a new deposit lands there.
   const readGhost = useCallback(async (fn?: 'new') => {
+    if (!engine.ghostEnabled()) return
     const g = fn === 'new' ? await engine.newGhost() : await engine.readGhosts()
     if (!g) return
     const ids = g.pending.map(p => p.address + p.symbol + p.raw)
@@ -58,7 +60,7 @@ export function Store({ children }: { children: ReactNode }) {
 
   // A quiet refresh is the background check for new funds: it doesn't flash "Syncing" in the top bar.
   const refresh = useCallback(async (quiet = false) => {
-    if (busy.current) return
+    if (busy.current || !LIVE) return // nothing to read until the contracts exist
     busy.current = true
     if (!quiet) patch({ syncing: true })
     try {
