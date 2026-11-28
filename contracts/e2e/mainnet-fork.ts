@@ -46,9 +46,8 @@ async function main() {
     const d = Object.fromEntries([...out.matchAll(/DEPLOYED (\w+) (0x[0-9a-fA-F]{40})/g)].map(m => [m[1], m[2] as Hex]))
     const listed = Number(out.match(/LISTED stocks (\d+)/)?.[1])
     assert.equal(listed, tokens.length)
-    const deployGas = sh(`cast receipt --rpc-url ${RPC} $(cast block latest --rpc-url ${RPC} --json | jq -r '.transactions[0]') gasUsed`).trim()
     const spent = 10_000n * 10n ** 18n - await pub.getBalance({ address: privateKeyToAccount(K0).address })
-    console.log(`ok  deploy: vault ${d.vault}, adapter ${d.adapter}, ${listed} stocks listed, whole deploy cost ${Number(spent) / 1e18} ETH at the fork's gas price (last tx gas ${deployGas})`)
+    console.log(`ok  deploy: vault ${d.vault}, adapter ${d.adapter}, ${listed} stocks listed, whole deploy cost ${Number(spent) / 1e18} ETH at the fork's gas price`)
     const vault = { address: d.vault, abi: vaultAbi } as const
     const bal = (token: Hex, who: Hex) => pub.readContract({ address: token, abi: erc20, functionName: 'balanceOf', args: [who] })
     const send = async (w: typeof alice, req: any) => { const hash = await w.writeContract(req); const r = await pub.waitForTransactionReceipt({ hash }); assert.equal(r.status, 'success'); return r }
