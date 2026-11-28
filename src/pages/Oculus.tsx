@@ -11,6 +11,10 @@ const RUNES = ['M2 18V0M2 4L8 0M2 9L8 5', 'M2 18V0L8 6V18', 'M3 18V0M3 5L8 9L3 1
   'M5 18V0M5 8L1 2M5 8L9 2', 'M5 18V0M1 5L5 0L9 5', 'M1 18V0L9 8M9 18V0L1 8', 'M2 18L8 8L5 2L2 8L8 18', 'M1 2V16L9 2V16Z', 'M5 0V18M5 0L9 4M5 18L1 14', 'M5 0V18', 'M1 4L5 9L1 14M9 4L5 9L9 14']
 const RING = Array.from({ length: 44 }, (_, i) => (i * 7 + ((i * i) % 5) * 3) % RUNES.length)
 
+// "THE OCULUS" cut in the same rune strokes as the ring, still readable as letters.
+const GLYPH: Record<string, string> = { T: 'M5 18V1M1 5L5 1L9 5', H: 'M2 0V18M8 0V18M2 6L8 12', E: 'M8 2L2 0V18L8 16M2 9L7 10.5', O: 'M5 0L9 9L5 18L1 9Z', C: 'M8 2L2 9L8 16', U: 'M2 0V13L5 18L8 13V0', L: 'M2 0V18L8 14', S: 'M8 1L2 6L8 12L2 17' }
+const TITLE = (() => { let x = 1; return [...'THE OCULUS'].map(ch => { const at = x; x += ch === ' ' ? 9 : 14; return { ch, at } }).filter(g => g.ch !== ' ') })()
+
 const full = (v: number) => Math.round(v).toLocaleString('en-US')
 
 function useCount(target: number) {
@@ -130,7 +134,7 @@ export default function Oculus() {
               <div className="oc-unit">$HAGI burned</div>
             </div>
         </div>
-        <h1>The Oculus</h1>
+        <h1 aria-label="The Oculus"><svg viewBox="0 -1 132 20" aria-hidden="true">{TITLE.map((g, i) => <path key={i} d={GLYPH[g.ch]} transform={`translate(${g.at} 0)`} style={{ animationDelay: `${-((i * 53) % 110) / 10}s` }} />)}</svg></h1>
         <p>A window into HELL. Every $HAGI that falls in is gone for good.</p>
       </section>
     </div>
