@@ -14,9 +14,9 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) addEventListener('load
 const Admin = lazy(() => import('./pages/AdminGate'))
 const isAdmin = () => location.hash.split('?')[0] === '#/admin'
 
-// The HELL window lives on its own subdomain (hellwindow.hagitrade.xyz). #/hell opens it anywhere for previews.
-const Hell = lazy(() => import('./pages/HellWindow'))
-const isHell = () => location.hostname.startsWith('hellwindow.') || location.hash.split('?')[0] === '#/hell'
+// The Oculus (the HELL burn window) lives on its own subdomain, oculus.hagitrade.xyz. #/oculus opens it anywhere.
+const Hell = lazy(() => import('./pages/Oculus'))
+const isHell = () => /^(oculus|hellwindow)\./.test(location.hostname) || ['#/oculus', '#/hell'].includes(location.hash.split('?')[0])
 
 function Root() {
   const [admin, setAdmin] = useState(isAdmin)
