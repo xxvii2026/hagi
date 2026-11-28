@@ -7,7 +7,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 // Two networks share this relayer. `?net=main` is the mainnet beta, with its own vault and its own key.
 const NETS = {
   test: { vault: (process.env.VAULT_ADDRESS || '0x0C3C8c6929851818d6a15A4c57D68F9342B81798') as Hex, rpc: process.env.RPC_URL || 'https://rpc.testnet.chain.robinhood.com', chainId: Number(process.env.CHAIN_ID || 46630), key: () => process.env.RELAYER_PRIVATE_KEY, keyName: 'RELAYER_PRIVATE_KEY' },
-  main: { vault: (process.env.MAINNET_VAULT_ADDRESS || '') as Hex, rpc: process.env.MAINNET_RPC_URL || 'https://rpc.mainnet.chain.robinhood.com', chainId: 4663, key: () => process.env.MAINNET_RELAYER_PRIVATE_KEY, keyName: 'MAINNET_RELAYER_PRIVATE_KEY' },
+  main: { vault: (process.env.MAINNET_VAULT_ADDRESS || '0x4450EFCd81DC7d3DfE54f27b351E1FF498437787') as Hex, rpc: process.env.MAINNET_RPC_URL || 'https://rpc.mainnet.chain.robinhood.com', chainId: 4663, key: () => process.env.MAINNET_RELAYER_PRIVATE_KEY, keyName: 'MAINNET_RELAYER_PRIVATE_KEY' },
 }
 
 const abi = parseAbi([

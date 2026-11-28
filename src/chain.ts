@@ -50,7 +50,6 @@ const TESTNET: Config = {
 }
 
 // Robinhood Chain mainnet, for the beta. Core only: shield USDG, swap, send, unshield.
-// The vault and adapter addresses are filled in after the deploy. Until then the beta build shows "coming soon".
 const ZERO = '0x0000000000000000000000000000000000000000' as Hex
 const MAINNET: Config = {
   chainId: 4663,
@@ -58,9 +57,10 @@ const MAINNET: Config = {
   rpc: 'https://rpc.mainnet.chain.robinhood.com',
   explorer: 'https://robin.etherscan.io',
   relayerUrl: '/api/relay?net=main',
-  deployBlock: 0,
+  deployBlock: 125182688,
   mainnet: true,
-  contracts: { usdg: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168', swap: ZERO, basketRegistry: ZERO, vault: ZERO },
+  // Recorded in contracts/deployments/mainnet.json. `swap` holds the Uniswap adapter the vault trades through.
+  contracts: { usdg: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168', swap: '0x0196081E89D79279b0Eb2fd1f13f029f5049Fb72', basketRegistry: ZERO, vault: '0x4450EFCd81DC7d3DfE54f27b351E1FF498437787' },
   uni: { quoter: '0x33e885eD0Ec9bF04EcfB19341582aADCb4c8A9E7', fees: Object.fromEntries(LIST.map(t => [t.symbol, t.fee])), pools: Object.fromEntries(LIST.map(t => [t.symbol, t.pool as Hex])) },
   limits: { perAddress: 100, total: 10_000 },
   // Every stock token with a deep enough Uniswap pool against USDG. The list is built by contracts/script/discover.mjs.
