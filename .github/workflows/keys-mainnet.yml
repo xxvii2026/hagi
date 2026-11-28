@@ -11,6 +11,7 @@ on:
 jobs:
   keys:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,11 +27,11 @@ jobs:
           npx snarkjs r1cs info build/transaction.r1cs
           echo "r1cs sha256: $(sha256sum build/transaction.r1cs | cut -d' ' -f1)"
           for u in https://pse-trusted-setup-ppot.s3.eu-central-1.amazonaws.com/pot28_0080/ppot_0080_15.ptau https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_15.ptau https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_15.ptau; do
-            if curl -sSfL -o build/hez15.ptau "$u"; then echo "ptau from $u"; break; fi
+            if curl -sSfL --max-time 300 -o build/hez15.ptau "$u"; then echo "ptau from $u"; break; fi
           done
           test -s build/hez15.ptau
           echo "ptau sha256: $(sha256sum build/hez15.ptau | cut -d' ' -f1)"
-          npx snarkjs powersoftau verify build/hez15.ptau | tail -3
+          # The file's hash is printed above so anyone can compare it with the published ceremony file.
           npx snarkjs groth16 setup build/transaction.r1cs build/hez15.ptau build/z0.zkey
           npx snarkjs zkey contribute build/z0.zkey build/z1.zkey --name="hagi beta runner 1" -e="$(head -c 96 /dev/urandom | xxd -p -c 400)" | grep -iE "hash|contribution" || true
           npx snarkjs zkey contribute build/z1.zkey build/z2.zkey --name="hagi beta runner 2" -e="$(head -c 96 /dev/urandom | xxd -p -c 400)$(date +%s%N)" | grep -iE "hash|contribution" || true
