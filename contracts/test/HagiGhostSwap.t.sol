@@ -44,8 +44,11 @@ contract HagiGhostSwapTest is Test {
         gs = new HagiGhostSwap(IHagiVaultShield(address(vault)), IHagiSwapExact(address(swap)), owner, 50, treasury, relayer);
         vm.startPrank(owner);
         vault.setTokenAllowed(address(usdg), true);
+        vault.setShieldLimit(address(usdg), type(uint128).max, type(uint128).max);
         vault.setTokenAllowed(address(amzn), true);
+        vault.setShieldLimit(address(amzn), type(uint128).max, type(uint128).max);
         vault.setTokenAllowed(address(tsla), true);
+        vault.setShieldLimit(address(tsla), type(uint128).max, type(uint128).max);
         usdg.mint(exchange, 100_000e6);
         vm.stopPrank();
         tsla.mint(exchange, 10e18);
