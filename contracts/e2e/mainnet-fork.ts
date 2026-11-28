@@ -150,6 +150,7 @@ async function main() {
     await assert.rejects(relayer.writeContract({ ...vault, functionName: 'transact', args: [bad.proof, bad.ext] }), /InvalidProof|revert/i)
     console.log('ok  a proof from the testnet keys is rejected on mainnet')
     console.log('ALL MAINNET FORK CHECKS PASSED')
+    anvil.kill(); process.exit(0) // the prover's worker threads would keep the process alive
   } finally { anvil.kill() }
 }
 main().catch(e => { console.error(e); process.exit(1) })
