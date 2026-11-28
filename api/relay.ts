@@ -3,6 +3,7 @@
 // It cannot change a transaction: the proof binds the recipient, amounts and swap terms.
 import { createPublicClient, createWalletClient, encodeFunctionData, formatEther, http, parseAbi, parseEther, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
+import { passValid } from './_gate'
 
 // Two networks share this relayer. `?net=main` is the mainnet beta, with its own vault and its own key.
 const NETS = {
@@ -105,7 +106,7 @@ export default async function handler(req: any, res: any) {
     res.statusCode = status
     res.setHeader('content-type', 'application/json')
     res.setHeader('access-control-allow-origin', '*')
-    res.setHeader('access-control-allow-headers', 'content-type')
+    res.setHeader('access-control-allow-headers', 'content-type, x-hagi-pass')
     res.setHeader('access-control-allow-methods', 'POST, OPTIONS')
     res.end(JSON.stringify(data))
   }
@@ -123,6 +124,8 @@ export default async function handler(req: any, res: any) {
 
   // Opening this address in a browser shows whether the relayer is set up. It never reveals the key.
   const q = req.query ?? Object.fromEntries(new URL(req.url || '/', 'http://x').searchParams)
+  // While the beta is invite-only, the mainnet relayer only works for signed-in whitelisted wallets.
+  if (isMain && (req.method === 'POST' || q.fee) && !passValid(req.headers?.['x-hagi-pass'])) return reply(403, { error: 'The mainnet beta is invite-only for now' })
   if (req.method === 'GET' && isMain && q.fee) {
     if (!account) return reply(503, { error: net.keyName + ' is not set for this deployment' })
     try { return reply(200, { fee: String(await feeFor(pub, VAULT, String(q.fee) as Hex, Number(q.legs) || 0)), relayer: account.address }) }
