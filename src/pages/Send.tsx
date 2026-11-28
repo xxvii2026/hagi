@@ -8,6 +8,7 @@ import { useStore } from '../store'
 import { parseAddress } from '../zk/core'
 import { getAddress, isAddress } from 'viem'
 import { AmountField, Card, NeedAccount, TokenPicker, type Run } from '../ui'
+import { CFG } from '../chain'
 import { GhostPanel } from './Ghost'
 import { useMyName } from './Names'
 import { DropMaker } from './Drop'
@@ -24,8 +25,8 @@ export function Send({ run }: { run: Run }) {
   const [amt, setAmt] = useState('')
   const [qr, setQr] = useState('')
   const [copied, setCopied] = useState(false)
-  const [many, setMany] = useState(hashParam('mode') === 'burst')
-  const [drop, setDrop] = useState(hashParam('mode') === 'drop')
+  const [many, setMany] = useState(!CFG.mainnet && hashParam('mode') === 'burst')
+  const [drop, setDrop] = useState(!CFG.mainnet && hashParam('mode') === 'drop')
   // Receive shows the hagi1 address, or a Ghost Address that any wallet or exchange can pay.
   const [rmode, setRmode] = useState<'hagi' | 'ghost'>(hashParam('r') === 'ghost' && engine.ghostEnabled() ? 'ghost' : 'hagi')
   const [list, setList] = useState('')
@@ -61,7 +62,7 @@ export function Send({ run }: { run: Run }) {
       <Card>
         <div className="tabs"><button className={tab === 'send' ? 'on' : ''} onClick={() => setTab('send')}>Send</button><button className={tab === 'receive' ? 'on' : ''} onClick={() => setTab('receive')}>Receive</button></div>
         {tab === 'send' ? <>
-          <div className="seg" role="tablist" aria-label="Send mode"><button className={!many && !drop ? 'on' : ''} onClick={() => { setMany(false); setDrop(false) }}>Single</button><button className={many && !drop ? 'on' : ''} onClick={() => { setMany(true); setDrop(false) }}>Burst</button><button className={drop ? 'on' : ''} onClick={() => setDrop(true)}>Drop</button></div>
+          {!CFG.mainnet && <div className="seg" role="tablist" aria-label="Send mode"><button className={!many && !drop ? 'on' : ''} onClick={() => { setMany(false); setDrop(false) }}>Single</button><button className={many && !drop ? 'on' : ''} onClick={() => { setMany(true); setDrop(false) }}>Burst</button><button className={drop ? 'on' : ''} onClick={() => setDrop(true)}>Drop</button></div>}
           {drop ? <DropMaker run={run} /> : many ? <>
             <div className="fld"><span className="fl">People and amounts</span>
               <textarea className="txt burst-in" rows={6} placeholder={'Paste addresses, or address and amount pairs.\nHagi lines them up for you.'} value={list} onChange={e => { setList(e.target.value); setPaid(-1) }}

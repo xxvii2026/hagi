@@ -957,3 +957,12 @@ body.busy .overlay .btn{pointer-events:auto;opacity:1}
 .namecard.has .nc-row{display:flex;align-items:center;gap:14px}.namecard.has .g{flex:1;display:flex;flex-direction:column}.namecard.has .g b{font-size:18px}.namecard.has .g span{color:var(--mute);font-size:13px}
 .nc-ic{width:34px;height:34px;border-radius:50%;background:#566eba;color:#fff;display:grid;place-items:center;flex-shrink:0}
 .rcv-name{font-size:24px;font-weight:700;letter-spacing:-.02em;margin:4px 0 2px}
+
+/* Token picker search, shown when the list is long */
+.tpl .tpf{position:sticky;top:-6px;background:#fff;padding:6px 4px 6px;z-index:1}.tpl .tpf input{width:100%;border:1px solid rgba(27,33,64,.1);border-radius:14px;padding:10px 12px;font:inherit;font-size:16px;outline:none;background:var(--page)}.tpl .tpf input:focus{border-color:var(--peri)}
+.tpl .tpn{padding:14px 12px;color:var(--mute);font-size:14px}
+/* Mainnet beta */
+.betabar{background:#1b2140;color:#fff;font-size:13.5px;text-align:center;padding:9px 16px;line-height:1.4}.betabar b{font-weight:600}.betabar a{color:#b4c2ff;text-decoration:underline}
+.limit{font-size:13.5px;color:var(--mute);text-align:center;margin-top:12px}.limit b{color:var(--ink);font-weight:600}
+.soon{max-width:520px;margin:12vh auto;text-align:center;padding:0 24px}.soon h2{font:500 40px/1.1 'Inter Display',Inter,sans-serif;letter-spacing:-.035em;margin:18px 0 12px}.soon p{color:var(--mute);font-size:17px;line-height:1.5}
+.risk ul{margin:14px 0 6px;padding-left:20px;display:grid;gap:9px;font-size:15px;line-height:1.45;color:var(--ink)}.risk label{display:flex;gap:10px;align-items:flex-start;margin:16px 0;font-size:15px;line-height:1.4;cursor:pointer}.risk label input{margin-top:3px;width:18px;height:18px;flex:none}

@@ -10,14 +10,19 @@ export type Token = { symbol: string; name: string; decimals: number; address: H
 // If a logo fails to load, the app falls back to the ticker badge.
 const logo = (ticker: string) => `https://cdn.jsdelivr.net/gh/nvstly/icons@main/ticker_icons/${ticker}.png`
 
+const USDG_LOGO = 'https://coin-images.coingecko.com/coins/images/51281/large/GDN_USDG_Token_200x200.png'
+const DARK = new Set(['AMZN', 'PLTR']) // marks drawn in white
+const NAMES: Record<string, string> = { TSLA: 'Tesla', AMD: 'AMD', AMZN: 'Amazon', NFLX: 'Netflix', PLTR: 'Palantir' }
+const ORDER = ['TSLA', 'AMD', 'AMZN', 'NFLX', 'PLTR']
+// Robinhood's names end in "Stock Token" or similar. The app shows just the company.
+const tidy = (n: string) => n.split('•')[0].replace(/,?\s+(PBC|Inc\.?|Corp(oration)?\.?|Ltd\.?|plc|N\.V\.)(?=\s|$)/gi, '').replace(/\s+Class [A-Z]\b.*$/i, '').replace(/\s+Common Stock$/i, '').replace(/^Space Exploration Technologies$/, 'SpaceX').trim()
+
 export const TOKENS: Token[] = [
-  // Hagi's test dollar stands in for USDG (Global Dollar), so it wears that logo. The name stays "Test USDG".
-  { symbol: 'USDG', name: 'Test USDG', decimals: 6, address: CFG.contracts.usdg, price: 1, logoURI: 'https://coin-images.coingecko.com/coins/images/51281/large/GDN_USDG_Token_200x200.png', logoFill: true },
-  { symbol: 'TSLA', name: 'Tesla', decimals: 18, address: CFG.tokens.TSLA, price: 0, logoURI: logo('TSLA') },
-  { symbol: 'AMD', name: 'AMD', decimals: 18, address: CFG.tokens.AMD, price: 0, logoURI: logo('AMD') },
-  { symbol: 'AMZN', name: 'Amazon', decimals: 18, address: CFG.tokens.AMZN, price: 0, logoURI: logo('AMZN'), logoDark: true },
-  { symbol: 'NFLX', name: 'Netflix', decimals: 18, address: CFG.tokens.NFLX, price: 0, logoURI: logo('NFLX') },
-  { symbol: 'PLTR', name: 'Palantir', decimals: 18, address: CFG.tokens.PLTR, price: 0, logoURI: logo('PLTR'), logoDark: true },
+  // On testnet Hagi's test dollar stands in for USDG (Global Dollar), so it wears that logo.
+  { symbol: 'USDG', name: CFG.mainnet ? 'USDG' : 'Test USDG', decimals: 6, address: CFG.contracts.usdg, price: 1, logoURI: USDG_LOGO, logoFill: true },
+  ...Object.keys(CFG.tokens).sort((a, b) => (ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99)).map(s => ({
+    symbol: s, name: NAMES[s] ?? (CFG.names?.[s] ? tidy(CFG.names[s]) || s : s), decimals: 18, address: CFG.tokens[s], price: 0, logoURI: logo(s), ...(DARK.has(s) ? { logoDark: true } : {}),
+  })),
 ]
 export const STOCKS = TOKENS.filter(t => t.symbol !== 'USDG')
 export const token = (s: string): Token => TOKENS.find(t => t.symbol === s) ?? { symbol: s, name: s, decimals: 18, address: '0x0000000000000000000000000000000000000000', price: 0 }

@@ -1,9 +1,9 @@
 // Talks to the chain: balances, pools, baskets, vault notes, and every action the app can take.
-import { bytesToHex, concat, createPublicClient, createWalletClient, custom, encodeAbiParameters, getAddress, http, isAddress, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
+import { bytesToHex, concat, createPublicClient, createWalletClient, custom, encodeAbiParameters, encodePacked, getAddress, http, isAddress, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
 import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
-import { erc20Abi, ghostAbi, registryAbi, swapAbi, vaultAbi } from './abi'
+import { erc20Abi, ghostAbi, guardAbi, quoterAbi, registryAbi, slot0Abi, swapAbi, vaultAbi } from './abi'
 import { CFG, chain } from './chain'
-import { STOCKS, TOKENS, fromUnits, token, tokenByAddress, type Basket } from './data'
+import { STOCKS, TOKENS, fromUnits, toUnits, token, tokenByAddress, type Basket } from './data'
 import { SIGN_MESSAGE, MerkleTree, commitment, decryptNote, deriveKeys, encryptNote, ghostAddress, ghostBlinding, ghostPartial, matchGhost, nullifier, parseAddress, partialCommitment, randomField, toAddress, type Keys, type Note } from './zk/core'
 import type { TxRequest } from './zk/prove'
 
@@ -22,7 +22,8 @@ const wal = () => local ? createWalletClient({ chain, account: local, transport:
 const acct = () => local ?? account!
 export const isPasskey = () => !!local
 const V = { address: CFG.contracts.vault, abi: vaultAbi } as const
-const ART = { wasm: `${import.meta.env.BASE_URL}zk/transaction.wasm`, zkey: `${import.meta.env.BASE_URL}zk/transaction.zkey` }
+const ZK = import.meta.env.BASE_URL + (CFG.zk ?? 'zk/')
+const ART = { wasm: ZK + 'transaction.wasm', zkey: ZK + 'transaction.zkey' }
 const NEW_COMMITMENT = parseAbiItem('event NewCommitment(uint256 indexed commitment, uint256 index, address token, uint256 amount, bytes encryptedNote)')
 
 // ---------- session ----------
@@ -133,6 +134,17 @@ export async function readWallet(): Promise<{ balances: Record<string, number>; 
 
 /** Reads every pool's reserves and updates each stock's price. */
 export async function readPools() {
+  if (CFG.uni) {
+    // Mainnet: read every stock's Uniswap pool price in one batched call.
+    const res = await pub.multicall({ contracts: STOCKS.map(t => ({ address: CFG.uni!.pools[t.symbol], abi: slot0Abi, functionName: 'slot0' as const })), multicallAddress: '0xcA11bde05977b3631167028862bE2a173976CA11', allowFailure: true })
+    const usdg = BigInt(CFG.contracts.usdg)
+    STOCKS.forEach((t, i) => {
+      const r = res[i]; if (r.status !== 'success') return
+      const p = Number(r.result[0]) / 2 ** 96, raw = p * p // token1 per token0, in smallest units
+      t.price = BigInt(t.address) < usdg ? raw * 1e12 : 1 / raw * 1e12
+    })
+    return
+  }
   const rs = await Promise.all(STOCKS.map(t => pub.readContract({ address: CFG.contracts.swap, abi: swapAbi, functionName: 'pools', args: [t.address] })))
   STOCKS.forEach((t, i) => {
     reserves[t.symbol] = [rs[i][0], rs[i][1]]
@@ -144,12 +156,21 @@ const out = (amountIn: bigint, rIn: bigint, rOut: bigint) => { const f = amountI
 /** Estimates a swap from the last pool reserves read, using the same maths as the pools. */
 export function estimate(from: string, to: string, amountIn: bigint): bigint {
   if (from === to || amountIn <= 0n) return 0n
+  if (CFG.uni) {
+    // Mainnet: a preview from the last prices, less each pool's fee. The real quote is taken when you swap.
+    const a = token(from), b = token(to)
+    if (!a.price || !b.price) return 0n
+    const keep = (s: string) => s === 'USDG' ? 1 : 1 - (CFG.uni!.fees[s] ?? 3000) / 1e6
+    const usd = fromUnits(amountIn, a.decimals) * a.price * keep(from) * keep(to)
+    return toUnits(Math.floor((usd / b.price) * 1e6) / 1e6, b.decimals)
+  }
   const sell = (s: string, x: bigint) => out(x, reserves[s]?.[0] ?? 0n, reserves[s]?.[1] ?? 0n)
   const buy = (s: string, x: bigint) => out(x, reserves[s]?.[1] ?? 0n, reserves[s]?.[0] ?? 0n)
   return from === 'USDG' ? buy(to, amountIn) : to === 'USDG' ? sell(from, amountIn) : buy(to, sell(from, amountIn))
 }
 
 export async function readBaskets(): Promise<Basket[]> {
+  if (CFG.mainnet) return [] // no baskets in the mainnet beta yet
   const raw = await pub.readContract({ address: CFG.contracts.basketRegistry, abi: registryAbi, functionName: 'getBaskets', args: [0n, 200n] })
   return raw.map((b, id) => ({
     id, name: b.name, creator: b.creator.slice(0, 6) + '…' + b.creator.slice(-4), buyers: Number(b.buyers), created: Number(b.createdAt),
@@ -420,8 +441,42 @@ async function inputsFor(sym: string, amount: bigint, step: Step): Promise<Note[
     if (mine[0].amount >= amount) return [mine[0]]
     if (mine[0].amount + mine[1].amount >= amount) return [mine[0], mine[1]]
     step('Combining smaller notes')
-    await privately({ token: t.address, inputs: [mine[0], mine[1]], outputs: [{ amount: mine[0].amount + mine[1].amount, publicKey: keys!.publicKey, encPublic: keys!.encPublic, own: true }] }, () => {})
+    // Combining is its own private transaction, so on mainnet it pays the network fee too.
+    const f = await relayFee(sym)
+    const sum = mine[0].amount + mine[1].amount
+    if (sum <= f.fee) throw new Error('Your ' + sym + ' is in pieces too small to combine after the network fee')
+    await privately({ token: t.address, inputs: [mine[0], mine[1]], outputs: [{ amount: sum - f.fee, publicKey: keys!.publicKey, encPublic: keys!.encPublic, own: true }], ...pay(f) }, () => {})
   }
+}
+
+// ---------- network fee (mainnet) ----------
+// On mainnet each private transaction pays back the gas the relayer spends on it, taken from the same
+// token that is being moved. The relayer quotes it. On testnet there is no fee.
+type Fee = { fee: bigint; relayer: Hex }
+const pay = (f: Fee) => (f.fee > 0n ? { relayer: f.relayer, fee: f.fee } : {})
+async function relayFee(sym: string, legs = 0): Promise<Fee> {
+  if (!CFG.mainnet) return { fee: 0n, relayer: '0x0000000000000000000000000000000000000000' }
+  let r: Response | undefined
+  try { r = await fetch(`${CFG.relayerUrl}&fee=${token(sym).address}&legs=${legs}`) } catch { /* reported below */ }
+  const j = r?.ok ? await r.json().catch(() => null) : null
+  if (!j?.fee || !j.relayer) throw new Error('Could not get the network fee right now. Try again in a moment.')
+  return { fee: BigInt(j.fee), relayer: j.relayer }
+}
+/** The network fee for one private transaction, in the token itself. For showing in the app. */
+export async function networkFee(sym: string, legs = 0): Promise<number> {
+  return fromUnits((await relayFee(sym, legs)).fee, token(sym).decimals)
+}
+/** Works out a spend: the amount, the fee on top, and the notes that cover both.
+ *  Spending the whole balance takes the fee out of the amount instead. */
+async function plan(sym: string, wanted: bigint, step: Step, legs = 0) {
+  const f = await relayFee(sym, legs)
+  let amount = wanted
+  if (amount + f.fee > rawShielded(sym)) amount = rawShielded(sym) - f.fee
+  if (amount <= 0n) throw new Error('That is too small to cover the network fee')
+  const inputs = await inputsFor(sym, amount + f.fee, step)
+  // Combining notes can pay a fee of its own, so check again what is left.
+  if (inputs.reduce((t, n) => t + n.amount, 0n) < amount + f.fee) throw new Error('Not enough shielded ' + sym + ' after the network fee')
+  return { amount, inputs, spent: amount + f.fee, pay: pay(f) }
 }
 const change = (inputs: Note[], spent: bigint) => {
   const left = inputs.reduce((s, n) => s + n.amount, 0n) - spent
@@ -447,6 +502,7 @@ export async function faucet(step: Step) {
 
 export async function shield(sym: string, n: number, step: Step) {
   if (!keys || !account) throw new Error('Unlock your Hagi account first')
+  if (CFG.mainnet && sym !== 'USDG') throw new Error('The beta takes USDG deposits only. Swap into stocks once it is shielded.')
   const t = token(sym)
   await ensureChain()
   const have = await pub.readContract({ address: t.address, abi: erc20Abi, functionName: 'balanceOf', args: [account] })
@@ -465,17 +521,15 @@ export async function shield(sym: string, n: number, step: Step) {
 
 /** Takes funds out of the vault, to your own wallet or to any other 0x wallet. The relayer submits it, so your wallet isn't on the transaction. */
 export async function unshield(sym: string, n: number, step: Step, recipient?: Hex) {
-  const amount = amountOf(sym, n, rawShielded(sym))
-  const inputs = await inputsFor(sym, amount, step)
-  await privately({ token: token(sym).address, inputs, outputs: change(inputs, amount), withdraw: { recipient: recipient ?? account!, amount } }, step)
+  const { amount, inputs, spent, pay } = await plan(sym, amountOf(sym, n, rawShielded(sym)), step)
+  await privately({ token: token(sym).address, inputs, outputs: change(inputs, spent), withdraw: { recipient: recipient ?? account!, amount }, ...pay }, step)
 }
 
 export async function send(sym: string, n: number, to: string, step: Step) {
   const dest = parseAddress(to)
   if (!dest) throw new Error('That is not a Hagi address')
-  const amount = amountOf(sym, n, rawShielded(sym))
-  const inputs = await inputsFor(sym, amount, step)
-  await privately({ token: token(sym).address, inputs, outputs: [{ amount, publicKey: dest.publicKey, encPublic: dest.encPublic }, ...change(inputs, amount)] }, step)
+  const { amount, inputs, spent, pay } = await plan(sym, amountOf(sym, n, rawShielded(sym)), step)
+  await privately({ token: token(sym).address, inputs, outputs: [{ amount, publicKey: dest.publicKey, encPublic: dest.encPublic }, ...change(inputs, spent)], ...pay }, step)
 }
 
 export type BurstItem = { to: string; n: number }
@@ -517,17 +571,40 @@ export async function burst(sym: string, items: BurstItem[], step: Step, onPaid?
   return paid
 }
 
-const quote = (from: Hex, to: Hex, amountIn: bigint) => pub.readContract({ address: CFG.contracts.swap, abi: swapAbi, functionName: 'quoteExactIn', args: [from, to, amountIn] })
+/** Uniswap's quote for a swap. Every stock trades against USDG, so stock to stock goes through USDG. */
+async function uniQuote(from: Hex, to: Hex, amountIn: bigint): Promise<bigint> {
+  const u = CFG.uni!, usdg = CFG.contracts.usdg
+  const fee = (a: Hex) => { const f = u.fees[tokenByAddress(a)?.symbol ?? '']; if (!f) throw new Error('No market for that stock yet'); return f }
+  if (from === usdg || to === usdg) {
+    const { result } = await pub.simulateContract({ address: u.quoter, abi: quoterAbi, functionName: 'quoteExactInputSingle', args: [{ tokenIn: from, tokenOut: to, amountIn, fee: fee(from === usdg ? to : from), sqrtPriceLimitX96: 0n }] })
+    return result[0]
+  }
+  const path = encodePacked(['address', 'uint24', 'address', 'uint24', 'address'], [from, fee(from), usdg, fee(to), to])
+  const { result } = await pub.simulateContract({ address: u.quoter, abi: quoterAbi, functionName: 'quoteExactInput', args: [path, amountIn] })
+  return result[0]
+}
+const quote = (from: Hex, to: Hex, amountIn: bigint) => CFG.uni ? uniQuote(from, to, amountIn) : pub.readContract({ address: CFG.contracts.swap, abi: swapAbi, functionName: 'quoteExactIn', args: [from, to, amountIn] })
+
+/** Mainnet beta: how much of the deposit limits is left for this wallet and for the vault as a whole. */
+export async function readLimits(): Promise<{ paused: boolean; mine: number; perAddress: number; used: number; total: number } | null> {
+  if (!CFG.mainnet) return null
+  const usdg = CFG.contracts.usdg, v = { address: CFG.contracts.vault, abi: guardAbi } as const
+  const [paused, lim, used, mine] = await Promise.all([
+    pub.readContract({ ...v, functionName: 'paused' }), pub.readContract({ ...v, functionName: 'shieldLimit', args: [usdg] }),
+    pub.readContract({ ...v, functionName: 'netShielded', args: [usdg] }), account ? pub.readContract({ ...v, functionName: 'shieldedBy', args: [usdg, account] }) : 0n,
+  ])
+  return { paused, mine: fromUnits(mine, 6), perAddress: fromUnits(lim[0], 6), used: fromUnits(used, 6), total: fromUnits(lim[1], 6) }
+}
 const SLIPPAGE = 995n // accept at least 99.5% of the quoted output
 
 export async function swap(from: string, to: string, n: number, step: Step): Promise<number> {
-  const amount = amountOf(from, n, rawShielded(from))
-  const inputs = await inputsFor(from, amount, step)
+  const { amount, inputs, spent, pay } = await plan(from, amountOf(from, n, rawShielded(from)), step, 1)
   const q = await quote(token(from).address, token(to).address, amount)
   const blinding = randomField()
   await privately({
-    token: token(from).address, inputs, outputs: change(inputs, amount),
+    token: token(from).address, inputs, outputs: change(inputs, spent),
     swap: { legs: [{ tokenOut: token(to).address, amountIn: amount, minOut: (q * SLIPPAGE) / 1000n, partialCommitment: partialCommitment(keys!.publicKey, blinding) }], legNotes: [{ blinding }] },
+    ...pay,
   }, step)
   await readPools()
   return fromUnits(q, token(to).decimals)
