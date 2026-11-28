@@ -37,8 +37,14 @@ jobs:
           npx snarkjs groth16 setup build/transaction.r1cs build/hez15.ptau build/z0.zkey
           npx snarkjs zkey contribute build/z0.zkey build/z1.zkey --name="hagi beta runner 1" -e="$(head -c 96 /dev/urandom | xxd -p -c 400)" | grep -iE "hash|contribution" || true
           npx snarkjs zkey contribute build/z1.zkey build/z2.zkey --name="hagi beta runner 2" -e="$(head -c 96 /dev/urandom | xxd -p -c 400)$(date +%s%N)" | grep -iE "hash|contribution" || true
-          BEACON=$(cast block latest --field hash --rpc-url https://rpc.mainnet.chain.robinhood.com)
-          echo "beacon: Robinhood Chain block $(cast block-number --rpc-url https://rpc.mainnet.chain.robinhood.com) hash $BEACON"
+          BEACON=""
+          for i in $(seq 1 12); do
+            BEACON=$(cast block latest --json --rpc-url https://rpc.mainnet.chain.robinhood.com 2>/dev/null | jq -r '"\(.number) \(.hash)"' || true)
+            case "$BEACON" in *0x*) break;; esac; BEACON=""; sleep 10
+          done
+          test -n "$BEACON"
+          echo "beacon: Robinhood Chain block ${BEACON% *} hash ${BEACON#* }"
+          BEACON=${BEACON#* }
           npx snarkjs zkey beacon build/z2.zkey build/transaction.zkey "${BEACON#0x}" 10 --name="hagi beta beacon"
           rm -f build/z0.zkey build/z1.zkey build/z2.zkey
           npx snarkjs zkey verify build/transaction.r1cs build/hez15.ptau build/transaction.zkey | tail -4
