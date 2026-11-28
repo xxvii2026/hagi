@@ -1,0 +1,46 @@
+name: Mainnet beta proving keys
+# Makes fresh proving keys for the mainnet beta on a clean runner.
+# Starts from the public Hermez powers-of-tau ceremony, adds two rounds of randomness from the runner
+# that are never printed or saved, then a public beacon. The runner is destroyed afterwards.
+# This is a single-operator setup, good for the capped team beta. A multi-person ceremony replaces it later.
+on:
+  workflow_dispatch:
+  push:
+    branches: [mainnet-beta]
+    paths: ['.github/workflows/keys-mainnet.yml', 'circuits/transaction.circom']
+jobs:
+  keys:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: foundry-rs/foundry-toolchain@v1
+      - name: Build keys
+        working-directory: circuits
+        run: |
+          set -euo pipefail
+          npm ci
+          mkdir -p build out
+          npx circom2 transaction.circom --r1cs --wasm --sym -o build
+          npx snarkjs r1cs info build/transaction.r1cs
+          echo "r1cs sha256: $(sha256sum build/transaction.r1cs | cut -d' ' -f1)"
+          curl -sSfL -o build/hez15.ptau https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_15.ptau
+          echo "ptau sha256: $(sha256sum build/hez15.ptau | cut -d' ' -f1)"
+          npx snarkjs powersoftau verify build/hez15.ptau | tail -3
+          npx snarkjs groth16 setup build/transaction.r1cs build/hez15.ptau build/z0.zkey
+          npx snarkjs zkey contribute build/z0.zkey build/z1.zkey --name="hagi beta runner 1" -e="$(head -c 96 /dev/urandom | xxd -p -c 400)" | grep -iE "hash|contribution" || true
+          npx snarkjs zkey contribute build/z1.zkey build/z2.zkey --name="hagi beta runner 2" -e="$(head -c 96 /dev/urandom | xxd -p -c 400)$(date +%s%N)" | grep -iE "hash|contribution" || true
+          BEACON=$(cast block latest --field hash --rpc-url https://rpc.mainnet.chain.robinhood.com)
+          echo "beacon: Robinhood Chain block $(cast block-number --rpc-url https://rpc.mainnet.chain.robinhood.com) hash $BEACON"
+          npx snarkjs zkey beacon build/z2.zkey build/transaction.zkey "${BEACON#0x}" 10 --name="hagi beta beacon"
+          rm -f build/z0.zkey build/z1.zkey build/z2.zkey
+          npx snarkjs zkey verify build/transaction.r1cs build/hez15.ptau build/transaction.zkey | tail -4
+          npx snarkjs zkey export verificationkey build/transaction.zkey out/verification_key.json
+          npx snarkjs zkey export solidityverifier build/transaction.zkey out/VerifierMainnet.sol
+          sed -i 's/contract Groth16Verifier/contract Groth16VerifierMainnet/' out/VerifierMainnet.sol
+          cp build/transaction.zkey out/transaction.zkey
+          cp build/transaction_js/transaction.wasm out/transaction.wasm
+          sha256sum out/*
+      - uses: actions/upload-artifact@v4
+        with: { name: mainnet-keys, path: circuits/out, retention-days: 14 }
