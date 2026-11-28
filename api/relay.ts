@@ -4,9 +4,11 @@
 import { createPublicClient, createWalletClient, formatEther, http, parseAbi, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 
-const VAULT = (process.env.VAULT_ADDRESS || '0x0C3C8c6929851818d6a15A4c57D68F9342B81798') as Hex
-const RPC = process.env.RPC_URL || 'https://rpc.testnet.chain.robinhood.com'
-const CHAIN_ID = Number(process.env.CHAIN_ID || 46630)
+// Two networks share this relayer. `?net=main` is the mainnet beta, with its own vault and its own key.
+const NETS = {
+  test: { vault: (process.env.VAULT_ADDRESS || '0x0C3C8c6929851818d6a15A4c57D68F9342B81798') as Hex, rpc: process.env.RPC_URL || 'https://rpc.testnet.chain.robinhood.com', chainId: Number(process.env.CHAIN_ID || 46630), key: () => process.env.RELAYER_PRIVATE_KEY, keyName: 'RELAYER_PRIVATE_KEY' },
+  main: { vault: (process.env.MAINNET_VAULT_ADDRESS || '') as Hex, rpc: process.env.MAINNET_RPC_URL || 'https://rpc.mainnet.chain.robinhood.com', chainId: 4663, key: () => process.env.MAINNET_RELAYER_PRIVATE_KEY, keyName: 'MAINNET_RELAYER_PRIVATE_KEY' },
+}
 
 const abi = parseAbi([
   'struct Proof { uint256[2] a; uint256[2][2] b; uint256[2] c; uint256 root; uint256[2] nullifiers; uint256[2] commitments; }',
@@ -51,9 +53,12 @@ export default async function handler(req: any, res: any) {
   }
   if (req.method === 'OPTIONS') return reply(204, {})
 
+  const net = NETS[String(req.query?.net ?? new URL(req.url || '/', 'http://x').searchParams.get('net')) === 'main' ? 'main' : 'test']
+  const VAULT = net.vault, RPC = net.rpc, CHAIN_ID = net.chainId
+  if (!VAULT) return reply(503, { error: 'The mainnet vault is not deployed yet' })
   const chain = { id: CHAIN_ID, name: 'hagi', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpcUrls: { default: { http: [RPC] } } }
   const pub = createPublicClient({ chain, transport: http(RPC) })
-  const key = process.env.RELAYER_PRIVATE_KEY
+  const key = net.key()
   let account
   try { if (key) account = privateKeyToAccount(('0x' + key.trim().replace(/^["']|["']$/g, '').replace(/^0x/, '')) as Hex) } catch { /* reported below */ }
 
@@ -64,8 +69,8 @@ export default async function handler(req: any, res: any) {
     return reply(200, { relayer: account?.address ?? null, keyPresent: !!key, keyValid: !!account, chainReachable: reachable, balanceEth: balance, chainId: CHAIN_ID, vault: VAULT })
   }
   if (req.method !== 'POST') return reply(405, { error: 'POST only' })
-  if (!key) return reply(503, { error: 'RELAYER_PRIVATE_KEY is not set for this deployment' })
-  if (!account) return reply(503, { error: 'RELAYER_PRIVATE_KEY is not a valid private key' })
+  if (!key) return reply(503, { error: net.keyName + ' is not set for this deployment' })
+  if (!account) return reply(503, { error: net.keyName + ' is not a valid private key' })
 
   let args
   try { args = parse(await readBody(req)) } catch { return reply(400, { error: 'Malformed request' }) }

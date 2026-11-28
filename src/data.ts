@@ -12,12 +12,13 @@ const logo = (ticker: string) => `https://cdn.jsdelivr.net/gh/nvstly/icons@main/
 
 export const TOKENS: Token[] = [
   // Hagi's test dollar stands in for USDG (Global Dollar), so it wears that logo. The name stays "Test USDG".
-  { symbol: 'USDG', name: 'Test USDG', decimals: 6, address: CFG.contracts.usdg, price: 1, logoURI: 'https://coin-images.coingecko.com/coins/images/51281/large/GDN_USDG_Token_200x200.png', logoFill: true },
+  { symbol: 'USDG', name: CFG.mainnet ? 'USDG' : 'Test USDG', decimals: 6, address: CFG.contracts.usdg, price: 1, logoURI: 'https://coin-images.coingecko.com/coins/images/51281/large/GDN_USDG_Token_200x200.png', logoFill: true },
   { symbol: 'TSLA', name: 'Tesla', decimals: 18, address: CFG.tokens.TSLA, price: 0, logoURI: logo('TSLA') },
   { symbol: 'AMD', name: 'AMD', decimals: 18, address: CFG.tokens.AMD, price: 0, logoURI: logo('AMD') },
   { symbol: 'AMZN', name: 'Amazon', decimals: 18, address: CFG.tokens.AMZN, price: 0, logoURI: logo('AMZN'), logoDark: true },
   { symbol: 'NFLX', name: 'Netflix', decimals: 18, address: CFG.tokens.NFLX, price: 0, logoURI: logo('NFLX') },
   { symbol: 'PLTR', name: 'Palantir', decimals: 18, address: CFG.tokens.PLTR, price: 0, logoURI: logo('PLTR'), logoDark: true },
+  ...(CFG.tokens.NVDA ? [{ symbol: 'NVDA', name: 'NVIDIA', decimals: 18, address: CFG.tokens.NVDA, price: 0, logoURI: logo('NVDA') }] : []),
 ]
 export const STOCKS = TOKENS.filter(t => t.symbol !== 'USDG')
 export const token = (s: string): Token => TOKENS.find(t => t.symbol === s) ?? { symbol: s, name: s, decimals: 18, address: '0x0000000000000000000000000000000000000000', price: 0 }

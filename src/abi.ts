@@ -59,3 +59,18 @@ export const ghostAbi = parseAbi([
   'function netOf(uint256 amount) view returns (uint256)',
   'function claim(uint256 partialCommitment, address token, uint256 amount, bytes encryptedNote) returns (uint256)',
 ])
+
+// Uniswap v3 QuoterV2. Not a view function: it is called with eth_call and returns the quote.
+export const quoterAbi = parseAbi([
+  'struct QuoteExactInputSingleParams { address tokenIn; address tokenOut; uint256 amountIn; uint24 fee; uint160 sqrtPriceLimitX96; }',
+  'function quoteExactInputSingle(QuoteExactInputSingleParams params) returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)',
+  'function quoteExactInput(bytes path, uint256 amountIn) returns (uint256 amountOut, uint160[] sqrtPriceX96AfterList, uint32[] initializedTicksCrossedList, uint256 gasEstimate)',
+])
+
+// The beta guards on the mainnet vault.
+export const guardAbi = parseAbi([
+  'function paused() view returns (bool)',
+  'function shieldLimit(address token) view returns (uint128 perAddress, uint128 total)',
+  'function shieldedBy(address token, address from) view returns (uint256)',
+  'function netShielded(address token) view returns (uint256)',
+])

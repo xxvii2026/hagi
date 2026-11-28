@@ -1,9 +1,9 @@
 // Talks to the chain: balances, pools, baskets, vault notes, and every action the app can take.
-import { bytesToHex, concat, createPublicClient, createWalletClient, custom, encodeAbiParameters, getAddress, http, isAddress, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
+import { bytesToHex, concat, createPublicClient, createWalletClient, custom, encodeAbiParameters, encodePacked, getAddress, http, isAddress, keccak256, maxUint256, parseAbiItem, toHex, type Hex } from 'viem'
 import { privateKeyToAccount, type PrivateKeyAccount } from 'viem/accounts'
-import { erc20Abi, ghostAbi, registryAbi, swapAbi, vaultAbi } from './abi'
+import { erc20Abi, ghostAbi, guardAbi, quoterAbi, registryAbi, swapAbi, vaultAbi } from './abi'
 import { CFG, chain } from './chain'
-import { STOCKS, TOKENS, fromUnits, token, tokenByAddress, type Basket } from './data'
+import { STOCKS, TOKENS, fromUnits, toUnits, token, tokenByAddress, type Basket } from './data'
 import { SIGN_MESSAGE, MerkleTree, commitment, decryptNote, deriveKeys, encryptNote, ghostAddress, ghostBlinding, ghostPartial, matchGhost, nullifier, parseAddress, partialCommitment, randomField, toAddress, type Keys, type Note } from './zk/core'
 import type { TxRequest } from './zk/prove'
 
@@ -133,6 +133,13 @@ export async function readWallet(): Promise<{ balances: Record<string, number>; 
 
 /** Reads every pool's reserves and updates each stock's price. */
 export async function readPools() {
+  if (CFG.uni) {
+    // Mainnet: price each stock by asking Uniswap what a small sale (0.01 of a share) would return.
+    const probe = 10n ** 16n
+    const qs = await Promise.all(STOCKS.map(t => uniQuote(t.address, CFG.contracts.usdg, probe).catch(() => 0n)))
+    STOCKS.forEach((t, i) => { if (qs[i] > 0n) t.price = Number(qs[i]) / 1e4 / (1 - (CFG.uni!.fees[t.symbol] ?? 3000) / 1e6) })
+    return
+  }
   const rs = await Promise.all(STOCKS.map(t => pub.readContract({ address: CFG.contracts.swap, abi: swapAbi, functionName: 'pools', args: [t.address] })))
   STOCKS.forEach((t, i) => {
     reserves[t.symbol] = [rs[i][0], rs[i][1]]
@@ -144,6 +151,14 @@ const out = (amountIn: bigint, rIn: bigint, rOut: bigint) => { const f = amountI
 /** Estimates a swap from the last pool reserves read, using the same maths as the pools. */
 export function estimate(from: string, to: string, amountIn: bigint): bigint {
   if (from === to || amountIn <= 0n) return 0n
+  if (CFG.uni) {
+    // Mainnet: a preview from the last prices, less each pool's fee. The real quote is taken when you swap.
+    const a = token(from), b = token(to)
+    if (!a.price || !b.price) return 0n
+    const keep = (s: string) => s === 'USDG' ? 1 : 1 - (CFG.uni!.fees[s] ?? 3000) / 1e6
+    const usd = fromUnits(amountIn, a.decimals) * a.price * keep(from) * keep(to)
+    return toUnits(Math.floor((usd / b.price) * 1e6) / 1e6, b.decimals)
+  }
   const sell = (s: string, x: bigint) => out(x, reserves[s]?.[0] ?? 0n, reserves[s]?.[1] ?? 0n)
   const buy = (s: string, x: bigint) => out(x, reserves[s]?.[1] ?? 0n, reserves[s]?.[0] ?? 0n)
   return from === 'USDG' ? buy(to, amountIn) : to === 'USDG' ? sell(from, amountIn) : buy(to, sell(from, amountIn))
@@ -517,7 +532,30 @@ export async function burst(sym: string, items: BurstItem[], step: Step, onPaid?
   return paid
 }
 
-const quote = (from: Hex, to: Hex, amountIn: bigint) => pub.readContract({ address: CFG.contracts.swap, abi: swapAbi, functionName: 'quoteExactIn', args: [from, to, amountIn] })
+/** Uniswap's quote for a swap. Every stock trades against USDG, so stock to stock goes through USDG. */
+async function uniQuote(from: Hex, to: Hex, amountIn: bigint): Promise<bigint> {
+  const u = CFG.uni!, usdg = CFG.contracts.usdg
+  const fee = (a: Hex) => { const f = u.fees[tokenByAddress(a)?.symbol ?? '']; if (!f) throw new Error('No market for that stock yet'); return f }
+  if (from === usdg || to === usdg) {
+    const { result } = await pub.simulateContract({ address: u.quoter, abi: quoterAbi, functionName: 'quoteExactInputSingle', args: [{ tokenIn: from, tokenOut: to, amountIn, fee: fee(from === usdg ? to : from), sqrtPriceLimitX96: 0n }] })
+    return result[0]
+  }
+  const path = encodePacked(['address', 'uint24', 'address', 'uint24', 'address'], [from, fee(from), usdg, fee(to), to])
+  const { result } = await pub.simulateContract({ address: u.quoter, abi: quoterAbi, functionName: 'quoteExactInput', args: [path, amountIn] })
+  return result[0]
+}
+const quote = (from: Hex, to: Hex, amountIn: bigint) => CFG.uni ? uniQuote(from, to, amountIn) : pub.readContract({ address: CFG.contracts.swap, abi: swapAbi, functionName: 'quoteExactIn', args: [from, to, amountIn] })
+
+/** Mainnet beta: how much of the deposit limits is left for this wallet and for the vault as a whole. */
+export async function readLimits(): Promise<{ paused: boolean; mine: number; perAddress: number; used: number; total: number } | null> {
+  if (!CFG.mainnet) return null
+  const usdg = CFG.contracts.usdg, v = { address: CFG.contracts.vault, abi: guardAbi } as const
+  const [paused, lim, used, mine] = await Promise.all([
+    pub.readContract({ ...v, functionName: 'paused' }), pub.readContract({ ...v, functionName: 'shieldLimit', args: [usdg] }),
+    pub.readContract({ ...v, functionName: 'netShielded', args: [usdg] }), account ? pub.readContract({ ...v, functionName: 'shieldedBy', args: [usdg, account] }) : 0n,
+  ])
+  return { paused, mine: fromUnits(mine, 6), perAddress: fromUnits(lim[0], 6), used: fromUnits(used, 6), total: fromUnits(lim[1], 6) }
+}
 const SLIPPAGE = 995n // accept at least 99.5% of the quoted output
 
 export async function swap(from: string, to: string, n: number, step: Step): Promise<number> {
