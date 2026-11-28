@@ -1,6 +1,6 @@
 name: Mainnet beta proving keys
 # Makes fresh proving keys for the mainnet beta on a clean runner.
-# Starts from the public Hermez powers-of-tau ceremony, adds two rounds of randomness from the runner
+# Starts from the public perpetual powers-of-tau ceremony, adds two rounds of randomness from the runner
 # that are never printed or saved, then a public beacon. The runner is destroyed afterwards.
 # This is a single-operator setup, good for the capped team beta. A multi-person ceremony replaces it later.
 on:
@@ -25,7 +25,10 @@ jobs:
           npx circom2 transaction.circom --r1cs --wasm --sym -o build
           npx snarkjs r1cs info build/transaction.r1cs
           echo "r1cs sha256: $(sha256sum build/transaction.r1cs | cut -d' ' -f1)"
-          curl -sSfL -o build/hez15.ptau https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_15.ptau
+          for u in https://pse-trusted-setup-ppot.s3.eu-central-1.amazonaws.com/pot28_0080/ppot_0080_15.ptau https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_15.ptau https://storage.googleapis.com/zkevm/ptau/powersOfTau28_hez_final_15.ptau; do
+            if curl -sSfL -o build/hez15.ptau "$u"; then echo "ptau from $u"; break; fi
+          done
+          test -s build/hez15.ptau
           echo "ptau sha256: $(sha256sum build/hez15.ptau | cut -d' ' -f1)"
           npx snarkjs powersoftau verify build/hez15.ptau | tail -3
           npx snarkjs groth16 setup build/transaction.r1cs build/hez15.ptau build/z0.zkey
