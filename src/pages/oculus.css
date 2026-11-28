@@ -14,7 +14,7 @@
   background:conic-gradient(from 210deg,#eef1ff,#6b759f 14%,#d9deff 30%,#3a4270 48%,#c4cbf2 64%,#565f8c 80%,#eef1ff);
   box-shadow:0 0 0 1px rgba(255,255,255,.25),0 30px 120px rgba(0,0,0,.7)}
 
-.oc-pit{position:absolute;left:-25%;top:-25%;width:150%;height:150%;pointer-events:none;background:radial-gradient(circle,#ff8a2a 0,#a11a10 40%,#1a0606 62%,transparent 63.2%)}.oc-pit.on{background:none}
+.oc-pit{position:absolute;left:-35%;top:-35%;width:170%;height:170%;pointer-events:none;background:radial-gradient(circle,#ff8a2a 0,#a11a10 35%,#1a0606 55%,transparent 55.8%)}.oc-pit.on{background:none}
 .oc-mid{position:absolute;inset:0;display:grid;place-content:center;z-index:2}.oc-mid::before{content:"";position:absolute;left:8%;right:8%;top:30%;bottom:28%;border-radius:50%;background:radial-gradient(ellipse,rgba(10,4,6,.5),rgba(10,4,6,0) 70%)}
 .oc-num{position:relative;font:700 clamp(36px,min(7.4vh,10.6vw),84px)/1 var(--d);letter-spacing:-.045em;text-shadow:0 2px 0 rgba(0,0,0,.35),0 0 36px rgba(10,4,6,.95),0 4px 26px rgba(10,4,6,.9);min-height:1em}
 .oc-unit{position:relative;font:500 clamp(15px,2.2vh,21px) var(--d);color:#ffd9bf;margin-top:10px;text-shadow:0 0 20px rgba(5,6,15,.9)}
@@ -30,3 +30,7 @@
 .oc-hero p{position:relative;z-index:4;font:400 clamp(18px,2vw,23px)/1.45 var(--d);color:#b9c0e2;margin:0 auto}
 @media (min-width:701px){.oc-hero p{white-space:nowrap}}
 @media (prefers-reduced-motion:reduce){.oc *{animation:none!important}}
+.oc-eye.hot::before{animation:oc-hot 6.6s ease-in-out}.oc-eye.hot .oc-ring path{animation:oc-runehot 6.6s ease-in-out}.oc-eye.hot .oc-mid{animation:oc-shake 6.6s linear}
+@keyframes oc-hot{0%,100%{opacity:.8;scale:1}10%,55%{opacity:1;scale:1.5}}
+@keyframes oc-runehot{0%,100%{opacity:.5;stroke:#8f9be0}8%,60%{opacity:1;stroke:#ffb27a}}
+@keyframes oc-shake{0%,60%,100%{translate:0 0}5%,25%,45%{translate:1.5px -1px}15%,35%,55%{translate:-1.5px 1px}}

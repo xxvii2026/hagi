@@ -1,5 +1,5 @@
 // The Oculus (oculus.hagitrade.xyz): a round window into HELL. Counts every $HAGI burned, live from the chain.
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Mark } from '../ui'
 import './oculus.css'
 
@@ -27,32 +27,36 @@ function useCount(target: number) {
   return v
 }
 
+// B is the surge (0 to 1): when someone burns $HAGI the fire swells past the window for a few seconds.
 // A real fire seen through the window: flames climb from the bottom, and a few tongues lick out past the rim.
-// The canvas is 1.5x the window so the fire has room to leak. RI is the inner edge of the steel rim.
-const FRAG = `precision highp float;uniform vec2 R;uniform float T;
+// The canvas is 1.7x the window so the fire has room to leak. RI is the inner edge of the steel rim.
+const FRAG = `precision highp float;uniform vec2 R;uniform float T;uniform float B;
 float h(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
 float n(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
  return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x),mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x),f.y),
             mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x),mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x),f.y),f.z);}
 float fbm(vec3 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*n(p);p=p*2.07+5.3;a*=.5;}return s;}
 vec3 fire(float f){f=clamp(f,0.,1.);return vec3(min(1.,f*2.3),pow(f,2.1)*1.05,pow(f,7.)*.7);}
-void main(){vec2 p=(gl_FragCoord.xy*2.-R)/R*1.5;float r=length(p);const float RI=.948;
+void main(){vec2 p=(gl_FragCoord.xy*2.-R)/R*1.7;float r=length(p);const float RI=.948;
  float wx=(fbm(vec3(p*1.7,T*.35))-.5);
  vec2 q=vec2(p.x*2.3+wx*1.1,p.y*.95-T*1.55);
  float a=fbm(vec3(q,T*.4));float d=fbm(vec3(q*2.7+3.,T*.75));
  float hgt=(p.y+1.)*.5;
- float fr=a*1.35+(d-.5)*.62-hgt*1.02+.3;
+ float fr=a*1.35+(d-.5)*.62-hgt*(1.02-.55*B)+.3+B*.1;
  float f=smoothstep(.04,1.08,fr);
  vec3 c=fire(f)+vec3(.06,.014,.0)*(1.-hgt);
  c*=1.-smoothstep(.84,RI,r)*.35;
  float in_=1.-smoothstep(RI-.006,RI+.006,r);
  float up=smoothstep(-.5,.9,p.y/max(r,.001));
- float lf=smoothstep(.1,.8,fr+.2-(r-RI)*mix(10.,3.2,up))*step(RI-.01,r);
+ float lf=smoothstep(.1,.8,fr+.2+B*.06-(r-RI)*mix(10.,3.2,up)*(1.-.74*B*up))*step(RI-.01,r);
  vec3 lc=fire(lf*.9);
- float al=max(in_,lf*smoothstep(1.48,1.15,r));
+ float al=max(in_,lf*smoothstep(1.68,1.25,r));
  vec3 col=mix(lc,c,in_);gl_FragColor=vec4(col*al,al);}`
 
-function Pit() {
+// Surge shape: up fast, hold, then settle back.
+const surge = (u: number) => u < 0 ? 0 : u < .5 ? u / .5 : u < 3.6 ? 1 : Math.max(0, 1 - (u - 3.6) / 3)
+
+function Pit({ at }: { at: React.MutableRefObject<number> }) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     const cv = ref.current!; const gl = cv.getContext('webgl', { antialias: false, alpha: true, premultipliedAlpha: true }); if (!gl) return
@@ -63,7 +67,7 @@ function Pit() {
     gl.useProgram(pr); cv.classList.add('on')
     gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
     const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-    const uR = gl.getUniformLocation(pr, 'R'), uT = gl.getUniformLocation(pr, 'T')
+    const uR = gl.getUniformLocation(pr, 'R'), uT = gl.getUniformLocation(pr, 'T'), uB = gl.getUniformLocation(pr, 'B')
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches
     let raf = 0, seen = true
     const io = new IntersectionObserver(e => { seen = e[0].isIntersecting }); io.observe(cv)
@@ -71,7 +75,7 @@ function Pit() {
       raf = requestAnimationFrame(draw); if (!seen) return
       const s = Math.min(960, Math.round(cv.clientWidth * Math.min(1.25, devicePixelRatio || 1)))
       if (cv.width !== s) { cv.width = cv.height = s; gl.viewport(0, 0, s, s) }
-      gl.uniform2f(uR, s, s); gl.uniform1f(uT, still ? 3 : t / 1000); gl.drawArrays(gl.TRIANGLES, 0, 3)
+      gl.uniform2f(uR, s, s); gl.uniform1f(uT, still ? 3 : t / 1000); const b = surge((performance.now() - at.current) / 1000); gl.uniform1f(uB, b * b * (3 - 2 * b)); gl.drawArrays(gl.TRIANGLES, 0, 3)
     }
     raf = requestAnimationFrame(draw)
     return () => { cancelAnimationFrame(raf); io.disconnect() }
@@ -110,11 +114,21 @@ function Embers() {
 export default function Oculus() {
   const [f, setF] = useState<Feed | null>(null)
   const [err, setErr] = useState(false)
+  const [hot, setHot] = useState(false)
+  const at = useRef(-1e9), last = useRef<number | null>(null), cool = useRef(0)
+  const flare = () => { at.current = performance.now(); setHot(true); clearTimeout(cool.current); cool.current = window.setTimeout(() => setHot(false), 6600) }
   useEffect(() => {
     document.title = 'The Oculus · Hagi'; document.body.style.background = '#05060f'; document.documentElement.style.zoom = '1'; document.documentElement.style.overflow = document.body.style.overflow = 'hidden'
-    const load = () => fetch('/api/hell').then(r => r.ok ? r.json() : Promise.reject()).then(j => { setF(j); setErr(false) }).catch(() => setErr(true))
-    load(); const t = setInterval(load, 30000); return () => clearInterval(t)
-  }, [])
+    // Checks the chain every 5 seconds. A higher burned total than last time means someone just burned.
+    const load = () => fetch('/api/hell').then(r => r.ok ? r.json() : Promise.reject()).then((j: Feed) => {
+      if (last.current !== null && j.burned > last.current + .5) flare()
+      last.current = j.burned; setF(j); setErr(false)
+    }).catch(() => setErr(true))
+    load(); const t = setInterval(load, 5000)
+    // #/oculus?test plays the surge once, to preview it without a real burn.
+    const demo = location.hash.includes('?test') ? setTimeout(flare, 2500) : 0
+    return () => { clearInterval(t); clearTimeout(demo) }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
   const burned = useCount(f?.burned ?? 0)
 
   return (
@@ -123,11 +137,11 @@ export default function Oculus() {
 
       <section className="oc-hero">
         <Embers />
-        <div className="oc-eye">
+        <div className={'oc-eye' + (hot ? ' hot' : '')}>
           <svg className="oc-ring" viewBox="0 0 1000 1000" aria-hidden="true">
             {RING.map((k, i) => <path key={i} d={RUNES[k]} style={{ animationDelay: `${-((i * 37) % 90) / 10}s` }} transform={`rotate(${(i * 360) / RING.length} 500 500) translate(${500 - 5 * 2.9} ${34 - 9 * 2.9}) scale(2.9)`} />)}
           </svg>
-          <div className="oc-rim" /><Pit />
+          <div className="oc-rim" /><Pit at={at} />
             <div className="oc-coin"><i><Mark leaf="#e9ecf7" block="#8f9fdc" size={34} /></i></div>
             <div className="oc-mid">
               <div className="oc-num">{f ? full(burned) : err ? '–' : ''}</div>
