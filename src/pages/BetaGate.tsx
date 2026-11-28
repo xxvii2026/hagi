@@ -24,7 +24,7 @@ export default function BetaGate({ onPass }: { onPass: () => void }) {
   const { api } = useStore()
   const [busy, setBusy] = useState('')
   const [err, setErr] = useState('')
-  useEffect(() => { document.title = 'Hagi mainnet beta · Coming soon'; document.documentElement.style.zoom = '1'; document.body.style.background = '#070818'; return () => { document.documentElement.style.zoom = ''; document.body.style.background = '' } }, [])
+  useEffect(() => { document.title = 'Hagi mainnet beta · Coming soon'; document.documentElement.style.zoom = '1'; document.body.style.background = '#f6f7fc'; return () => { document.documentElement.style.zoom = ''; document.body.style.background = '' } }, [])
 
   const signIn = async () => {
     setErr('')
@@ -59,10 +59,9 @@ export default function BetaGate({ onPass }: { onPass: () => void }) {
     <div className="bg8">
       <div className="bg8-glow" />
       <div className="bg8-in">
-        <div className="bg8-lg"><Mark leaf="#ffffff" block="#8f9fdc" size={34} />hagi</div>
+        <div className="bg8-lg"><Mark leaf="#566eba" block="#a9b6e4" size={34} />hagi</div>
         <h1>Coming soon.</h1>
-        <p className="bg8-sub">Stocks, off the record. On mainnet.</p>
-        <p className="bg8-wl">{busy ? busy + '…' : <>Whitelisted? <button onClick={signIn}>Sign in here</button></>}</p>
+        <p className="bg8-wl">{busy ? busy + '…' : <>Whitelisted? <button onClick={signIn}>Click here</button></>}</p>
         {err && <p className="bg8-err">{err}</p>}
       </div>
     </div>
