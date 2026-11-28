@@ -3,7 +3,7 @@
 // It cannot change a transaction: the proof binds the recipient, amounts and swap terms.
 import { createPublicClient, createWalletClient, encodeFunctionData, formatEther, http, parseAbi, parseEther, type Hex } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { passValid } from './_gate'
+import { createHmac, timingSafeEqual } from 'node:crypto'
 
 // Two networks share this relayer. `?net=main` is the mainnet beta, with its own vault and its own key.
 const NETS = {
@@ -93,6 +93,34 @@ async function topUp(pub: any, wallet: any, me: Hex) {
   const unwrap = encodeFunctionData({ abi: uni, functionName: 'unwrapWETH9', args: [minOut, me] })
   await wallet.writeContract({ address: ROUTER, abi: uni, functionName: 'multicall', args: [[swap, unwrap]] })
 }
+
+// ---------- beta pass ----------
+// Kept in this file on purpose: these functions run as separate ES modules on Vercel, and a shared local
+// import failed to load there. The same helpers are in api/gate.ts and must stay identical.
+/** BETA_OPEN=1 turns the gate off for everyone. */
+const gateOpen = () => process.env.BETA_OPEN === '1'
+// The signing secret is derived from the mainnet relayer key, so there is nothing extra to set up.
+const secret = () => { const k = process.env.MAINNET_RELAYER_PRIVATE_KEY || ''; return k ? createHmac('sha256', 'hagi-beta-gate').update(k.trim()).digest() : null }
+const mac = (body: string, s: Buffer) => createHmac('sha256', s).update(body).digest('hex')
+
+function issuePass(address: string, days = 30): string | null {
+  const s = secret(); if (!s) return null
+  const body = address.toLowerCase() + '.' + (Date.now() + days * 86_400_000)
+  return body + '.' + mac(body, s)
+}
+
+function passValid(pass: unknown): boolean {
+  if (gateOpen()) return true
+  const s = secret(); if (!s || typeof pass !== 'string') return false
+  const m = /^(0x[0-9a-f]{40})\.(\d+)\.([0-9a-f]{64})$/.exec(pass)
+  if (!m || Number(m[2]) < Date.now()) return false
+  const want = Buffer.from(mac(m[1] + '.' + m[2], s)), got = Buffer.from(m[3])
+  if (want.length !== got.length || !timingSafeEqual(want, got)) return false
+  // A wallet taken off the list loses access straight away, even with an unexpired pass.
+  return whitelist().includes(m[1])
+}
+
+const whitelist = () => [process.env.BETA_WHITELIST, process.env.ADMIN_WALLETS].join(',').split(',').map(x => x.trim().toLowerCase()).filter(x => /^0x[0-9a-f]{40}$/.test(x))
 
 async function readBody(req: any) {
   if (req.body) return typeof req.body === 'string' ? JSON.parse(req.body) : req.body
